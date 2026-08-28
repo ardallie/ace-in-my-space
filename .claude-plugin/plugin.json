@@ -1,0 +1,19 @@
+{
+  "name": "ace",
+  "version": "0.1.0",
+  "description": "Ace in my space -- a suite of agent skills for planning, multi-agent review, pull requests, report publication, and harness detection.",
+  "author": {
+    "name": "ardallie",
+    "url": "https://github.com/ardallie"
+  },
+  "homepage": "https://github.com/ardallie/ace-in-my-space",
+  "repository": "https://github.com/ardallie/ace-in-my-space",
+  "license": "MIT",
+  "keywords": [
+    "planning",
+    "code-review",
+    "multi-agent",
+    "pull-requests",
+    "workflow"
+  ]
+}
