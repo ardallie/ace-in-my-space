@@ -1,0 +1,17 @@
+{
+  "name": "ace-in-my-space",
+  "interface": {
+    "displayName": "Ace in my space"
+  },
+  "plugins": [
+    {
+      "name": "ace",
+      "source": "./",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
