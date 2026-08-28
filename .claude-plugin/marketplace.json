@@ -1,0 +1,28 @@
+{
+  "name": "ace-in-my-space",
+  "owner": {
+    "name": "ardallie",
+    "url": "https://github.com/ardallie"
+  },
+  "metadata": {
+    "description": "Marketplace for the Ace in my space agent-skill suite.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "ace",
+      "source": "./",
+      "description": "Ace in my space -- a suite of agent skills for planning, multi-agent review, pull requests, report publication, and harness detection.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "homepage": "https://github.com/ardallie/ace-in-my-space",
+      "keywords": [
+        "planning",
+        "code-review",
+        "multi-agent",
+        "pull-requests",
+        "workflow"
+      ]
+    }
+  ]
+}
