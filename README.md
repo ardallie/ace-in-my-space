@@ -38,9 +38,8 @@ must be addressed that way; the bare form does not resolve for agents.
 
 ### Codex CLI
 
-The Codex edition ships from this same repository as a native Codex plugin
-(`.codex-plugin/plugin.json` plus a `codex/` tree derived from the Claude tree). It is not
-published yet. When it lands, installation is:
+The Codex edition ships from this repository as a native Codex plugin. Add the Git
+marketplace, then install `ace`:
 
 ```
 codex plugin marketplace add ardallie/ace-in-my-space
@@ -50,7 +49,19 @@ codex plugin add ace@ace-in-my-space
 Skills are then invoked as `$ace:ace-plan-start`, since Codex uses `$` mentions rather
 than slash commands.
 
+For local development, point the marketplace at a checkout and install from the same
+marketplace name:
+
+```
+codex plugin marketplace add /path/to/ace-in-my-space
+codex plugin add ace@ace-in-my-space
+```
+
 ## Commands
+
+The command list below uses the Claude edition's short slash form. Under Codex, replace
+each form with its plugin-qualified skill mention: `/ace-plan-start` becomes
+`$ace:ace-plan-start`, `/ace-pr-read` becomes `$ace:ace-pr-read`, and so on.
 
 ### Planning
 
@@ -124,6 +135,56 @@ drops a rules-file reference, this section updates in the same change.
 `/ace-detect-harness` cites none of the three; it is self-contained apart from its own
 `models.md`.
 
+The derived Codex edition copies the same boundary under `codex/rules/` and cites the
+files relative to the active skill (`../../rules/{file}.md`). Codex skill content uses no
+plugin-root substitution variable.
+
+## Codex derivation
+
+The Claude tree (`skills/`, `agents/`, and `rules/`) is the source of truth. Regenerate
+and check the committed Codex edition after changing it:
+
+```
+node scripts/build-codex.mjs
+node scripts/check-codex.mjs
+```
+
+The conversion reduces skill frontmatter to `name` and `description`, moves argument
+hints into the body, qualifies internal skill mentions, converts plugin-root paths to
+relative references, adapts questions and subagent spawns, and copies the three rules
+and three supporting agent payloads into `codex/`.
+
+## Harness differences
+
+- Claude invokes skills with slash commands; Codex invokes installed skills as
+  `$ace:ace-{name}`. Codex chains are model-mediated instructions that name both the
+  qualified skill and its sibling `SKILL.md`; Claude chains use the slash-command
+  surface.
+- Claude discovers the three custom agents from the plugin's `agents/` directory. The
+  Codex plugin manifest has no custom-agent component, so the Codex orchestrators read
+  `codex/agents/*.md` as supporting payloads and pass them through
+  `collaboration.spawn_agent.message` on the built-in `default` role. The named custom
+  role is not preserved.
+- Claude's per-spawn worktree isolation field has no Codex collaboration equivalent.
+  The Codex consultant confines file-creating probes to a verified operating-system
+  temporary directory and leaves the shared repository tree untouched.
+- Claude uses `AskUserQuestion`. Codex uses `request_user_input` when Plan mode exposes
+  it and asks the same ordered options in plain text in Default mode. The structured
+  Codex surface accepts at most three questions and two or three options per question,
+  so larger interviews are batched; both paths retain keep-current behaviour and one
+  first-position `(Recommended)` option.
+- Claude substitutes `${CLAUDE_PLUGIN_ROOT}` in skill content. Codex resolves supporting
+  files relative to the active `SKILL.md`; `${PLUGIN_ROOT}` is not used because it is a
+  hook-command variable only.
+- Claude frontmatter carries `argument-hint` and `disable-model-invocation`. Codex folds
+  the hint into the skill body and relies on the default
+  `policy.allow_implicit_invocation: true`, so no `agents/openai.yaml` is emitted.
+- Claude agent payloads name Claude tools and permission modes. The Codex payloads use
+  `exec_command`, `rg`, `apply_patch`, and `collaboration.spawn_agent`; their prompt-level
+  write boundaries remain binding.
+- The Codex harness detector publishes only the Codex `(model, reasoning_effort)` tier
+  mapping. The Claude edition retains its Claude-model mapping.
+
 ## Host requirements
 
 The suite assumes the host session provides:
@@ -171,7 +232,15 @@ followed by a remove and add:
 
 ```
 codex plugin marketplace upgrade ace-in-my-space
-codex plugin remove ace
+codex plugin remove ace@ace-in-my-space
+codex plugin add ace@ace-in-my-space
+```
+
+For a local checkout, bump the SemVer value in `.codex-plugin/plugin.json` (a build
+metadata cachebuster is sufficient), then reinstall without a marketplace upgrade:
+
+```
+codex plugin remove ace@ace-in-my-space
 codex plugin add ace@ace-in-my-space
 ```
 
