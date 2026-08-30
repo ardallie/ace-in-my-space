@@ -4,23 +4,23 @@ Shared analysis conventions for the suite's two analysis skills: the context-pac
 exploration checklist, the analyst instructions, the sceptic's remit, the findings
 consolidation rules, and the enhanced-brief regeneration rules. Consumers:
 
-- `${CLAUDE_PLUGIN_ROOT}/skills/ace-agent-arch-review/SKILL.md` -- full; its SKILL.md appends the
+- `${CLAUDE_PLUGIN_ROOT}/skills/agent-arch-review/SKILL.md` -- full; its SKILL.md appends the
   arch-review-local analyst rules 9 and 10 (runtime-behaviour corrective instruments;
   `--prior` classification), its local consolidation rules (prior findings,
   contradictory findings, mappings, continue-above-max numbering), and its local
   enhanced-brief rules (the post-implementation restructuring licence and its two
   sub-bullets, the source-verified-instrument bullet, the `--prior` `[Resolved]`
   carry-forward bullet)
-- `${CLAUDE_PLUGIN_ROOT}/skills/ace-agent-pre-planner/SKILL.md` -- full; its SKILL.md appends its local
+- `${CLAUDE_PLUGIN_ROOT}/skills/agent-pre-planner/SKILL.md` -- full; its SKILL.md appends its local
   consolidation rules (derived-brief numbering, the before-planning question test) and its
   local enhanced-brief rules (the `Scope:`-directive restriction, the derived-brief
   synthesis sentence, the informal-prose-citation bullet)
 
-Two aligned copies diverge deliberately and do not consume this file: `/ace-agent-consultant`
+Two aligned copies diverge deliberately and do not consume this file: `/ace:agent-consultant`
 compresses the context-package checklist to a question-scoped read and restates the
-analyst instructions as its own researcher rules; `/ace-agent-scope` replaces the checklist
+analyst instructions as its own researcher rules; `/ace:agent-scope` replaces the checklist
 with a knowledge-first posture on a smaller read budget, and carries its own panel
-instructions. `/ace-agent-code-review` is not a consumer either, and carries no aligned copy:
+instructions. `/ace:agent-code-review` is not a consumer either, and carries no aligned copy:
 its reviewer instructions and severity-graded consolidation are its own, as its
 `## Shared conventions` section states.
 
@@ -155,7 +155,7 @@ Walk through the original brief's structure and content. Reconstruct it element 
 - Do not reproduce near-byte-identical text under a new heading; preserve the substantive
   prose and weave findings in where they apply
 - Omit context-gathering directives that the analysis has fulfilled — instructions to fetch
-  or read artefacts (e.g., "run /ace-plan-read X", "inspect touched files") have been addressed
+  or read artefacts (e.g., "run /ace:plan-read X", "inspect touched files") have been addressed
   during analysis; exclude them. Preserve directives that express constraints, goals, or
   design questions for the planner.
 - Where the original content is accurate and well-founded, preserve it unchanged

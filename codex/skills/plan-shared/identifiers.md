@@ -4,17 +4,17 @@ Shared identifier rules for the plan-workflow skill suite: the two title-slug ru
 the 8-hex suffix snippet. Each rule is single-sourced here; consumers cite this file
 instead of re-spelling the rule. Consumers:
 
-- `../ace-plan-start/SKILL.md` -- issue-title slug rule and report-title slug rule
+- `../plan-start/SKILL.md` -- issue-title slug rule and report-title slug rule
   (Phase 4), hex snippet (Phase 4)
-- `../ace-plan-start/references/issue-route.md` -- hex snippet (staging step)
-- `../ace-plan-validate/SKILL.md` -- report-title fallback slug derivations and hex
+- `../plan-start/references/issue-route.md` -- hex snippet (staging step)
+- `../plan-validate/SKILL.md` -- report-title fallback slug derivations and hex
   snippet (Phase 1, non-convention plan-file and no-arguments branches)
-- `../ace-plan-validate/references/issue-staging.md` -- issue-title slug rule and
+- `../plan-validate/references/issue-staging.md` -- issue-title slug rule and
   hex snippet (no-footer branch)
-- `../ace-plan-update/SKILL.md` -- issue-title slug rule and hex snippet
+- `../plan-update/SKILL.md` -- issue-title slug rule and hex snippet
   (Phase 2A step 2 non-convention branch; Phase 2B step 3 executes that branch by
   reference)
-- `../../agents/ace-plan-drafter.md` -- report-title slug rule (step 4)
+- `../../agents/plan-drafter.md` -- report-title slug rule (step 4)
 
 ## Issue-title slug rule
 
@@ -22,7 +22,7 @@ Derive the slug from a GitHub issue title: strip a leading bracketed label (any 
 prefix, e.g. `[PLAN] `, `[pkg-NN.M] `) and any trailing ` ({n}/{m})` stage suffix, then
 kebab-case and truncate to 3 keywords (hyphen-delimited tokens). Issues published by this
 pipeline are titled `[PLAN] <plan H1>` (optionally with a stage suffix, per
-`$ace:ace-report-publish`) and may be retitled `[pkg-NN.M] ...` by the host's work-packaging
+`$ace:report-publish`) and may be retitled `[pkg-NN.M] ...` by the host's work-packaging
 conventions; without the strip every issue-derived slug leads with the label's keywords.
 
 ## Report-title slug rule

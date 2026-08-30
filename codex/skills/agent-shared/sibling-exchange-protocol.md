@@ -13,12 +13,12 @@ unless a skill documents an exception in its own file.
 The registry of skills that participate in the exchange. Adding or retiring one means
 editing this list only -- the surrounding prose never names skills beyond it.
 
-- `../ace-agent-consultant/SKILL.md` -- consultant side, fully wired: accepts a
+- `../agent-consultant/SKILL.md` -- consultant side, fully wired: accepts a
   request envelope (or any compatible question set), researches its own repository, and
   produces the response envelope.
-- `../ace-agent-scope/SKILL.md` -- requester side, fully wired: its interview phase
+- `../agent-scope/SKILL.md` -- requester side, fully wired: its interview phase
   opens with a routing gate that classifies open questions and emits the request envelope.
-- `../ace-report-publish/SKILL.md` -- guard-only: its degenerate-title guard is the
+- `../report-publish/SKILL.md` -- guard-only: its degenerate-title guard is the
   mechanism that enforces the transport-only rule below, refusing the request envelope's H1
   so a request can never be published as an issue. It participates in no round.
 
@@ -158,7 +158,7 @@ response must satisfy:
   workflow.
 
 The consultant saves the response as
-`.ace/reports/{yyyyMMdd}-{HHmm}-ace-agent-consultant-{8hex}.md`, with the echoed exchange
+`.ace/reports/{yyyyMMdd}-{HHmm}-agent-consultant-{8hex}.md`, with the echoed exchange
 id as the suffix, keeping correlation at filename level on both sides.
 
 ## Answers re-entry

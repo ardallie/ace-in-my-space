@@ -3,12 +3,12 @@
 The `--checks` flag and the shared verification-battery tiers for the review skills that
 run a battery before spawning their team. Consumers:
 
-- `../ace-agent-code-review/SKILL.md` -- Phase 3 shared verification
-- `../ace-agent-arch-review/SKILL.md` -- Phase 2 shared verification
+- `../agent-code-review/SKILL.md` -- Phase 3 shared verification
+- `../agent-arch-review/SKILL.md` -- Phase 2 shared verification
 
 `--checks` is a per-skill flag in the `--prior`/`--reviewers` idiom, deliberately not a
 common flag in `input-conventions.md` -- that file's other consumers run no verification
-battery (`ace-agent-pre-planner`, `ace-agent-scope`, `ace-plan-route`), and `ace-agent-consultant` carries
+battery (`agent-pre-planner`, `agent-scope`, `plan-route`), and `agent-consultant` carries
 its own conditional cheap-gates step and no flag. Each consumer's SKILL.md states where
 its battery runs (at which repository state) and where the results are recorded, and
 restates the flag grammar in its Usage and Phase 1 flag bullets (the per-skill flag

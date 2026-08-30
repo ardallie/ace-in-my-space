@@ -51,4 +51,4 @@ When offering the user a choice between design paths, every option list must sat
 
 When justifying a recommendation, lead with the concrete payoff. Architectural symmetry alone is not a reason to add scope: phrases like "matches the X precedent" or "mirrors the Y pattern" are aesthetic rather than functional and should not tip a decision. Cite the precedent as supporting context only once the payoff is established. "Concrete payoff" is not restricted to end-user features -- maintainability, clarity, and tech-debt reduction count, on the terms set out in *Long-term architectural stability*.
 
-These rules apply to every Codex interview surface -- `request_user_input`, its plain-text fallback, the `ace-run-interview` skill, and ad-hoc prompts in skills and subagents -- not only to flows that route through `$ace:ace-run-interview`.
+These rules apply to every Codex interview surface -- `request_user_input`, its plain-text fallback, the `run-interview` skill, and ad-hoc prompts in skills and subagents -- not only to flows that route through `$ace:run-interview`.

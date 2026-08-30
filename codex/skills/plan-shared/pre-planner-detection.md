@@ -4,12 +4,12 @@ The plan-workflow suite's two-rule detection for classifying an input file as a
 pre-planner report. The detection is single-sourced here; each consumer states its own
 action on a match in its own file. Consumers:
 
-- `../ace-plan-start/SKILL.md` -- Phase 2 detection (a match makes the report the
+- `../plan-start/SKILL.md` -- Phase 2 detection (a match makes the report the
   transform driver)
-- `../ace-plan-validate/SKILL.md` -- Phase 1 rejection guard (a match stops with a
-  `$ace:ace-plan-start` redirect)
-- `../ace-plan-update/SKILL.md` -- Phase 2A step 1 rejection guard (a match stops
-  with a `$ace:ace-plan-start` redirect)
+- `../plan-validate/SKILL.md` -- Phase 1 rejection guard (a match stops with a
+  `$ace:plan-start` redirect)
+- `../plan-update/SKILL.md` -- Phase 2A step 1 rejection guard (a match stops
+  with a `$ace:plan-start` redirect)
 
 ## The two-rule detection
 

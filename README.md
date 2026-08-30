@@ -30,11 +30,10 @@ development, point the marketplace at a checkout instead of the GitHub slug:
 claude plugin marketplace add /path/to/ace-in-my-space
 ```
 
-Every skill registers under `/ace:{name}` -- for example `/ace:ace-plan-start`. On Claude
-Code 2.1.246 and later the duplicated prefix collapses and the same skill registers as
-`/ace-plan-start`. Either way the bare `/ace-plan-start` resolves, because no built-in or
-project command claims an `ace-`-prefixed name. Subagents register under `ace:{name}` and
-must be addressed that way; the bare form does not resolve for agents.
+Every skill registers under `/ace:{name}` -- for example `/ace:plan-start`. The `ace`
+plugin namespace supplies uniqueness, so the inner names carry no suite prefix of their
+own. Subagents register under `ace:{name}` -- `ace:plan-drafter` -- and must be addressed
+that way. Always use the plugin-qualified form; the suite's own chains do.
 
 ### Codex CLI
 
@@ -46,7 +45,7 @@ codex plugin marketplace add ardallie/ace-in-my-space
 codex plugin add ace@ace-in-my-space
 ```
 
-Skills are then invoked as `$ace:ace-plan-start`, since Codex uses `$` mentions rather
+Skills are then invoked as `$ace:plan-start`, since Codex uses `$` mentions rather
 than slash commands.
 
 For local development, point the marketplace at a checkout and install from the same
@@ -59,60 +58,60 @@ codex plugin add ace@ace-in-my-space
 
 ## Commands
 
-The command list below uses the Claude edition's short slash form. Under Codex, replace
-each form with its plugin-qualified skill mention: `/ace-plan-start` becomes
-`$ace:ace-plan-start`, `/ace-pr-read` becomes `$ace:ace-pr-read`, and so on.
+The command list below uses the Claude edition's slash form. Under Codex, replace the
+leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read` becomes
+`$ace:pr-read`, and so on. The skill name after the namespace is the same in both editions.
 
 ### Planning
 
-- `/ace-plan-start` -- drafts a plan from a brief, validates it, applies the findings, and
+- `/ace:plan-start` -- drafts a plan from a brief, validates it, applies the findings, and
   publishes the result as a GitHub issue
-- `/ace-plan-validate` -- validates a plan against the codebase and writes a findings
+- `/ace:plan-validate` -- validates a plan against the codebase and writes a findings
   report
-- `/ace-plan-update` -- replaces a published plan issue's body with revised content
-- `/ace-plan-read` -- loads a plan and its handoffs from one or more GitHub issues
-- `/ace-plan-route` -- chooses the workflow (scope, pre-planner, plan-direct,
+- `/ace:plan-update` -- replaces a published plan issue's body with revised content
+- `/ace:plan-read` -- loads a plan and its handoffs from one or more GitHub issues
+- `/ace:plan-route` -- chooses the workflow (scope, pre-planner, plan-direct,
   implement-direct) for a work artefact or issue
-- `/ace-plan-implement` -- implements a published plan issue item by item, then posts the
+- `/ace:plan-implement` -- implements a published plan issue item by item, then posts the
   session handoff
-- `/ace-plan-handoff` -- posts a technical handoff comment to a GitHub issue
+- `/ace:plan-handoff` -- posts a technical handoff comment to a GitHub issue
 
 ### Multi-agent analysis
 
-- `/ace-agent-scope` -- a deliberative panel over a large ambition, producing a staged
+- `/ace:agent-scope` -- a deliberative panel over a large ambition, producing a staged
   scope envelope
-- `/ace-agent-arch-review` -- architectural review over a feature, subsystem, issue, or
+- `/ace:agent-arch-review` -- architectural review over a feature, subsystem, issue, or
   file set
-- `/ace-agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
+- `/ace:agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
   consolidated findings
-- `/ace-agent-code-review` -- pre-PR code review producing severity-graded findings
-- `/ace-agent-consultant` -- answers a cross-repository consultation request as the
+- `/ace:agent-code-review` -- pre-PR code review producing severity-graded findings
+- `/ace:agent-consultant` -- answers a cross-repository consultation request as the
   consultant side of the sibling-exchange protocol
 
 ### Pull requests
 
-- `/ace-pr-create` -- creates a pull request from the branch's commits
-- `/ace-pr-read` -- reads pull requests and all three of their comment surfaces into the
+- `/ace:pr-create` -- creates a pull request from the branch's commits
+- `/ace:pr-read` -- reads pull requests and all three of their comment surfaces into the
   session
-- `/ace-pr-response` -- responds to PR review comments with a summary and threaded replies
+- `/ace:pr-response` -- responds to PR review comments with a summary and threaded replies
 
 ### Reports
 
-- `/ace-report-publish` -- publishes a report or plan markdown file as a GitHub issue
-- `/ace-report-triage` -- collates and de-duplicates findings from reports, issues, and PR
+- `/ace:report-publish` -- publishes a report or plan markdown file as a GitHub issue
+- `/ace:report-triage` -- collates and de-duplicates findings from reports, issues, and PR
   threads, verifies each against HEAD, then applies them
 
 ### Utilities
 
-- `/ace-detect-harness` -- detects the agent harness and prints the capability-tier
+- `/ace:detect-harness` -- detects the agent harness and prints the capability-tier
   mapping the other skills resolve spawn models against
-- `/ace-run-interview` -- presents open questions interactively under the option-list
+- `/ace:run-interview` -- presents open questions interactively under the option-list
   rules
-- `/ace-run-retro` -- writes a retrospective report on a finished run
+- `/ace:run-retro` -- writes a retrospective report on a finished run
 
 ### Subagents
 
-`ace:ace-plan-drafter`, `ace:ace-plan-validate`, and `ace:ace-plan-revisor` are spawned by
+`ace:plan-drafter`, `ace:plan-validate`, and `ace:plan-revisor` are spawned by
 the planning skills and are not invoked directly.
 
 ## Rules
@@ -127,12 +126,12 @@ boundary:
 
 Suite members cite them as `${CLAUDE_PLUGIN_ROOT}/rules/{file}.md`. Nothing else in this
 suite is a rules file, and no member cites a rules file outside this set *as a contract* --
-the one exception is `/ace-agent-code-review`'s skill-package module, which names
+the one exception is `/ace:agent-code-review`'s skill-package module, which names
 `.claude/rules/documentation.md` and the `.claude/rules/**` tree as host registries it
 *inspects* during a review, marked `[host]` at the citing line. When a member gains or
 drops a rules-file reference, this section updates in the same change.
 
-`/ace-detect-harness` cites none of the three; it is self-contained apart from its own
+`/ace:detect-harness` cites none of the three; it is self-contained apart from its own
 `models.md`.
 
 The derived Codex edition copies the same boundary under `codex/rules/` and cites the
@@ -157,7 +156,7 @@ and three supporting agent payloads into `codex/`.
 ## Harness differences
 
 - Claude invokes skills with slash commands; Codex invokes installed skills as
-  `$ace:ace-{name}`. Codex chains are model-mediated instructions that name both the
+  `$ace:{name}`. Codex chains are model-mediated instructions that name both the
   qualified skill and its sibling `SKILL.md`; Claude chains use the slash-command
   surface.
 - Claude discovers the three custom agents from the plugin's `agents/` directory. The
@@ -195,8 +194,8 @@ The suite assumes the host session provides:
 - a POSIX shell -- the skills' embedded command snippets are written for one (Git Bash on
   Windows)
 
-These are hard requirements, not optional integrations: `/ace-plan-start`,
-`/ace-plan-update`, `/ace-plan-handoff`, `/ace-report-publish`, and every `/ace-pr-*`
+These are hard requirements, not optional integrations: `/ace:plan-start`,
+`/ace:plan-update`, `/ace:plan-handoff`, `/ace:report-publish`, and every `/ace:pr-*`
 skill stop without them.
 
 Skills that cite a host surface this plugin does not ship -- a repository's own skills
@@ -247,7 +246,11 @@ codex plugin add ace@ace-in-my-space
 ## Versioning
 
 Semantic versioning from `0.1.0`. The Claude and Codex manifests carry the same version
-from the same repository release.
+from the same repository release, and `.claude-plugin/marketplace.json` carries it in both
+its `metadata.version` and its plugin entry -- `node scripts/check-codex.mjs` fails if the
+four disagree.
+
+See `CHANGELOG.md` for release notes, including the `0.2.0` invocation migration.
 
 ## Licence
 
