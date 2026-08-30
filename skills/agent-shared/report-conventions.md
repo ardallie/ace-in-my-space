@@ -8,7 +8,7 @@ notes) live in each SKILL.md.
 ## Standard header fields
 
 `Title:`, `Type:`, `Date:`, and — when applicable — `Stage:` open `## Summary`.
-`/ace-report-publish` composes the issue title from `Title:`, `Type:`, and `Stage:` via
+`/ace:report-publish` composes the issue title from `Title:`, `Type:`, and `Stage:` via
 `grep -m1` line matches over the first 25 lines of the file, so those three must sit
 inside that window; `Date:` is not read by the publish pipeline.
 `Title:` is concise, human-readable, suitable as a GitHub issue title, with no trailing
@@ -59,9 +59,9 @@ cancelled, or tool failure); the file on disk at this point (including any unres
 marker) is what gets published.
 
 - **`--publish no`** — do not create an issue. The final summary prints the saved report
-  path plus the ready-to-run line `/ace-report-publish {report path}`.
+  path plus the ready-to-run line `/ace:report-publish {report path}`.
 - **`--publish yes`** — publish the saved report per the `## Producer publish phase`
-  section in `${CLAUDE_PLUGIN_ROOT}/skills/ace-report-publish/SKILL.md`.
+  section in `${CLAUDE_PLUGIN_ROOT}/skills/report-publish/SKILL.md`.
 
 The report's `**Tip:**` next-step line stays in `## Summary` under both branches.
 
@@ -73,5 +73,5 @@ the saved report file — the durable report -> issue linkage and the on-disk
 duplicate-publish signal.
 
 If the publish step's `gh issue create` call fails, report the error verbatim and print
-the ready-to-run `/ace-report-publish {report path}` line — the saved report stands
+the ready-to-run `/ace:report-publish {report path}` line — the saved report stands
 regardless.

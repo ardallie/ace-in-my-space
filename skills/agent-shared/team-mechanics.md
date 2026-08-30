@@ -3,8 +3,8 @@
 Shared team-lifecycle conventions for the multi-agent skill suite: team sizing, run suffix,
 pre-spawn capture, spawning, package handoff, collection, tree hygiene, and member failure.
 Consumers: the four suite skills. Each SKILL.md states its own divergences — notably
-`ace-agent-code-review`, which runs no pre-spawn capture and no tree-hygiene check (its review
-subject is a SHA-pinned state, not the working tree). `/ace-agent-consultant` does not consume
+`agent-code-review`, which runs no pre-spawn capture and no tree-hygiene check (its review
+subject is a SHA-pinned state, not the working tree). `/ace:agent-consultant` does not consume
 this file: it carries its own aligned copy of every section below, with two deliberate
 differences — its Phase 4 suffix correlates with the exchange id rather than being freshly
 minted, and its collect step keeps the no-poll sentence this file no longer states. Where
@@ -40,9 +40,9 @@ against both.
 Spawn all members via the `Agent` tool (`subagent_type: "general-purpose"`, per-member
 `model` as assigned) in a single message so they run concurrently. Spawn-model
 prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per
-the consumer contract in `${CLAUDE_PLUGIN_ROOT}/skills/ace-detect-harness/SKILL.md` — against the
-`Harness:` block already in context, invoking `/ace-detect-harness` first if none is present.
-Where the ace-detect-harness package is absent, resolve tiers against the harness's own model
+the consumer contract in `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` — against the
+`Harness:` block already in context, invoking `/ace:detect-harness` first if none is present.
+Where the detect-harness package is absent, resolve tiers against the harness's own model
 catalogue.
 
 ## Package handoff

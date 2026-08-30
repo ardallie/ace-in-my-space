@@ -4,15 +4,15 @@ Shared input-handling conventions for the multi-agent skill suite: the flag pre-
 positional parsing rules, the residual-token warnings, and the read posture for
 adjacent-toolchain inputs. Consumers:
 
-- `${CLAUDE_PLUGIN_ROOT}/skills/ace-agent-pre-planner/SKILL.md` -- full
-- `${CLAUDE_PLUGIN_ROOT}/skills/ace-agent-arch-review/SKILL.md` -- full, with its stated Phase 1 divergences
-- `${CLAUDE_PLUGIN_ROOT}/skills/ace-agent-scope/SKILL.md` -- full, with its stated Phase 1 divergences
-- `${CLAUDE_PLUGIN_ROOT}/skills/ace-agent-code-review/SKILL.md` -- flag pre-pass and residual-token warnings
+- `${CLAUDE_PLUGIN_ROOT}/skills/agent-pre-planner/SKILL.md` -- full
+- `${CLAUDE_PLUGIN_ROOT}/skills/agent-arch-review/SKILL.md` -- full, with its stated Phase 1 divergences
+- `${CLAUDE_PLUGIN_ROOT}/skills/agent-scope/SKILL.md` -- full, with its stated Phase 1 divergences
+- `${CLAUDE_PLUGIN_ROOT}/skills/agent-code-review/SKILL.md` -- flag pre-pass and residual-token warnings
   only; its positional scope grammar is local to its SKILL.md
-- `${CLAUDE_PLUGIN_ROOT}/skills/ace-agent-consultant/SKILL.md` -- carries its own aligned copy of the flag rules,
+- `${CLAUDE_PLUGIN_ROOT}/skills/agent-consultant/SKILL.md` -- carries its own aligned copy of the flag rules,
   the positional rules, and the residual-token warnings; the `--model` rule below is shared
   with its Phase 1
-- `${CLAUDE_PLUGIN_ROOT}/skills/ace-plan-route/SKILL.md` -- adapted local copies of the positional branches (its
+- `${CLAUDE_PLUGIN_ROOT}/skills/plan-route/SKILL.md` -- adapted local copies of the positional branches (its
   no-arguments rule takes the message as the scope, not as a verbatim brief), reading this file
   on an ambiguous token and, unconditionally, for the `## Positional parsing` issue-number fetch
   grammar its own issue bullet cites; it takes no flags, so the flag pre-pass and the
@@ -44,7 +44,7 @@ SKILL.md; the two flags below are common to every flag-taking consumer.
 - Model guidance may equally arrive in the additional instructions (e.g. "a mixture of
   Tier-1 and Tier-3") rather than via `--model`: the spawn phase honours both the same way,
   as a per-member assignment. The rule is shared across the consumers above and
-  `/ace-agent-consultant` Phase 1; each command records the resulting assignment in its own
+  `/ace:agent-consultant` Phase 1; each command records the resulting assignment in its own
   report's analyst surface — a deliberate per-skeleton divergence, not drift.
 - `--publish` value; accepted values `yes|no` (the default is per skill, stated in its
   Usage section). If the value is missing or unknown, report the valid values and stop.

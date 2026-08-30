@@ -3,7 +3,7 @@
 The suite's canonical interview procedure. Consumers: the four suite skills, each stating
 its own divergences from this procedure in its own file (e.g. section names, tag
 vocabularies, where the unresolved marker is appended, whether resolved questions are
-removed or kept in place). `/ace-agent-consultant` carries a self-contained aligned copy of
+removed or kept in place). `/ace:agent-consultant` carries a self-contained aligned copy of
 the unresolved-marker grammar and its severity order rather than reading this file, and
 declares its owner-gate divergence from its own side — edit the two together.
 
