@@ -44,7 +44,7 @@ If `--from-report <path>` was set, branch to **Phase 2A**. Otherwise branch to *
    gh issue view <issue> --json body --jq .body > <intermediate-file path>
    ```
 
-   On Windows MINGW64, `<intermediate-file path>` must be in POSIX form (`/c/...`) per `${CLAUDE_PLUGIN_ROOT}/rules/environment.md`.
+   On Windows MINGW64, `<intermediate-file path>` must be in POSIX form (`/c/...`).
 
 3. Run two cross-checks against the staged body, then parse the findings.
 
@@ -93,7 +93,7 @@ If `--from-report <path>` was set, branch to **Phase 2A**. Otherwise branch to *
    gh issue edit <issue> --body-file <staged path>
    ```
 
-   On Windows MINGW64, `<staged path>` must be in POSIX form (`/c/...`) per `${CLAUDE_PLUGIN_ROOT}/rules/environment.md`. Using `--body-file` avoids re-emitting the plan through an inline heredoc — the content is already on disk, so publishing from the file halves the model emission.
+   On Windows MINGW64, `<staged path>` must be in POSIX form (`/c/...`). Using `--body-file` avoids re-emitting the plan through an inline heredoc — the content is already on disk, so publishing from the file halves the model emission.
 
    This states a different rule from the pack-wide `--body-file` warrant canonical at `${CLAUDE_PLUGIN_ROOT}/skills/pr-create/SKILL.md` step 6 (shell-quoting hazards in generated prose): here the content is already on disk, not a quoting-hazard avoidance — a later sync pass must not fold this note into that alignment set.
 

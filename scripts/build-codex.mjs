@@ -97,7 +97,6 @@ const convertCommandsAndPaths = (text) => {
   converted = converted
     .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", "../")
     .replaceAll("${CLAUDE_PLUGIN_ROOT}/agents/", "../../agents/")
-    .replaceAll("${CLAUDE_PLUGIN_ROOT}/rules/", "../../rules/")
     .replaceAll("AskUserQuestion", "request_user_input")
     .replaceAll("`Agent` tool", "`collaboration.spawn_agent`")
     .replaceAll("`Agent`", "`collaboration.spawn_agent`")
@@ -223,14 +222,12 @@ const convertPayload = (text) => {
   // A payload sits at codex/agents/*.md while skill packages sit at codex/skills/{name}/, so a
   // payload's skill reference gains a `skills/` segment. Drive this from the discovered
   // inventory (plus the two shared directories, which own no SKILL.md) rather than a blind
-  // `../{name}/` rule: `../../rules/` contains `../rules/` at offset 3, so a generalised rule
-  // over an inventory that included `rules` would rewrite the payload's own rules path.
+  // `../{name}/` rule, so a directory the inventory does not own is never rewritten.
   for (const name of [...skillInventory, "agent-shared", "plan-shared"]) {
     converted = converted.replace(new RegExp(String.raw`(?<!\.\./)\.\./${name}/`, "g"), `../skills/${name}/`);
   }
-  converted = converted.replaceAll("../../rules/", "../rules/");
 
-  if (converted.includes("../skills/rules/") || converted.includes("../../skills/")) {
+  if (converted.includes("../../skills/")) {
     throw new Error("Agent payload path rewrite corrupted a suite-relative reference.");
   }
   return converted;
@@ -251,7 +248,6 @@ if (existsSync(outputRoot)) rmSync(outputRoot, { recursive: true, force: true })
 mkdirSync(outputRoot, { recursive: true });
 
 cpSync(join(repositoryRoot, "skills"), join(outputRoot, "skills"), { recursive: true });
-cpSync(join(repositoryRoot, "rules"), join(outputRoot, "rules"), { recursive: true });
 cpSync(join(repositoryRoot, "agents"), join(outputRoot, "agents"), { recursive: true });
 
 for (const path of walkFiles(join(outputRoot, "skills"))) {
@@ -261,55 +257,10 @@ for (const path of walkFiles(join(outputRoot, "skills"))) {
   writeFileSync(path, text, "utf8");
 }
 
-for (const path of walkFiles(join(outputRoot, "rules"))) {
-  const text = convertText(readFileSync(path, "utf8"));
-  writeFileSync(path, text, "utf8");
-}
-
 for (const path of walkFiles(join(outputRoot, "agents"))) {
   const text = convertPayload(readFileSync(path, "utf8"));
   writeFileSync(path, text, "utf8");
 }
-
-const principlesPath = join(outputRoot, "rules", "principles.md");
-let principles = readFileSync(principlesPath, "utf8");
-principles = replaceAllRequired(
-  principles,
-  "## Presenting design options\n",
-  `## Codex interview surface\n+\n+Use \`request_user_input\` when it is exposed in Plan mode. It accepts at most three questions per\n+call and two or three mutually exclusive options per question; put the single \`(Recommended)\`\n+option first and include keep-current behaviour as one of the options. When the tool is unavailable\n+in Default mode, ask the same question in concise plain text with the same ordered options, the same\n+\`(Recommended)\` marker, and an explicit invitation for a free-form alternative. Tool availability\n+changes presentation only, never the decision shape.\n+\n+## Presenting design options\n`,
-  "principles Codex interview section",
-);
-principles = replaceAllRequired(principles, "\n+", "\n", "principles injected-block de-escape");
-principles = replaceAllRequired(
-  principles,
-  "`(recommended)`",
-  "`(Recommended)`",
-  "principles recommendation-marker casing",
-);
-principles = replaceAllRequired(
-  principles,
-  "request_user_input`, the `run-interview` skill",
-  "Codex interview surface, the `run-interview` skill",
-  "principles interview-surface skill mention",
-);
-principles = replaceRequired(
-  principles,
-  /^These rules apply to every interview surface .*$/m,
-  "These rules apply to every Codex interview surface -- `request_user_input`, its plain-text fallback, the `run-interview` skill, and ad-hoc prompts in skills and subagents -- not only to flows that route through `$ace:run-interview`.",
-  "principles interview-surface scope sentence",
-);
-writeFileSync(principlesPath, principles, "utf8");
-
-const environmentPath = join(outputRoot, "rules", "environment.md");
-let environment = readFileSync(environmentPath, "utf8");
-environment = replaceAllRequired(
-  environment,
-  "# Environment\n",
-  `# Environment\n+\n+## Codex tool mechanics\n+\n+- Inspect files and run shell commands through \`exec_command\`; prefer \`rg\` and \`rg --files\` for\n+  text and file discovery.\n+- Apply targeted file edits with \`apply_patch\`. Bulk deterministic generation may use the script\n+  or formatter that owns the generated output.\n+- Spawn subagents through \`collaboration.spawn_agent\`. When model and reasoning overrides are\n+  supplied, pass \`fork_turns: "none"\` or a positive turn count; full-history forks reject overrides.\n+- Collect subagent completion through notifications or \`wait_agent\`; do not poll on a timer.\n+\n+Claude tool names do not apply in this Codex edition. References to host \`.claude/**\` paths are\n+inspection targets in a repository being reviewed, not Codex discovery paths.\n`,
-  "environment Codex mechanics section",
-);
-environment = replaceAllRequired(environment, "\n+", "\n", "environment injected-block de-escape");
-writeFileSync(environmentPath, environment, "utf8");
 
 const interviewSkillPath = join(outputRoot, "skills", "run-interview", "SKILL.md");
 let interviewSkill = readFileSync(interviewSkillPath, "utf8");
@@ -321,8 +272,8 @@ interviewSkill = replaceRequired(
 );
 interviewSkill = replaceRequired(
   interviewSkill,
-  "Every option list must follow the format rules in `../../rules/principles.md` under \"Presenting design options\":",
-  "Every option list must follow `../../rules/principles.md` under \"Codex interview surface\" and \"Presenting design options\":",
+  "Every option list must follow these rules. This skill is the canonical statement of the option-list rules; they apply to every interview surface -- `request_user_input`, ad-hoc prompts in commands, skills, and subagents -- not only to flows that route through `$ace:run-interview`:",
+  "Use `request_user_input` when it is exposed in Plan mode. It accepts at most three questions per call and two or three mutually exclusive options per question; put the single `(Recommended)` option first and include keep-current behaviour as one of the options. When the tool is unavailable in Default mode, ask the same question in concise plain text with the same ordered options, the same `(Recommended)` marker, and an explicit invitation for a free-form alternative. Tool availability changes presentation only, never the decision shape.\n\nEvery option list must follow these rules. This skill is the canonical statement of the option-list rules; they apply to every Codex interview surface -- `request_user_input`, its plain-text fallback, and ad-hoc prompts in skills and subagents -- not only to flows that route through `$ace:run-interview`:",
   "run-interview option-list rules pointer",
 );
 interviewSkill = replaceRequired(
@@ -370,7 +321,7 @@ let budgetOverflow = readFileSync(budgetOverflowPath, "utf8");
 budgetOverflow = replaceRequired(
   budgetOverflow,
   /## Options\n[\s\S]*?(?=\n## Outcomes)/,
-  `## Options\n\nUse \`request_user_input\` when it is available in Plan mode, otherwise ask the same concise\nplain-text questions. Present the line count in both paths. The structured surface permits at most\nthree options, so use two stages rather than dropping a behaviour:\n\n1. First ask how to handle the over-budget review:\n   - Narrow the scope and stop this run.\n   - Continue with full files over budget (keep current behaviour).\n   - Continue with a bounded review.\n2. Only after \"bounded review\", ask which bounded shape to use:\n   - Continue with diff only (the diff plus the commit log, skipping full file reads) --\n     diff-based sources only, and only when diff + commit-log lines fit within budget; the\n     \`commit\` and \`directory\` packages do not offer this option.\n   - Continue with the first 30,000 lines (truncated review).\n   - Return to full files over budget (keep current behaviour).\n\nPut exactly one \`(Recommended)\` option first in each presented list, chosen against the counted\noverage and source shape, per \`../../rules/principles.md\`. In the plain-text fallback, preserve\nthe same option order and marker and invite a free-form alternative.\n\nInclude source-specific advice: for directory sources, suggest narrowing the directory\npath; for commit sources, suggest reviewing a smaller commit; for diff sources, suggest\nisolating generated files in a separate commit or reviewing a single commit.\n`,
+  `## Options\n\nUse \`request_user_input\` when it is available in Plan mode, otherwise ask the same concise\nplain-text questions. Present the line count in both paths. The structured surface permits at most\nthree options, so use two stages rather than dropping a behaviour:\n\n1. First ask how to handle the over-budget review:\n   - Narrow the scope and stop this run.\n   - Continue with full files over budget (keep current behaviour).\n   - Continue with a bounded review.\n2. Only after \"bounded review\", ask which bounded shape to use:\n   - Continue with diff only (the diff plus the commit log, skipping full file reads) --\n     diff-based sources only, and only when diff + commit-log lines fit within budget; the\n     \`commit\` and \`directory\` packages do not offer this option.\n   - Continue with the first 30,000 lines (truncated review).\n   - Return to full files over budget (keep current behaviour).\n\nPut exactly one \`(Recommended)\` option first in each presented list, chosen against the counted\noverage and source shape, per the option-list rules in \`../run-interview/SKILL.md\`. In the plain-text fallback, preserve\nthe same option order and marker and invite a free-form alternative.\n\nInclude source-specific advice: for directory sources, suggest narrowing the directory\npath; for commit sources, suggest reviewing a smaller commit; for diff sources, suggest\nisolating generated files in a separate commit or reviewing a single commit.\n`,
   "budget-overflow options block",
 );
 writeFileSync(budgetOverflowPath, budgetOverflow, "utf8");
@@ -473,7 +424,7 @@ issueRoute = replaceRequired(
 );
 issueRoute = replaceRequired(
   issueRoute,
-  ", POSIX path form for the redirection per `../../rules/environment.md`",
+  ", POSIX path form for the redirection",
   "",
   "issue-route redirection path-form clause",
 );

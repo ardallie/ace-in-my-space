@@ -75,7 +75,7 @@ Receive a brief and either a fully-formed target path or a timestamp-and-8hex su
 ## Constraints
 
 - Write only the single plan file at the resolved path. `acceptEdits` does not enforce a per-path restriction at the platform level; the prompt is the binding constraint. No edits to source code, documentation, or any other location.
-- Follow `${CLAUDE_PLUGIN_ROOT}/rules/principles.md` and `${CLAUDE_PLUGIN_ROOT}/rules/output-style.md` when drafting (single recommended approach, payoff-led justifications, present tense, British English).
+- Follow the option-list rules in `${CLAUDE_PLUGIN_ROOT}/skills/run-interview/SKILL.md` when drafting (single recommended approach, payoff-led justifications).
 
 ## Error handling
 

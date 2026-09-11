@@ -116,31 +116,14 @@ the planning skills and are not invoked directly.
 
 ## Rules
 
-Three rules files ship with the plugin under `rules/` and are the suite's entire rules
-boundary:
-
-- `rules/environment.md` -- shell, path-form, and `gh` CLI conventions across platforms
-- `rules/output-style.md` -- writing style, language conventions, markdown conventions
-- `rules/principles.md` -- design principles, including the option-list rules every
-  interview surface follows
-
-Suite members cite them as `${CLAUDE_PLUGIN_ROOT}/rules/{file}.md`. Nothing else in this
-suite is a rules file, and no member cites a rules file outside this set *as a contract* --
-the one exception is `/ace:agent-code-review`'s skill-package module, which names
-`.claude/rules/documentation.md` and the `.claude/rules/**` tree as host registries it
-*inspects* during a review, marked `[host]` at the citing line. When a member gains or
-drops a rules-file reference, this section updates in the same change.
-
-`/ace:detect-harness` cites none of the three; it is self-contained apart from its own
-`models.md`.
-
-The derived Codex edition copies the same boundary under `codex/rules/` and cites the
-files relative to the active skill (`../../rules/{file}.md`). Codex skill content uses no
-plugin-root substitution variable.
+The plugin ships no rules files and adopts none of the host's as its own. Host repositories
+supply their own rules -- language, style, and design conventions -- and no suite behaviour
+depends on them. The one cross-cutting behavioural rule the suite carries, the option-list
+rules every interview surface follows, lives in `skills/run-interview/SKILL.md`.
 
 ## Codex derivation
 
-The Claude tree (`skills/`, `agents/`, and `rules/`) is the source of truth. Regenerate
+The Claude tree (`skills/` and `agents/`) is the source of truth. Regenerate
 and check the committed Codex edition after changing it:
 
 ```
@@ -150,8 +133,8 @@ node scripts/check-codex.mjs
 
 The conversion reduces skill frontmatter to `name` and `description`, moves argument
 hints into the body, qualifies internal skill mentions, converts plugin-root paths to
-relative references, adapts questions and subagent spawns, and copies the three rules
-and three supporting agent payloads into `codex/`.
+relative references, adapts questions and subagent spawns, and copies the three supporting
+agent payloads into `codex/`.
 
 ## Harness differences
 

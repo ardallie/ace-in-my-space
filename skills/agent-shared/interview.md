@@ -18,7 +18,7 @@ priority — blocking questions first, then deferrable. For each question, provi
 answer options that help the user make an informed choice rather than composing an answer
 from scratch.
 
-Every option list follows `${CLAUDE_PLUGIN_ROOT}/rules/principles.md` under "Presenting design options".
+Every option list follows the option-list rules in `${CLAUDE_PLUGIN_ROOT}/skills/run-interview/SKILL.md`.
 
 If there are more questions than the tool supports per call, batch them across multiple
 calls — blocking questions in the first batch.

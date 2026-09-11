@@ -13,8 +13,7 @@ question classifies sibling-answerable, skip the gate silently and interview as 
 
 When sibling-answerable questions exist, run one `AskUserQuestion` for the whole routable
 set — classification is per question, the decision is whole-set, and the user may narrow
-the set via free text — following the option-list rules in `${CLAUDE_PLUGIN_ROOT}/rules/principles.md`
-under "Presenting design options":
+the set via free text — following the option-list rules in `${CLAUDE_PLUGIN_ROOT}/skills/run-interview/SKILL.md`:
 
 1. **Formulate a consultant request (Recommended)** — the routed questions get
    evidence-backed answers from the repository that owns them, instead of the user's best

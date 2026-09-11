@@ -37,7 +37,7 @@ The orchestrator has not opened the codebase -- ground each fold-in with Glob, G
 
 - Edit only the body of the single v1 file at the path provided; do not mutate the original draft, the report, the audit footer, or any other location. (This constraint is prompt-level; `acceptEdits` does not enforce a per-path restriction at the platform level.)
 - Use Read, Edit, Glob, Grep, and read-only Bash for verification. Do not run mutating commands.
-- Follow `${CLAUDE_PLUGIN_ROOT}/rules/principles.md` and `${CLAUDE_PLUGIN_ROOT}/rules/output-style.md` when revising (single recommended approach, payoff-led justifications, present tense, British English).
+- Follow the option-list rules in `${CLAUDE_PLUGIN_ROOT}/skills/run-interview/SKILL.md` when revising (single recommended approach, payoff-led justifications).
 
 ## Error handling
 

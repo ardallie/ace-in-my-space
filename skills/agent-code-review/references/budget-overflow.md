@@ -23,11 +23,11 @@ Use `AskUserQuestion` before proceeding. Present the line count and offer:
 3. Stop and narrow the scope
 
 Mark exactly one option `(recommended)` in the presented list, chosen against the counted
-overage, per `${CLAUDE_PLUGIN_ROOT}/rules/principles.md` under "Presenting design options".
+overage, per the option-list rules in `${CLAUDE_PLUGIN_ROOT}/skills/run-interview/SKILL.md`.
 
 The keep-current-behaviour path — full files over budget — is not among the offered options;
 it stays reachable through a free-text response (see Outcomes). Divergence from rule 1 of
-`${CLAUDE_PLUGIN_ROOT}/rules/principles.md`, "Presenting design options".
+`${CLAUDE_PLUGIN_ROOT}/skills/run-interview/SKILL.md` (the keep-current-behaviour rule).
 
 Include source-specific advice: for directory sources, suggest narrowing the directory
 path; for commit sources, suggest reviewing a smaller commit; for diff sources, suggest

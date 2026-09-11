@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0]
+
+### Removed -- BREAKING: the rules layer
+
+The plugin no longer ships `rules/environment.md`, `rules/output-style.md`, or
+`rules/principles.md`, nor their generated `codex/rules/` twins. The files carried host-project
+preferences (language, greenfield, infrastructure, and documentation conventions) that belong in
+the host repository's own rules, not in a project-agnostic toolkit. Host repositories supply their
+own rules; no suite behaviour depends on them.
+
+The option-list rules every interview surface follows now live in `skills/run-interview/SKILL.md`
+as the canonical statement, and every citing skill and agent payload points there. POSIX path-form
+instructions remain inline at each site that uses them.
+
+### Changed -- Codex derivation
+
+`scripts/build-codex.mjs` no longer copies or converts a rules tree. The Codex-specific interview
+guidance it previously injected into `codex/rules/principles.md` is injected into
+`codex/skills/run-interview/SKILL.md` instead. `scripts/check-codex.mjs` no longer counts or
+inventories rules files.
+
 ## [0.2.0]
 
 ### Changed -- BREAKING: every skill and agent identifier loses its `ace-` prefix

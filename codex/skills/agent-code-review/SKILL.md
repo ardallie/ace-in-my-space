@@ -111,7 +111,7 @@ Count diff lines via `wc -l` on the diff output. If the diff alone exceeds 30,00
 If the diff fits within budget, compute the file-line total mechanically at the pinned head — the working tree is generally not at the reviewed state: sum `git show <head SHA>:<path> | wc -l` over each changed file from the `--name-only` list (skip deleted and binary files). Then:
 
 - If diff lines + commit-log lines + file lines ≤ 30,000, read all changed files in full at the pinned head (`git show <head SHA>:<path>`), never from the working tree. Otherwise trigger the budget warning.
-- On Windows MINGW64 the `rev:path` argument form is rewritten by MSYS — apply the `MSYS_NO_PATHCONV=1` guidance in `../../rules/environment.md` wherever this command uses `git show <sha>:<path>`.
+- On Windows MINGW64 the `rev:path` argument form is rewritten by MSYS — disable the conversion for that call with `MSYS_NO_PATHCONV=1 git show <sha>:<path>` wherever this command uses `git show <sha>:<path>`.
 - For the `pr` source, fetch the head first (`git fetch origin pull/<number>/head`); when the head is not fetchable (e.g. a cross-repo PR), fall back to diff only and note for reviewers that full file context was not included.
 
 **Package order** — the reviewer package is assembled in a fixed order: the diff first, then the commit log, then full files in `--name-only` order. For the `directory` source the package is the gathered files in sorted repo-relative path order; for the `commit` source it is the `git show <sha>` output alone.

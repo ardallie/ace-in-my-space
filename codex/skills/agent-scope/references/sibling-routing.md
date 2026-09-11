@@ -13,8 +13,7 @@ question classifies sibling-answerable, skip the gate silently and interview as 
 
 When sibling-answerable questions exist, present one question through `request_user_input` when it is available in Plan mode, otherwise as the same concise plain-text question for the whole routable
 set — classification is per question, the decision is whole-set, and the user may narrow
-the set via free text — following the option-list rules in `../../rules/principles.md`
-under "Presenting design options":
+the set via free text — following the option-list rules in `../run-interview/SKILL.md`:
 
 1. **Formulate a consultant request (Recommended)** — the routed questions get
    evidence-backed answers from the repository that owns them, instead of the user's best

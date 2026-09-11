@@ -29,7 +29,7 @@ three options, so use two stages rather than dropping a behaviour:
    - Return to full files over budget (keep current behaviour).
 
 Put exactly one `(Recommended)` option first in each presented list, chosen against the counted
-overage and source shape, per `../../rules/principles.md`. In the plain-text fallback, preserve
+overage and source shape, per the option-list rules in `../run-interview/SKILL.md`. In the plain-text fallback, preserve
 the same option order and marker and invite a free-form alternative.
 
 Include source-specific advice: for directory sources, suggest narrowing the directory

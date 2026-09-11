@@ -78,7 +78,7 @@ The system specification is an adjacent-toolchain input, read per `${CLAUDE_PLUG
 
 Assess the seed against the pre-planner-sized signals: the ambition fits a single pre-planner-plus-plan cycle when it would land in the pre-planner's narrow-to-moderate scope bands — at most three subsystems, a shallow-to-moderate dependency chain, no intermediate validation gate between separately plannable units — and it leaves no direction-level design fork open and renegotiates no sibling seam. (This is the same yardstick Phase 6 sizes stages with, so the gate and the split cannot disagree about what one cycle absorbs.) An envelope-sized ambition proceeds to Phase 4 silently — no question.
 
-When the signals say pre-planner-sized, run one `AskUserQuestion` before any panel is spawned — invoking the command must never commit the user to a heavyweight envelope the evidence does not support. The option list follows `${CLAUDE_PLUGIN_ROOT}/rules/principles.md` under "Presenting design options":
+When the signals say pre-planner-sized, run one `AskUserQuestion` before any panel is spawned — invoking the command must never commit the user to a heavyweight envelope the evidence does not support. The option list follows the option-list rules in `${CLAUDE_PLUGIN_ROOT}/skills/run-interview/SKILL.md`:
 
 1. **Direct to pre-planner (Recommended)** — the ambition fits one pre-planner-plus-plan cycle; an envelope would add a layer without adding direction.
 2. **Produce the envelope anyway** — proceed as invoked (the keep-current-behaviour option: the invocation asked for an envelope).
