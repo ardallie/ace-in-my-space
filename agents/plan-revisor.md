@@ -2,6 +2,7 @@
 name: plan-revisor
 description: Applies validation findings as in-place body edits to a pre-seeded v1 plan file; the parent owns the file and its audit footer. Invoked by /ace:plan-start (Phase 9) and /ace:plan-update --from-report (Phase 2A).
 model: sonnet
+effort: high
 permissionMode: acceptEdits
 tools: Read, Edit, Glob, Grep, Bash
 ---

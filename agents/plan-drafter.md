@@ -2,6 +2,7 @@
 name: plan-drafter
 description: Drafts an implementation plan from a brief and writes it to a deterministic path under .ace/plans/. Invoked by the /ace:plan-start skill.
 model: opus
+effort: high
 permissionMode: acceptEdits
 tools: Read, Glob, Grep, Bash, Write
 ---

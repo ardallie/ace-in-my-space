@@ -2,6 +2,7 @@
 name: plan-validate
 description: Validates a plan file against the codebase and writes a structured validation report. Invoked by /ace:plan-start (Phase 7, chained flow) and /ace:plan-validate (Phase 2, standalone flow).
 model: sonnet
+effort: high
 permissionMode: acceptEdits
 tools: Read, Glob, Grep, Bash, Write
 ---
