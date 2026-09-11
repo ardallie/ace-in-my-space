@@ -136,9 +136,9 @@ absent (it replicates separately from this one), the class statements here stand
   appear in that bundle's borrow list. Establish completeness by enumerating the members'
   outbound citations and the shared files' consumer registries, not by reading the borrow
   list alone.
-- A member that gains or drops a rules-file citation (`.claude/rules/*` [host], or
-  `${CLAUDE_PLUGIN_ROOT}/rules/*` in a plugin-shipped pack) updates its pack's
-  travelling rules set in the same change -- unless the citation is a host-local data
+- A member that gains or drops a rules-file citation (`.claude/rules/*` [host], or a
+  plugin-shipped pack's own `rules/*`) updates its pack's travelling rules set in the
+  same change -- unless the citation is a host-local data
   source or example rather than a contract counterparty, in which case the exclusion is
   stated.
 - Catalogue one-liners exist for every skill and do not contradict the frontmatter

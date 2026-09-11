@@ -18,7 +18,7 @@ priority — blocking questions first, then deferrable. For each question, provi
 answer options that help the user make an informed choice rather than composing an answer
 from scratch.
 
-Every option list follows `../../rules/principles.md` under "Presenting design options".
+Every option list follows the option-list rules in `../run-interview/SKILL.md`.
 
 If there are more than three questions, batch them across multiple
 calls — blocking questions in the first batch.

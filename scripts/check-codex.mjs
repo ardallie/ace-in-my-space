@@ -24,18 +24,15 @@ const sourceSkillFiles = walkFiles(join(root, "skills"));
 const codexSkillFiles = walkFiles(join(codexRoot, "skills"));
 const sourceAgentFiles = walkFiles(join(root, "agents"));
 const codexAgentFiles = walkFiles(join(codexRoot, "agents"));
-const sourceRuleFiles = walkFiles(join(root, "rules"));
-const codexRuleFiles = walkFiles(join(codexRoot, "rules"));
-const codexFiles = [...codexSkillFiles, ...codexAgentFiles, ...codexRuleFiles];
+const codexFiles = [...codexSkillFiles, ...codexAgentFiles];
 // README documents both editions, so a `$ace:` mention is legitimate there and nowhere else
 // in the Claude source of truth.
-const sourceContractFiles = [...sourceSkillFiles, ...sourceAgentFiles, ...sourceRuleFiles];
+const sourceContractFiles = [...sourceSkillFiles, ...sourceAgentFiles];
 const sourceFiles = [...sourceContractFiles, join(root, "README.md")];
 
 for (const [label, files, convertedFiles] of [
   ["skills", sourceSkillFiles, codexSkillFiles],
   ["agent payloads", sourceAgentFiles, codexAgentFiles],
-  ["rules", sourceRuleFiles, codexRuleFiles],
 ]) {
   if (files.length !== convertedFiles.length) {
     errors.push(`${label}: source has ${files.length} files; Codex has ${convertedFiles.length}`);
@@ -249,4 +246,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`OK: ${skillPaths.length} skills, ${codexAgentFiles.length} payloads, ${codexRuleFiles.length} rules, ${codexFiles.length} derived files`);
+console.log(`OK: ${skillPaths.length} skills, ${codexAgentFiles.length} payloads, ${codexFiles.length} derived files`);

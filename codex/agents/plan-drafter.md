@@ -70,7 +70,7 @@ Receive a brief and either a fully-formed target path or a timestamp-and-8hex su
 ## Constraints
 
 - Write only the single plan file at the resolved path. The built-in Codex agent role does not enforce a per-path write restriction; the prompt is the binding constraint. No edits to source code, documentation, or any other location.
-- Follow `../rules/principles.md` and `../rules/output-style.md` when drafting (single recommended approach, payoff-led justifications, present tense, British English).
+- Follow the option-list rules in `../skills/run-interview/SKILL.md` when drafting (single recommended approach, payoff-led justifications).
 
 ## Error handling
 

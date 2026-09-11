@@ -48,4 +48,4 @@ if [ ! -s <temp-file path> ] || [ -z "$(tr -d '[:space:]' < <temp-file path>)" ]
 fi
 ```
 
-On Windows MINGW64, `<temp-file path>` must be in POSIX form (`/c/...`) per `../../rules/environment.md`. The staged path is what Phase 2 hands to the validator subagent. Comments are deliberately not fetched — the validator does not use them. This staged file is not cleaned up: it stays in `.ace/plans/` as the run's input record. Revisit only if `.ace/plans/` clutter becomes a real problem.
+On Windows MINGW64, `<temp-file path>` must be in POSIX form (`/c/...`). The staged path is what Phase 2 hands to the validator subagent. Comments are deliberately not fetched — the validator does not use them. This staged file is not cleaned up: it stays in `.ace/plans/` as the run's input record. Revisit only if `.ace/plans/` clutter becomes a real problem.

@@ -32,7 +32,7 @@ The orchestrator has not opened the codebase -- ground each fold-in with `rg --f
 
 - Use `apply_patch` only on the body of the single v1 file at the path provided; do not mutate the original draft, the report, the audit footer, or any other location. (This constraint is prompt-level; The built-in Codex agent role does not enforce a per-path write restriction.)
 - Use `exec_command`, `apply_patch`, `rg --files`, `rg`, and read-only shell commands through `exec_command` for verification. Do not run mutating commands.
-- Follow `../rules/principles.md` and `../rules/output-style.md` when revising (single recommended approach, payoff-led justifications, present tense, British English).
+- Follow the option-list rules in `../skills/run-interview/SKILL.md` when revising (single recommended approach, payoff-led justifications).
 
 ## Error handling
 
