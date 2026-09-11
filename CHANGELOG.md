@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1]
+
+### Changed
+
+- Refresh the harness tier mappings for the current Claude and Codex model lineup, including
+  `gpt-6-astra` at Codex Tier-1 and `gpt-5.6-luna` at Tier-3.
+- Clarify detect-harness resolution, caching, validation, explicit-model, and spawn contracts.
+- Record explicit effort settings for the Claude planning agent definitions.
+
 ## [0.3.0]
 
 ### Removed -- BREAKING: the rules layer
