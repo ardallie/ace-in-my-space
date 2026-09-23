@@ -437,7 +437,7 @@ for (const [before, after, label] of [
   [/On Claude:\n\n```\n[\s\S]*?```\n\n(?=On Codex:)/, "", "detect-harness Claude output block strip"],
   ["tier: a space-separated model and effort, applied per the consumer contract below\n", "tier: a space-separated model and effort, which a consumer splits into the spawn\ntool's `model` and `reasoning_effort` fields\n", "detect-harness tier-value shape"],
   ["report the\n  model as inherited; do not claim", "report the\n  assignment as inherited; do not claim", "detect-harness inherited-model wording"],
-  ["substitutes for the reference; split it into its model\n  and effort parts.\n  - On Claude, pass only the alias, verbatim, as the `collaboration.spawn_agent`'s `model` override.\n    The effort cannot be passed per call: it applies only when the spawned\n    definition's `effort:` frontmatter carries it (`models.md`, `### Claude`). A\n    definition without one, such as `general-purpose`, inherits the session effort;\n    report the effort as inherited.\n  - On Codex, pass the parts through the spawn tool's separate `model` and\n    `reasoning_effort` fields, and observe the spawn constraints in `models.md`\n    (`### Codex`) -- overrides are rejected on full-history (`\"all\"`) forks, so pass\n    `fork_turns: \"none\"` or a positive turn count.", "substitutes for the reference. It is a space-separated\n  pair: split it into the spawn tool's separate `model` and\n  `reasoning_effort` fields, and observe the spawn constraints in `models.md`\n  (`### Codex`) -- overrides are rejected on full-history (`\"all\"`) forks, so pass\n  `fork_turns: \"none\"` or a positive turn count.", "detect-harness tier-value consumer note"],
+  ["substitutes for the reference; split it into its model\n  and effort parts.\n  - On Claude, pass only the alias, verbatim, as the `collaboration.spawn_agent`'s `model` override.\n    The effort cannot be passed per call: it applies only when the spawned\n    definition's `effort:` frontmatter carries it (`models.md`, `### Claude`). A\n    definition without one, such as `general-purpose`, inherits the session effort;\n    report the effort as inherited.\n  - On Codex, pass the parts through the spawn tool's separate `model` and\n    `reasoning_effort` fields, and observe the spawn constraints in `models.md`\n    (`### Codex`) -- overrides are rejected on full-history (`\"all\"`) forks, so pass\n    `fork_turns: \"none\"` or a positive integer string.", "substitutes for the reference. It is a space-separated\n  pair: split it into the spawn tool's separate `model` and\n  `reasoning_effort` fields, and observe the spawn constraints in `models.md`\n  (`### Codex`) -- overrides are rejected on full-history (`\"all\"`) forks, so pass\n  `fork_turns: \"none\"` or a positive integer string.", "detect-harness tier-value consumer note"],
   ["- Report surfaces record the resolved model and effort for each assignment. On\n  Claude the effort is the spawned definition's `effort:` value, subject to the caps\n  noted in `models.md`, or else inherited. When using default selection, report that\n  overrides were omitted; do not invent a model or effort or use agent\n  self-description as verification.", "- Report surfaces record the resolved model and, on Codex, reasoning effort used for\n  each assignment. When using default selection, report that overrides were omitted;\n  do not invent a model or effort or use agent self-description as verification.", "detect-harness report effort note"],
   [" On Claude only the alias reaches\nthe spawn tool; a harness complaint about a definition's `effort:` value is a\nstale-mapping case, not an argument error.", "", "detect-harness Claude effort rejection note strip"],
   ["\n  On Claude, effort is honoured only\n  through the spawned definition's `effort:`; when the definition lacks one, the\n  effort is inherited whether or not the caller specified it, and is reported as\n  inherited.", "", "detect-harness --model Claude effort note strip"],
@@ -448,15 +448,12 @@ writeFileSync(detectPath, detect, "utf8");
 
 const modelsPath = join(outputRoot, "skills", "detect-harness", "models.md");
 let models = readFileSync(modelsPath, "utf8");
-for (const [before, after, label, mode] of [
-  ["Data file for `$ace:detect-harness` (`../detect-harness/SKILL.md`).", "Data file for `$ace:detect-harness` (`SKILL.md`).", "models data-file self reference"],
-  ["Each tier\ncarries, per harness, the settings a consumer resolves at spawn time -- on Claude a\nmodel alias and an effort level, on Codex two separately passed values: model and\nreasoning effort.", "Each tier\ncarries the two settings a Codex consumer resolves at spawn time: model and\nreasoning effort.", "models per-harness tier preamble"],
+for (const [before, after, label] of [
+  ["Data file for `$ace:detect-harness` (`../detect-harness/SKILL.md`),", "Data file for `$ace:detect-harness` (`SKILL.md`),", "models data-file self reference"],
+  ["\nOn each harness a tier maps to a model and an effort: on Claude a model alias and an\neffort level, on Codex a model and a reasoning effort.", " Each\ntier maps to a model and a reasoning effort.", "models per-harness tier preamble"],
   [/\n### Claude\n[\s\S]*?(?=\n### Codex\n)/, "", "models Claude tier block strip"],
-  ["the spawn tool's separate\n", "`collaboration.spawn_agent`'s\nseparate ", "models spawn-tool field naming", "all"],
 ]) {
-  models = mode === "all"
-    ? replaceAllRequired(models, before, after, label)
-    : replaceRequired(models, before, after, label);
+  models = replaceRequired(models, before, after, label);
 }
 writeFileSync(modelsPath, models, "utf8");
 

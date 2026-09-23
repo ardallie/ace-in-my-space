@@ -14,7 +14,7 @@ description: Runs a multi-agent pre-plan analysis (auto-sized team of one to sev
 - `$ace:agent-pre-planner [--model <name or instruction>] [--agents 1-7] [--publish yes|no] <inputs ...>` — flags first (in any order), positional second
 - `--model` directs model selection for every analyst (sceptic included) — a model name or a prose instruction (a tier, a mix, a reference), resolved against the models the harness offers. Omit `--model` to let Phase 3 assign per agent: the sceptic on Tier-2, other analysts on Tier-3, plus at most one Tier-2 promotion for a load-bearing concern in broad or cross-cutting scope.
 - `--agents N` sets the number of **non-sceptic** analysts (`1-7`). The sceptic is always added on top, so total analysts = `N + 1`. Omit `--agents` to auto-size the team from the scope discovered during exploration.
-- `--publish yes|no` — publish the saved report as a GitHub issue (Phase 9, after the final save). Default `yes`.
+- `--publish yes|no` — publish the saved report as a GitHub issue (Phase 9, after the final save). Default `no`.
 - Text after the last valid file path or issue number is passed to all analysts as additional instructions
 
 ## Shared conventions
@@ -47,7 +47,7 @@ Local deltas on the shared conventions:
 
 - If no model guidance is supplied (via `--model` or the additional instructions), Phase 3 assigns each analyst's model from scope; there is no fixed default. Supplied guidance is honoured as a Phase 3 per-analyst assignment and recorded in the report's analyst list.
 - `--agents` value is an integer `1-7` and sets the number of non-sceptic analysts. If `--agents` is present but its value is missing, non-integer, or outside `1-7`, report the valid range (`1-7`) and stop. If `--agents` is omitted, Phase 3 auto-sizes the count from scope; there is no fixed default.
-- `--publish` defaults to `yes`. Drives Phase 9.
+- `--publish` defaults to `no`. Drives Phase 9.
 
 Main pass: apply the shared positional-parsing rules (file paths, issue number with the mixed issue-plus-files form, no arguments, and the prose-invocation fallback) to the remaining tokens, then the shared residual-token warnings. The parsed input is the brief.
 
@@ -146,7 +146,7 @@ Proceed to Phase 9.
 
 ### Phase 9 — Publish
 
-Follow the publish phase in `../agent-shared/report-conventions.md` `## Publish`; the default here is `--publish yes`.
+Follow the publish phase in `../agent-shared/report-conventions.md` `## Publish`; the default here is `--publish no`.
 
 Beyond the shared `## Publication` block note: the publish pipeline appends the block after creating the issue, so it is not part of the Phase 6 skeleton and the published issue body does not contain it (divergence accepted).
 

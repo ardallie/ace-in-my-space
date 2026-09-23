@@ -129,7 +129,7 @@ position (`model: {Tier-2}`). Consumers resolve them as follows:
   - On Codex, pass the parts through the spawn tool's separate `model` and
     `reasoning_effort` fields, and observe the spawn constraints in `models.md`
     (`### Codex`) -- overrides are rejected on full-history (`"all"`) forks, so pass
-    `fork_turns: "none"` or a positive turn count.
+    `fork_turns: "none"` or a positive integer string.
 - When resolution returns `Harness: unknown` (no tier lines), do not guess a model:
   spawn with the harness's own default model selection, and state in the run's report
   that tier resolution was unavailable.

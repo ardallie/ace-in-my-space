@@ -15,7 +15,7 @@ description: Runs a multi-agent architectural review (three to six analysts, sce
 - `--model` directs model selection for every analyst (sceptic included) — a model name or a prose instruction (a tier, a mix, a reference), resolved against the models the harness offers. Omit `--model` to let Phase 3 assign per agent: the sceptic on Tier-2, other analysts on Tier-3, plus at most one Tier-2 promotion for a load-bearing concern.
 - `--prior P` — path to a previous arch-review report for the same scope; analysts verify its findings against the current state (re-review). Prior reports are pushed only when passed explicitly — there is no auto-detection. The prior report also carries forward interview decisions (its `[Resolved]` question answers) — pass it for any repeat review of the same scope, not only to verify remediation. A `--prior`-only invocation (no positional inputs) is the canonical re-review-same-scope form — the scope seeds from the prior report (Phase 1).
 - `--checks full|cheap|skip` — how much of the Phase 2 shared verification battery runs before analysts spawn; tier definitions in `../agent-shared/verification-checks.md`. Default `cheap` — the typical review runs the cheap battery; `full` (the whole CI gate set) and `skip` (no shared battery; the report, context package, and spawn prompts record that) are per-run opt-ins. `skip` does not suppress the `--prior` pre-build (Phase 3).
-- `--publish yes|no` — publish the saved report as a GitHub issue (Phase 8, after the final save). Default `yes`.
+- `--publish yes|no` — publish the saved report as a GitHub issue (Phase 8, after the final save). Default `no`.
 - Text after the last valid file path or issue number is passed to all analysts as additional instructions. When the first token is neither a file nor an issue number and an actionable brief exists in conversation context, the entire argument text is treated as additional instructions over that brief (Phase 1)
 
 Mapping files under `.ace/mappings/{features,subsystems,structure}/` are classified by path prefix and traversed per type. Examples:
@@ -56,7 +56,7 @@ Local deltas on the shared conventions:
 - If no model guidance is supplied (via `--model` or the additional instructions), Phase 3 assigns each analyst's model; there is no fixed team-wide default. Supplied guidance is honoured as a Phase 3 per-analyst assignment and recorded in the Summary's `Analysts:` rationale.
 - `--prior` value is a path to a previous arch-review report. If the value is missing or does not resolve to a readable file, report the error and stop. Read the file — it is pushed to all analysts in Phase 3, outside any read cap.
 - `--checks` value, when supplied, selects the shared-verification tier defined in `../agent-shared/verification-checks.md`; accepted values `full`, `cheap`, and `skip`. If parsing fails (missing value or any other value), report the valid values and stop. If omitted, `cheap`. Drives Phase 2.
-- `--publish` defaults to `yes`. Drives Phase 8.
+- `--publish` defaults to `no`. Drives Phase 8.
 
 Main pass: apply the shared positional-parsing rules (file paths, issue number with the mixed issue-plus-files form, no arguments, and the prose-invocation fallback) to the remaining tokens, then the shared residual-token warnings. The parsed input is the brief. Four local divergences:
 
@@ -194,7 +194,7 @@ Proceed to Phase 8.
 
 ### Phase 8 — Publish
 
-Follow the publish phase in `../agent-shared/report-conventions.md` `## Publish`; the default here is `--publish yes`.
+Follow the publish phase in `../agent-shared/report-conventions.md` `## Publish`; the default here is `--publish no`.
 
 ## Constraints
 
