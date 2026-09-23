@@ -13,7 +13,7 @@ description: Runs a deliberative multi-agent panel (one to four lenses plus a sc
 - `$ace:agent-scope <file1> <file2> ...` — reads files as the ambition (specification, requirements, sibling-system notes)
 - `$ace:agent-scope [--model <name or instruction>] [--publish yes|no] <inputs ...>` — flags first (in any order), positional second
 - `--model` directs model selection for every panel member (sceptic included) — a model name or a prose instruction (a tier, a mix, a reference), resolved against the models the harness offers. Omit `--model` for the default assignment: every panel member on Tier-2 (rationale, and the Tier-1 opt-in, in Phase 4).
-- `--publish yes|no` — publish the saved report as a GitHub issue (Phase 9, after the final save). Default `yes`.
+- `--publish yes|no` — publish the saved report as a GitHub issue (Phase 9, after the final save). Default `no`.
 - Text after the last valid file path or issue number is passed to all panel members as additional instructions; it may name a sibling system the envelope must probe against, or direct a per-member model mixture in prose (Phase 1).
 
 ## Shared conventions
@@ -53,7 +53,7 @@ Pre-pass: strip leading `--model {value}` and `--publish {value}` flags per the 
 Local deltas on the shared conventions:
 
 - If no model guidance is supplied (via `--model` or the additional instructions), Phase 4 assigns the default; supplied guidance is honoured as a Phase 4 per-member assignment.
-- `--publish` defaults to `yes`. Drives Phase 9.
+- `--publish` defaults to `no`. Drives Phase 9.
 
 Main pass: apply the shared positional-parsing rules (file paths, issue number with the mixed issue-plus-files form, no arguments, and the prose-invocation fallback) to the remaining tokens, then the shared residual-token warnings. The parsed input is the ambition. One local delta: two noise tokens are dropped before the file-path test — any bare `--` separator token, and a leading `read` verb whose immediately following token resolves to a readable file — invocations habitually write `-- read <path>`, and taken literally those tokens would end the file list and fold the intended ambition file into additional instructions unread.
 
@@ -164,7 +164,7 @@ If the report contains an `### Open questions` subsection with unresolved questi
 
 ### Phase 9 — Publish
 
-Runs in every path that saved a report; the Phase 3 direct route saves nothing and never reaches this phase. Follow the publish phase in `../agent-shared/report-conventions.md` `## Publish`; the default here is `--publish yes`.
+Runs in every path that saved a report; the Phase 3 direct route saves nothing and never reaches this phase. Follow the publish phase in `../agent-shared/report-conventions.md` `## Publish`; the default here is `--publish no`.
 
 ## Constraints
 

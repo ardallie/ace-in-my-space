@@ -5,6 +5,33 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0]
+
+### Changed -- `--publish` defaults to `no` for the analysis producers
+
+`/ace:agent-arch-review`, `/ace:agent-pre-planner`, and `/ace:agent-scope` no longer publish
+their saved report as a GitHub issue by default. The final summary prints the saved report path
+and the ready-to-run `/ace:report-publish {report path}` line instead; pass `--publish yes` to
+restore the previous behaviour. Every report producer now defaults to `--publish no`, so the
+`/ace:agent-code-review` and `/ace:agent-consultant` rationales no longer describe their default
+as a divergence. `/ace:plan-start` still publishes by default.
+
+### Changed -- harness tier mappings
+
+- Claude Tier-2 now references `claude-opus-5-5`; the spawn alias stays `opus`.
+- Codex Tier-2 and Tier-3 move to `gpt-6-sol` and `gpt-6-luna`; efforts are unchanged.
+- Rewrite `skills/detect-harness/models.md` for clarity. The Claude section now states the
+  accepted `model` override values, the subagent model resolution order (including
+  `CLAUDE_CODE_SUBAGENT_MODEL`), that a per-call override does not change a pinned definition's
+  effort, and how to report model and effort sources. The Codex section now states the
+  `fork_turns` values that accept overrides and the valid reasoning efforts per model.
+- `detect-harness` now describes the `fork_turns` override value as a positive integer string.
+
+### Changed -- Codex derivation
+
+`scripts/build-codex.mjs` follows the revised `models.md` wording and drops a conversion rule
+that the new text no longer needs.
+
 ## [0.3.1]
 
 ### Changed
