@@ -30,7 +30,7 @@ only and are never passed at spawn time.
 
 - Tier-1: alias `fable`, effort `medium` (`claude-fable-5-1`)
 - Tier-2: alias `opus`, effort `high` (`claude-opus-5-5`)
-- Tier-3: alias `sonnet`, effort `high` (`claude-sonnet-5`)
+- Tier-3: alias `sonnet`, effort `high` (`claude-sonnet-5-5`)
 
 **Model.** The alias is passed as the Agent tool's `model` override, which accepts
 exactly `fable`, `opus`, `sonnet`, or `haiku`. Context-window suffixes such as `[1m]`

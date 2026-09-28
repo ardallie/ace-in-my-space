@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1]
+
+### Changed -- harness tier mappings
+
+- Claude Tier-3 now references `claude-sonnet-5-5`; the spawn alias stays `sonnet`.
+
 ## [0.4.0]
 
 ### Changed -- `--publish` defaults to `no` for the analysis producers
