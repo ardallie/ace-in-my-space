@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2]
+
+### Changed -- harness tier mappings
+
+- Codex Tier-1 now uses `gpt-6-astra` at `high` effort instead of `medium`.
+- Codex Tier-2 now uses `gpt-6.1-sol`; effort stays `high`.
+
 ## [0.4.1]
 
 ### Changed -- harness tier mappings
