@@ -27,8 +27,8 @@ quality or excessive cost or latency.
 A tier is a (model, effort) pair, passed through `collaboration.spawn_agent`'s separate
 `model` and `reasoning_effort` fields.
 
-- Tier-1: model `gpt-6-astra`, effort `medium`
-- Tier-2: model `gpt-6-sol`, effort `high`
+- Tier-1: model `gpt-6-astra`, effort `high`
+- Tier-2: model `gpt-6.1-sol`, effort `high`
 - Tier-3: model `gpt-6-luna`, effort `max`
 
 **Overrides.** Both fields are accepted only with `fork_turns: "none"` or a positive
@@ -36,7 +36,7 @@ integer string. Omitting `fork_turns` or passing `"all"` forks the full history 
 rejects overrides.
 
 **Effort.** Valid reasoning efforts are `low`, `medium`, `high`, `xhigh`, `max`, and
-`ultra`. `gpt-6-luna` supports up to `max`; `gpt-6-astra` and `gpt-6-sol` also
+`ultra`. `gpt-6-luna` supports up to `max`; `gpt-6-astra` and `gpt-6.1-sol` also
 support `ultra`.
 
 **Reporting.** The accepted spawn parameters, not a spawned agent's self-description,
