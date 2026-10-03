@@ -4,7 +4,7 @@ This file records the decisions made in this workstream, one entry per decision.
 
 ## How to use this log
 
-**What is recorded.** An owner's actual answer to a question, and a direction-level choice a report or a later run commits to, including putting a finding on the backlog (title such an entry `Defer: {report file}#{id} -- {short description}`; it stays open until a later entry supersedes it). A question that was declined or never answered is not a decision: it stays open where it was asked.
+**What is recorded.** An owner's actual answer to a question, and a direction-level choice a report or a later run commits to, including putting a finding on the backlog (head such an entry `### D{n} -- Defer: {report file}#{id} -- {short description}`; its Consequences name the revisit trigger, and it stays in force until a later entry that takes up or drops the finding supersedes it). A question that was declined or never answered is not a decision: it stays open where it was asked.
 
 **Entry format.** Each entry is an H3 block under `## Decisions`:
 
@@ -28,10 +28,10 @@ Stages affected: {report file}#S{k}, ... | none
 **Statuses.** `accepted`, or `superseded by D{m}`.
 
 **Rules.**
-- Append only. Never change or remove an entry. The one allowed change: when a new entry reverses an earlier one, flip the earlier entry's `Status:` to `superseded by D{m}`; the new entry names what it supersedes in its Context.
+- Append only. Never change or remove an entry. The one allowed change: when a new entry reverses or replaces an earlier one (a `Defer:` entry included), flip the earlier entry's `Status:` to `superseded by D{m}`; the new entry names what it supersedes in its Context.
 - Numbering: the next entry is the highest `D{n}` under `## Decisions` plus one. The log starts empty, so the first entry is D1. Numbers are never reused.
 - One writer: during a run only its orchestrator appends, in one go, after re-reading the highest number. Other agents propose entries to it.
-- Cite an entry as `D{n}` instead of restating it, and check its current status here. Only the run that wrote a report marks its questions resolved (`Q{n} [blocking] [Resolved] -- {question} -> D{n}`); anyone else leaves the report untouched: the entry's Source names the question, and this log overrides the report.
+- Cite an entry as `D{n}` instead of restating it, and check its current status here. Only the run that wrote a report marks its questions resolved (`Q{n} [blocking|deferrable] [Resolved] -- {question} -> D{n}`, its tag unchanged); anyone else leaves the report untouched: the entry's Source names the question, and this log overrides the report.
 
 **Example** (an illustration, not an entry):
 

@@ -1,6 +1,6 @@
 # Orchestration
 
-Consumed by both scope skills; neither SKILL.md restates it. Method stays with the orchestrator and each skill.
+Consumed by both scope skills. Method stays with the orchestrator and each skill.
 
 ## Role
 
@@ -11,8 +11,8 @@ Consumed by both scope skills; neither SKILL.md restates it. Method stays with t
 
 - The SKILL.md's orchestration sentence names the route: the orchestration facility it names, or direct subagents.
 - Facility agents run in the background; every user-facing step (ws choice, authorisation, routing consent, interview) stays in the orchestrator's own loop.
-- Agents inherit no conversation history; each gets its assignment, its inputs, the decisions.md entries bearing on it, the `## Ground rules` below verbatim, and its resolved tier values explicitly.
-- Before the ws is resolved, confirm that agents can be spawned: resolve tiers with detect-harness, then spawn one Tier-3 support agent through the route the run will use, with a minimal read-only task the run can use -- list the existing `.ace/ws/` directories with the first entry under `## Inputs` in each `inputs.md` -- and continue only once its result comes back. If no agent can be spawned, say the skill's multi-agent guarantees cannot be met and stop; never run solo.
+- Agents inherit no conversation history: give each everything it needs, the `## Ground rules` below verbatim included.
+- Before the ws is resolved, confirm that agents can be spawned: resolve tiers with detect-harness, then spawn one Tier-3 support agent through the route the run will use, with a minimal read-only task the run can use -- list the existing `.ace/ws/` directories, each with the entries under `## Inputs` in its `inputs.md` and its `report-*` files -- and continue only once its result comes back. This agent gets only that task and its tier values (not the ground rules), writes nothing, and is not a role on `Team:`. If the orchestration facility cannot spawn it, retry with direct subagents and use that route for the run (a rejected tier value is not such a failure: follow detect-harness's stale-mapping rule); if no agent can be spawned at all, say the skill's multi-agent guarantees cannot be met and stop; never run solo.
 
 ## Guarantees
 

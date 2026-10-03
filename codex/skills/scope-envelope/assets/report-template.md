@@ -8,10 +8,10 @@ Source: {each given input, comma-separated: inputs.md key form where one exists,
 Prior: {file | none (declined: {file})}
 Grounded at: {short hash}, {clean tree | dirty ({n} modified files)}[; HEAD moved to {hash} during the run]
 Exchange: {8hex} -- {counterpart repository} -- round {k}; request {path}[; answers {path}]
-Decisions: added {D ids | none | pending}
+Decisions: {D ids this run added | none | pending}
 Grounding: {specification file read | none}
 
-[H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Exchange:` (envelope only): one line per counterpart, written when this run routes or consumes a round and carried forward while that exchange stays open, omitted otherwise. `pending` only between save and append, never in the final report. `Decisions:` carries ids only.]
+[Bracketed paragraphs like this one are guidance: follow them, then delete them. Inside a line form, `[...]` marks an optional part, except tags: where a form shows `[blocking|deferrable]` or `[high|low]`, write exactly one of the two (`[blocking]`, ...); `[Resolved]` and `[Routed]` are written as shown. Unbracketed prose, such as the Stages paragraph, is kept verbatim. H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Exchange:` (envelope only): one line per counterpart, written when this run routes or consumes a round and carried forward while that exchange stays open, omitted otherwise. `pending` only between save and append, never in the final report. `Decisions:` carries ids only.]
 
 ## Summary
 [Three to six sentences: the ambition; the direction in one sentence; the shape of the stages; every blocking question and load-bearing (unverified) claim. States nothing the body does not; cites D, never restates. Ends: "When delivered, $ace:scope-review in this workstream closes it."]
@@ -29,7 +29,7 @@ Grounding: {specification file read | none}
 ### G{n} -- {title}
 {One line of intent.}
 - {one to three bounding requirements}
-Anchors: {A ids; modules, seams, contracts}
+Anchors: {A ids; modules, seams, contracts | (assessment)}
 
 ## Stages
 
@@ -60,7 +60,7 @@ Q{n} [blocking|deferrable] [Resolved] -- {question} -> D{m} (moot)
 Routed: {8hex}, round {k}; {N} questions await consultant answers.
 Interview: {declined | cancelled | failed}; {N} questions unresolved.
 
-[One physical line per question, blocking first; nothing else in the block. A saved line never moves: resolution or routing changes only its marker and ending. Owners: `user`, `S{k}` (that stage's Owns lists it), `sibling ({role})`, `third party ({role})`, `closing review` (envelope only); never "later", "the implementer", "a probe" or "backlog". `[blocking]`: the work cannot be planned credibly without it; `[deferrable]`: its owner settles it during the work. `Routed:` (envelope only): one per exchange, only while its `[Routed]` lines remain. `Interview:` only after a declined, cancelled or failed interview. With no Q line at all, the section reads `None.` and the H3 is omitted.]
+[One physical line per question, blocking first; nothing else in the block. A saved line never moves: resolution or routing changes only its marker and ending. Owners: `user`, `S{k}` (that stage's Owns lists it), `sibling ({role})`, `third party ({role})`, `closing review` (envelope only); never "later", "the implementer", "a probe" or "backlog". `[blocking]`: the work cannot be planned credibly without it; `[deferrable]`: its owner settles it during the work. `[Routed]` lines and `Routed:` (envelope only): one `Routed:` per exchange, only while its `[Routed]` lines remain; a scope review writes a sibling-owned question in the plain form with `Owner: sibling ({role})`. `Interview:` only after a declined, cancelled or failed interview. With no Q line at all, the H3 is omitted and `None.` stands in its place (an envelope keeps its `Open assumptions:` line above it).]
 
 ## Premise challenge
 
@@ -70,7 +70,6 @@ Interview: {declined | cancelled | failed}; {N} questions unresolved.
 
 ## Assumption inventory
 - A{n} -- {premise} -- {verified ({anchor}) | verified (live observation) | settled (D{m}) | refuted ({evidence}) | open (owner: {owner}) | open (Q{n})}
-[An unverified premise is open, with its owner.]
 
 ## Concern sweep
 - data model -- {implicated: {ids carrying the treatment} | not implicated: {why}}
@@ -80,7 +79,7 @@ Interview: {declined | cancelled | failed}; {N} questions unresolved.
 - migration and compatibility -- ...
 - operability -- ...
 - testing -- ...
-[Axes may be added; none of the seven is dropped. A carried verdict says so.]
+[A carried verdict says so.]
 
 ## Input coverage
 - {input item or {file}#{id}} -- {covered: G ids | reframed as G{n}: how | out of scope: X{n} | struck: reason (anchor or D)}
@@ -91,7 +90,7 @@ Interview: {declined | cancelled | failed}; {N} questions unresolved.
 Carried unchanged: {ids | none}
 - {id} -- {narrowed: {what remains} | resolved -> {D{n} | A{n} | V{n}} | retired: {reason}} -- {evidence}
 
-[Only when `Prior:` names a file. Accounts for every id of the prior and nothing else: a baseline is accounted for in Conformance, a consumed report in Input coverage. An incremental sweep adds `Not re-examined (outside this area): {ids}`.]
+[Only when `Prior:` names a file. Accounts for every id of the prior and nothing else: a closing review accounts for its baseline in Conformance, a scope envelope for its consumed reports in Input coverage. An incremental sweep adds `Not re-examined (outside this area): {ids}`.]
 
 ## Run record
 
@@ -102,6 +101,7 @@ Team:
 Rationale: {one line}
 Revision pass: {n} findings, {m} applied; draft and findings in {workings path}
 Not verified: {what could not run, and the ids it leaves open or marked (unverified) | none}
+External state: {none | one entry per resource: {resource} -- {authorised use} -- residue {what remains | none}}
 Workings: {path}
 
 [Always the last section.]

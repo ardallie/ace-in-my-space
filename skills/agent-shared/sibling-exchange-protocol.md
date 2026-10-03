@@ -18,6 +18,9 @@ editing this list only -- the surrounding prose never names skills beyond it.
   produces the response envelope.
 - `${CLAUDE_PLUGIN_ROOT}/skills/agent-scope/SKILL.md` -- requester side, fully wired: its interview phase
   opens with a routing gate that classifies open questions and emits the request envelope.
+- `${CLAUDE_PLUGIN_ROOT}/skills/scope-envelope/SKILL.md` -- requester side, fully wired: its sibling
+  routing step emits the request envelope; it states its own exchange-id minting and answers
+  re-entry, which replace the defaults below.
 - `${CLAUDE_PLUGIN_ROOT}/skills/report-publish/SKILL.md` -- guard-only: its degenerate-title guard is the
   mechanism that enforces the transport-only rule below, refusing the request envelope's H1
   so a request can never be published as an issue. It participates in no round.
