@@ -54,7 +54,7 @@ if [ -z "$TITLE" ]; then
 fi
 if [ -n "$FROM_H1" ]; then
   case "$TITLE" in
-    'Pre-plan analysis'|'Plan validation report'|'Architectural review'|'Agent code review report'|'Scope envelope'|'Consultation answers'|'Consultation request'|'Skill optimisation plan'|'Skill optimisation report'|'Skill optimiser run evaluation')
+    'Pre-plan analysis'|'Plan validation report'|'Architectural review'|'Agent code review report'|'Scope envelope'|'Consultation answers'|'Consultation request'|'Skill optimisation plan'|'Skill optimisation report'|'Skill optimiser run evaluation'|'Scope review')
       echo "File <path> has no Title: field and its H1 is the skeleton title '$TITLE' — add a Title: header (or use a headered artefact) before publishing." >&2
       exit 1 ;;
   esac
@@ -65,6 +65,7 @@ case "$TYPE" in
   arch-review) PREFIX='[ARCH REVIEW] ' ;;
   code-review) PREFIX='[CODE REVIEW] ' ;;
   scope)       PREFIX='[SCOPE] ' ;;
+  scope-review) PREFIX='[SCOPE REVIEW] ' ;;
   consult)     PREFIX='[CONSULT] ' ;;
   plan)        PREFIX='[PLAN] ' ;;
   skill-optimise-eval) PREFIX='[SKILL EVAL] ' ;;

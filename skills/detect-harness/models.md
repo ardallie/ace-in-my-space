@@ -65,6 +65,11 @@ variable and cap above, or as inherited when the definition sets none. `/tasks`
 definition sets one; that display, not the agent's self-description, is the record of
 what applied.
 
+**Workflow tool.** Agents started through the `Workflow` tool take a per-agent model and
+effort: pass the tier's alias as the agent's `model` and its effort level as its
+`effort`. Both parts of a tier therefore apply on that route, and its effort is reported
+as applied, not inherited. The paragraphs above describe the `Agent` tool route.
+
 ### Codex
 
 A tier is a (model, effort) pair, passed through `collaboration.spawn_agent`'s separate

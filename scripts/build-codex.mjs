@@ -262,6 +262,20 @@ for (const path of walkFiles(join(outputRoot, "agents"))) {
   writeFileSync(path, text, "utf8");
 }
 
+const orchestrationSentence = "Use the `Workflow` tool to run the agents where it is available; otherwise spawn subagents directly.";
+const orchestrationNeutral = "Spawn the agents directly as subagents (route: direct subagents): fan out independent assignments, send load-bearing claims to adversarial verification, collect every result, and synthesise. Spawn each agent with its own `collaboration.spawn_agent` call -- a unique `task_name`, its assignment in `message`, `agent_type: \"default\"`, `fork_turns: \"none\"`, and the `model` and `reasoning_effort` that `../detect-harness/SKILL.md`'s consumer contract gives for its tier or override, omitting any override the contract says to omit -- issuing independent calls before waiting; each result arrives through the collaboration completion notification.";
+for (const skill of ["scope-envelope", "scope-review"]) {
+  const path = join(outputRoot, "skills", skill, "SKILL.md");
+  writeFileSync(path, replaceRequired(readFileSync(path, "utf8"), orchestrationSentence, orchestrationNeutral, `${skill} orchestration-tool sentence`), "utf8");
+}
+for (const dir of ["scope-envelope", "scope-review", "ws-create", "ws-shared"]) {
+  for (const path of walkFiles(join(outputRoot, "skills", dir))) {
+    if (/workflow/i.test(readFileSync(path, "utf8"))) {
+      throw new Error(`Orchestration-tool wording survived conversion: ${relative(repositoryRoot, path)}`);
+    }
+  }
+}
+
 const interviewSkillPath = join(outputRoot, "skills", "run-interview", "SKILL.md");
 let interviewSkill = readFileSync(interviewSkillPath, "utf8");
 interviewSkill = replaceRequired(
