@@ -16,7 +16,7 @@ Read `../ws-shared/workstream-conventions.md` first; this skill carries out its 
 
 ## Outcomes
 
-- Found: create only what is missing (`workings/`, `inputs.md`); never touch an existing `decisions.md`; append each subject input not yet recorded with what it now asks for.
+- Found: create only what is missing (`workings/`, `inputs.md`); never touch an existing `decisions.md`; append a line for each subject input whose key is not yet recorded, or whose ask differs from its latest line for that key, stating what it now asks for.
 - Created: create `.ace/ws/{yyyyMMdd}-{slug}/` with an empty `workings/`; copy `../ws-shared/decisions-template.md` to `decisions.md` and `../ws-shared/inputs-template.md` to `inputs.md`, byte for byte; append one line per subject input to `inputs.md`.
 - Asked: ask where the conventions say to ask; a declined choice prints no `Workstream:` line.
 
