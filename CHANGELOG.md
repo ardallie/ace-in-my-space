@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0]
+
+### Added -- workstreams and the scope skills
+
+- `/ace:scope-envelope` opens a workstream for a large or loosely specified ambition: a
+  multi-agent deliberation, sceptic always included, producing a scope envelope (direction,
+  goals, assumptions, suggested stages with observable gates) beside the workstream's
+  decision log.
+- `/ace:scope-review` closes a workstream by reviewing delivered work against its envelope and
+  decision log, or against scope documents: did goals land, were decisions honoured, was
+  anything silently deferred, what remediation follows. Opt-in `--sweep` reviews an existing
+  area.
+- `/ace:ws-create` finds or creates a workstream, reusing the one its inputs already belong to,
+  and prints its path.
+- A workstream is `.ace/ws/{yyyyMMdd}-{slug}/`: `inputs.md`, an append-only `decisions.md`,
+  `report-{skill}.md` (`-2`, `-3` for later runs), and `workings/`. The shared conventions,
+  orchestration rules and seeds live in `skills/ws-shared/`.
+- The legacy `/ace:agent-scope`, `/ace:agent-arch-review` and `/ace:agent-pre-planner` are
+  unchanged.
+
+### Changed
+
+- `/ace:report-publish` publishes a scope-review report with the `[SCOPE REVIEW] ` prefix and
+  refuses its skeleton `Scope review` H1.
+- `/ace:agent-consultant` accepts a scope-review report as a pack report with open questions.
+- `skills/detect-harness/models.md` notes that the `Workflow` tool takes a per-agent model and
+  effort.
+- The Codex build converts the scope skills' orchestration-tool sentence into direct subagent
+  spawns.
+
 ## [0.4.2]
 
 ### Changed -- harness tier mappings
