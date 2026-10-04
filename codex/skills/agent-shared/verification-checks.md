@@ -5,6 +5,7 @@ run a battery before spawning their team. Consumers:
 
 - `../agent-code-review/SKILL.md` -- Phase 3 shared verification
 - `../agent-arch-review/SKILL.md` -- Phase 2 shared verification
+- `../scope-review/SKILL.md` -- R3 state and battery
 
 `--checks` is a per-skill flag in the `--prior`/`--reviewers` idiom, deliberately not a
 common flag in `input-conventions.md` -- that file's other consumers run no verification

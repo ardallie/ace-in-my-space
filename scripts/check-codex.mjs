@@ -49,11 +49,11 @@ const skillDirectories = (skillsRoot) => readdirSync(skillsRoot)
 const sourceSkillNames = skillDirectories(join(root, "skills"));
 const sourceAgentNames = sourceAgentFiles.map((path) => path.split(sep).at(-1).replace(/\.md$/, "")).sort();
 
-if (sourceSkillNames.length !== 20) errors.push(`expected 20 Claude skills, found ${sourceSkillNames.length}`);
+if (sourceSkillNames.length !== 23) errors.push(`expected 23 Claude skills, found ${sourceSkillNames.length}`);
 if (sourceAgentNames.length !== 3) errors.push(`expected 3 Claude agents, found ${sourceAgentNames.length}`);
 
 const skillPaths = codexSkillFiles.filter((path) => path.endsWith(`${sep}SKILL.md`));
-if (skillPaths.length !== 20) errors.push(`expected 20 Codex skills, found ${skillPaths.length}`);
+if (skillPaths.length !== 23) errors.push(`expected 23 Codex skills, found ${skillPaths.length}`);
 
 const skillNames = new Set();
 for (const skillPath of skillPaths) {
