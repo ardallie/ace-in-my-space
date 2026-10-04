@@ -4,8 +4,8 @@ A suite of agent skills for planning, multi-agent review, pull-request work, rep
 publication, and harness detection. It ships as a single plugin named `ace`, distributed
 from the `ace-in-my-space` marketplace (this repository).
 
-Twenty skills and three subagent payloads. The skills invoke one another by name, so they
-are packaged and versioned together rather than split per workflow.
+Twenty-three skills and three subagent payloads. The skills invoke one another by name, so
+they are packaged and versioned together rather than split per workflow.
 
 ## Installation
 
@@ -82,6 +82,10 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
   scope envelope
 - `/ace:agent-arch-review` -- architectural review over a feature, subsystem, issue, or
   file set
+- `/ace:scope-envelope` -- opens a workstream with a scope envelope (direction, goals,
+  stages) and its decision log
+- `/ace:scope-review` -- closes a workstream by reviewing delivered work against its scope
+  (opt-in `--sweep` for an existing area)
 - `/ace:agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
   consolidated findings
 - `/ace:agent-code-review` -- pre-PR code review producing severity-graded findings
@@ -108,6 +112,7 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
 - `/ace:run-interview` -- presents open questions interactively under the option-list
   rules
 - `/ace:run-retro` -- writes a retrospective report on a finished run
+- `/ace:ws-create` -- finds or creates a workstream directory
 
 ### Subagents
 
@@ -195,10 +200,12 @@ repository it runs in:
 - `.ace/scope/` -- scope envelopes
 - `.ace/arch-review/` -- architectural review reports
 - `.ace/retro/` -- retrospectives
+- `.ace/ws/{yyyyMMdd}-{slug}/` -- a workstream: `inputs.md`, `decisions.md`,
+  `report-{skill}.md` (`-2`, `-3`), `workings/`
 
-Filenames are `{yyyyMMdd}-{HHmm}-{kind}-{suffix}.md`. The `.ace/` root is a convention,
-not a configuration surface; add it to the host repository's `.gitignore` if the artefacts
-should not be committed.
+Filenames outside `.ace/ws/` are `{yyyyMMdd}-{HHmm}-{kind}-{suffix}.md`. The `.ace/` root
+is a convention, not a configuration surface; add it to the host repository's `.gitignore`
+if the artefacts should not be committed.
 
 ## Updating
 
