@@ -59,8 +59,8 @@ The orchestrator records HEAD and tree state at start for `Grounded at:`; if HEA
 
 ## Revision pass
 
-- One fresh-context reviewer (no inherited history, never a fork) is given the draft, the template, the evidence, decisions.md, the run's proposed entries, and the prior if any. It reads as the downstream orchestrator would and checks:
-  - contract: template fields and order; id grammar (unique, never rebound, citations resolve); an owner for every open item; every `D{n}` resolves in decisions.md or among proposed entries; the skill's own guarantee list;
+- One fresh-context reviewer (no inherited history, never a fork) is given the draft, the template, the evidence, decisions.md, the run's proposed entries, the interview's option-list rules for the draft's questions, and the prior if any. It reads as the downstream orchestrator would and checks:
+  - contract: template fields and order; id grammar (unique, never rebound, citations resolve); an owner for every open item; every `D{n}` resolves in decisions.md or among proposed entries; no proposed entry contradicts an owner's answer (the evidence behind it becomes a question for this run's interview); the skill's own guarantee list;
   - fidelity: no claim stronger than its evidence, above all one synthesis introduced or generalised, and no absence without the search that found nothing; `(sampled)`, `(unverified)` and assessment markers honest; the sceptic's dissent kept;
   - actionability: build one stage packet (template's Stages paragraph) and judge whether an agent could start from it without re-asking; nothing deferred without a stated reason.
 - The orchestrator weighs the findings and applies the valid ones in one pass, with no loop; draft and findings stay in `workings/`. Saving the report and what follows belong to the SKILL.md.

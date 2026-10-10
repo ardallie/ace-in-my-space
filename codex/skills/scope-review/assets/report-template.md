@@ -4,7 +4,7 @@ Title: {concise; no trailing full stop; no issue, package or stage numbers; no r
 Type: scope-review
 Date: {yyyy-MM-dd}
 Workstream: .ace/ws/{name}
-Source: {each given input, comma-separated: inputs.md key form where one exists, else the literal ref (branch, commit range, ws report file)}
+Source: {each given input, comma-separated: inputs.md key form where one exists, else the literal ref (branch, commit range, ws report file); then the path of any consultant answers read with the baseline}
 Prior: {file | none (declined: {file})}
 Grounded at: {short hash}, {clean tree | dirty ({n} modified files)}[; HEAD moved to {hash} during the run]
 Decisions: {D ids this run added | none | pending}
@@ -84,7 +84,7 @@ Interview: {declined | cancelled | failed}; {N} questions unresolved.
 - {file}#{Q or A id} -- ...
 ### Input items
 - {file}, {input item} -- ...
-[Verdicts: landed; reinterpreted ({D{n}} | {record}); diverged; deferred ({D{n}} | {X{n}} | {record}); silently-deferred; premise-void; unverified ({why}; settled by: {what would settle it}; owner: {owner}). A baseline without numbered gate clauses is cited by stage plus a short quote. A carried verdict says so. Transcripts stay in workings/.]
+[Verdicts: landed; reinterpreted ({D{n}} | {record}); diverged; deferred ({D{n}} | {file}#X{n} | {record}); silently-deferred; premise-void; unverified ({why}; settled by: {what would settle it}; owner: {owner}). A baseline without numbered gate clauses is cited by stage plus a short quote. Baseline G, S, S{k}.{m}, Q, A and X ids share this report's id forms, so a bare one reads as this report's: cite each `{file}#{id}`, as the row heads show, in Summary, prose, stages (the `A` ids their `Relies on:` and `Owns:` forms name included), questions, Premise challenge, evidence and proposed entries too. A carried verdict says so. An empty subsection reads `None.` Transcripts stay in workings/.]
 
 ## Findings
 ### Correction

@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1]
+
+### Changed -- run feedback on the scope skills
+
+- The `decisions.md` seed header is the workstream's lifecycle channel: every step reads the
+  log first and records its at-bar decisions as it takes them; `Defer:` admits any source-form
+  record; direction-level entries are replaced by effect; consultation answers and settlements
+  have a recorded form; a bare report id inside an entry has one defined reading.
+- `/ace:scope-envelope`: E9 always prints the downstream pointer to the report and the log, with
+  a route for deferrable routed sets; the sibling never-read rule travels with Guarantee 8; E6
+  reconciles each stage's `Detail:` with its gate; the Summary drops its sentence count.
+- `/ace:scope-review`: one owner may hold both core lenses, and the conformance owner merges
+  rows and rules on contested ones; R4 rows take a reviewing owner, a baseline anchor and
+  observed evidence, and walk delivery-written direction entries as claims; a file-writing gate
+  battery runs as an isolated writing probe with removal confirmed where it wrote; R2 reads the
+  consultant answers of an open exchange; R10 points remediation at the report and the whole log;
+  baseline ids carry their file.
+- `skills/ws-shared/`: one folder per step, reached by pointer; the revision reviewer gets the
+  option-list rules and checks proposed entries against owner answers.
+
 ## [0.5.0]
 
 ### Added -- workstreams and the scope skills

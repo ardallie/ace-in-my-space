@@ -56,12 +56,12 @@ Consumed by every skill that works in a workstream (ws). A skill cites this file
 ## Identifiers
 
 - Report ids: `G`, `A`, `X`, `Q`, `C`, `R`, `I`, `O`, `V`, stages `S{k}` and gate clauses `S{k}.{m}`. Within a report each is unique and never rebound; a carried id keeps its number; new ids continue above the prior's highest of that kind.
-- A bare id is the citing report's own; another document's id is cited `{file}#{id}` (`{file}` is the ws filename, e.g. `report-scope-envelope.md#G3`, or a repo-relative path outside the ws); `D{n}` is always bare and ws-wide.
+- A bare id is the citing report's own, or in a `decisions.md` entry the Source report's (with no report as Source, every report id takes its file); another document's id is cited `{file}#{id}` (`{file}` is the ws filename, e.g. `report-scope-envelope.md#G3`, or a repo-relative path outside the ws); this ws's `D{n}` is always bare and ws-wide.
 - Run identifier: none, except the sibling-exchange id (8 hex), minted per exchange and carried in `Exchange:`.
 
 ## workings/
 
-- Shared by every skill and downstream run in the ws; its organisation is the orchestrator's call (e.g. `workings/scope-envelope/` for skill-internal material, the top level for what others may use).
+- Shared by every skill and downstream run in the ws; its organisation is the orchestrator's call, but each step, skill or not, keeps its own folder (e.g. `workings/scope-envelope/`), within or beside which its repeat runs may keep their records apart; others reach its material by pointer (report fields, `Detail:`, an entry's Source).
 - Resumability: write state down as the run progresses, so another session could pick up where it left off; a principle, not a gate.
 - Retained, never deleted.
 - Exceptions: protocol-fixed artefacts stay where their protocol puts them (the consultation request under `.ace/reports/`), and the report records their path; a probe's isolated location may sit outside the ws.
