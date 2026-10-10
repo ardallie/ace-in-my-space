@@ -14,7 +14,7 @@ Grounding: {specification file read | none}
 [Bracketed paragraphs like this one are guidance: follow them, then delete them. Inside a line form, `[...]` marks an optional part, except tags: where a form shows `[blocking|deferrable]` or `[high|low]`, write exactly one of the two (`[blocking]`, ...); `[Resolved]` and `[Routed]` are written as shown. Unbracketed prose, such as the Stages paragraph, is kept verbatim. H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Exchange:` (envelope only): one line per counterpart, written when this run routes or consumes a round and carried forward while that exchange stays open, omitted otherwise. `pending` only between save and append, never in the final report. `Decisions:` carries ids only.]
 
 ## Summary
-[Three to six sentences: the ambition; the direction in one sentence; the shape of the stages; every blocking question and load-bearing (unverified) claim. States nothing the body does not; cites D, never restates. Ends: "When delivered, $ace:scope-review in this workstream closes it."]
+[The ambition; the direction in one sentence; the shape of the stages; every blocking question and load-bearing (unverified) claim. States nothing the body does not; cites D, never restates. Ends: "When delivered, $ace:scope-review in this workstream closes it."]
 
 ## Scope
 ### Direction
