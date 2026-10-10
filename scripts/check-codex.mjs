@@ -30,12 +30,26 @@ const codexFiles = [...codexSkillFiles, ...codexAgentFiles];
 const sourceContractFiles = [...sourceSkillFiles, ...sourceAgentFiles];
 const sourceFiles = [...sourceContractFiles, join(root, "README.md")];
 
+// Every Codex file maps to a source file at the same relative path, except the generated-only
+// files the build writes from its own text; each of those exists in the Codex edition only.
+const generatedOnly = ["skills/scope-implement/orchestration-codex.md"];
+for (const rel of generatedOnly) {
+  if (!existsSync(join(codexRoot, ...rel.split("/")))) errors.push(`generated-only file missing: codex/${rel}`);
+  if (existsSync(join(root, ...rel.split("/")))) errors.push(`generated-only file has a source copy: ${rel}`);
+}
+
+const relativePaths = (base, files) => new Set(files.map((path) => relative(base, path).split(sep).join("/")));
 for (const [label, files, convertedFiles] of [
   ["skills", sourceSkillFiles, codexSkillFiles],
   ["agent payloads", sourceAgentFiles, codexAgentFiles],
 ]) {
-  if (files.length !== convertedFiles.length) {
-    errors.push(`${label}: source has ${files.length} files; Codex has ${convertedFiles.length}`);
+  const sourcePaths = relativePaths(root, files);
+  const codexPaths = relativePaths(codexRoot, convertedFiles);
+  for (const rel of sourcePaths) {
+    if (!codexPaths.has(rel)) errors.push(`${label}: ${rel} has no Codex counterpart`);
+  }
+  for (const rel of codexPaths) {
+    if (!sourcePaths.has(rel) && !generatedOnly.includes(rel)) errors.push(`${label}: codex/${rel} has no source counterpart`);
   }
 }
 
@@ -49,11 +63,11 @@ const skillDirectories = (skillsRoot) => readdirSync(skillsRoot)
 const sourceSkillNames = skillDirectories(join(root, "skills"));
 const sourceAgentNames = sourceAgentFiles.map((path) => path.split(sep).at(-1).replace(/\.md$/, "")).sort();
 
-if (sourceSkillNames.length !== 23) errors.push(`expected 23 Claude skills, found ${sourceSkillNames.length}`);
+if (sourceSkillNames.length !== 24) errors.push(`expected 24 Claude skills, found ${sourceSkillNames.length}`);
 if (sourceAgentNames.length !== 3) errors.push(`expected 3 Claude agents, found ${sourceAgentNames.length}`);
 
 const skillPaths = codexSkillFiles.filter((path) => path.endsWith(`${sep}SKILL.md`));
-if (skillPaths.length !== 23) errors.push(`expected 23 Codex skills, found ${skillPaths.length}`);
+if (skillPaths.length !== 24) errors.push(`expected 24 Codex skills, found ${skillPaths.length}`);
 
 const skillNames = new Set();
 for (const skillPath of skillPaths) {
@@ -95,7 +109,7 @@ for (const path of sourceAgentFiles) {
 }
 
 // The exact identifiers this rename retired: `ace-` plus every live skill and agent name.
-// `plan-validate` names both a skill and an agent, so the 23 map entries dedupe to 22 strings.
+// `plan-validate` names both a skill and an agent, so the 27 entries dedupe to 26 strings.
 const retiredIdentifiers = [...new Set([...sourceSkillNames, ...sourceAgentNames])]
   .map((name) => `${NS}-${name}`)
   .sort();
@@ -130,7 +144,7 @@ for (const path of codexFiles) {
   if (commandPattern.test(text)) errors.push(`${relative(root, path)}: contains Claude slash invocation`);
 
   // A Claude plugin-agent address has no counterpart in Codex; the payload spawn blocks must
-  // have been rewritten to `agent_type: "default"`.
+  // have been rewritten to a direct `collaboration.spawn_agent` call.
   for (const match of text.matchAll(/(?<![$A-Za-z0-9_/-])ace:([a-z0-9][a-z0-9*-]*)/g)) {
     errors.push(`${relative(root, path)}: contains Claude plugin-agent address ace:${match[1]}`);
   }

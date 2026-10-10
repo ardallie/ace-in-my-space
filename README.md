@@ -4,7 +4,7 @@ A suite of agent skills for planning, multi-agent review, pull-request work, rep
 publication, and harness detection. It ships as a single plugin named `ace`, distributed
 from the `ace-in-my-space` marketplace (this repository).
 
-Twenty-three skills and three subagent payloads. The skills invoke one another by name, so
+Twenty-four skills and three subagent payloads. The skills invoke one another by name, so
 they are packaged and versioned together rather than split per workflow.
 
 ## Installation
@@ -76,7 +76,7 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
   session handoff
 - `/ace:plan-handoff` -- posts a technical handoff comment to a GitHub issue
 
-### Multi-agent analysis
+### Multi-agent analysis and delivery
 
 - `/ace:agent-scope` -- a deliberative panel over a large ambition, producing a staged
   scope envelope
@@ -86,6 +86,9 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
   stages) and its decision log
 - `/ace:scope-review` -- closes a workstream by reviewing delivered work against its scope
   (opt-in `--sweep` for an existing area)
+- `/ace:scope-implement` -- delivers a workstream's scope envelope, or its closing review's
+  remediation stages, as a multi-agent run that commits and pushes a feature branch and
+  leaves a handoff
 - `/ace:agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
   consolidated findings
 - `/ace:agent-code-review` -- pre-PR code review producing severity-graded findings
@@ -139,7 +142,9 @@ node scripts/check-codex.mjs
 The conversion reduces skill frontmatter to `name` and `description`, moves argument
 hints into the body, qualifies internal skill mentions, converts plugin-root paths to
 relative references, adapts questions and subagent spawns, and copies the three supporting
-agent payloads into `codex/`.
+agent payloads into `codex/`. It also writes one file with no source counterpart,
+`codex/skills/scope-implement/orchestration-codex.md`: the Codex spawn and coordination
+mechanics that skill points to; `check-codex` allow-lists it.
 
 ## Harness differences
 
@@ -150,7 +155,7 @@ agent payloads into `codex/`.
 - Claude discovers the three custom agents from the plugin's `agents/` directory. The
   Codex plugin manifest has no custom-agent component, so the Codex orchestrators read
   `codex/agents/*.md` as supporting payloads and pass them through
-  `collaboration.spawn_agent.message` on the built-in `default` role. The named custom
+  `collaboration.spawn_agent.message`; the spawn names no agent type, so the named custom
   role is not preserved.
 - Claude's per-spawn worktree isolation field has no Codex collaboration equivalent.
   The Codex consultant confines file-creating probes to a verified operating-system
@@ -159,7 +164,8 @@ agent payloads into `codex/`.
   it and asks the same ordered options in plain text in Default mode. The structured
   Codex surface accepts at most three questions and two or three options per question,
   so larger interviews are batched; both paths retain keep-current behaviour and one
-  first-position `(Recommended)` option.
+  first-position `(Recommended)` option. `scope-implement`'s Codex reference asks through
+  `request_user_input_async` in Default mode where it is exposed.
 - Claude substitutes `${CLAUDE_PLUGIN_ROOT}` in skill content. Codex resolves supporting
   files relative to the active `SKILL.md`; `${PLUGIN_ROOT}` is not used because it is a
   hook-command variable only.
@@ -201,7 +207,8 @@ repository it runs in:
 - `.ace/arch-review/` -- architectural review reports
 - `.ace/retro/` -- retrospectives
 - `.ace/ws/{yyyyMMdd}-{slug}/` -- a workstream: `inputs.md`, `decisions.md`,
-  `report-{skill}.md` (`-2`, `-3`), `workings/`
+  `report-{skill}.md` (`-2`, `-3`), `workings/` (one folder per step, e.g.
+  `workings/implementation/` with the run's `state.md`, `gates.md` and `handoff.md`)
 
 Filenames outside `.ace/ws/` are `{yyyyMMdd}-{HHmm}-{kind}-{suffix}.md`. The `.ace/` root
 is a convention, not a configuration surface; add it to the host repository's `.gitignore`

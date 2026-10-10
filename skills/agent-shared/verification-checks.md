@@ -10,8 +10,10 @@ run a battery before spawning their team. Consumers:
 `--checks` is a per-skill flag in the `--prior`/`--reviewers` idiom, deliberately not a
 common flag in `input-conventions.md` -- that file's other consumers run no verification
 battery (`agent-pre-planner`, `agent-scope`, `plan-route`), and `agent-consultant` carries
-its own conditional cheap-gates step and no flag. Each consumer's SKILL.md states where
-its battery runs (at which repository state) and where the results are recorded, and
+its own conditional cheap-gates step and no flag. `scope-implement` takes no flag either: it
+runs `cheap` at each checkpoint and `full` at final integration, as its SKILL.md states. Each
+consumer's SKILL.md states where its battery runs (at which repository state) and where the
+results are recorded, and
 restates the flag grammar in its Usage and Phase 1 flag bullets (the per-skill flag
 idiom); the tier definitions below are defined here only. A consumer's Usage bullet may
 carry a one-phrase gloss of a tier as a pointer to the definition, never a second

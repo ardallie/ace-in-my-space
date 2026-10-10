@@ -83,6 +83,12 @@ A tier is a (model, effort) pair, passed through `collaboration.spawn_agent`'s s
 integer string. Omitting `fork_turns` or passing `"all"` forks the full history and
 rejects overrides.
 
+**Spawn surface.** Verified on codex-cli 0.162.1: `collaboration.spawn_agent` takes
+`task_name`, `message`, `fork_turns`, `model` and `reasoning_effort`, and no
+agent-type field. `collaboration.send_message` steers a running agent and
+`collaboration.followup_task` gives an existing agent another turn; neither takes a
+`model` or `reasoning_effort`, so a different tier needs a new spawn.
+
 **Effort.** Valid reasoning efforts are `low`, `medium`, `high`, `xhigh`, `max`, and
 `ultra`. `gpt-6-luna` supports up to `max`; `gpt-6-astra` and `gpt-6.1-sol` also
 support `ultra`.

@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0]
+
+### Added -- implementation and remediation in a workstream
+
+- `/ace:scope-implement --ws {ws}`: delivers the workstream's current scope report -- its
+  envelope (implementation) or its closing review's remediation stages (remediation), the mode
+  read from the workstream's state -- through design, implementation, integration and
+  verification as a multi-agent run. It verifies every gate clause as behaviour on the delivered
+  tree, appends its decisions to `decisions.md` at the header's timing (offering to upgrade a
+  header older than the current seed when its first entry is due), commits and pushes checkpoints on a feature
+  branch, keeps `state.md` and `gates.md` in its step folder, and writes a pointer-only
+  `handoff.md` that names its brief and records the harness and orchestrator model of each
+  session. It resumes its own runs, reads other runs' records as evidence, and names the next
+  step.
+
+### Changed
+
+- `skills/ws-shared/`: a find-only resolution variant (no ws-create); pushing a branch is not a
+  GitHub write; the ground rules let an agent write what its assignment names; a shared
+  `## Probes and external state` section in `orchestration.md`.
+- `/ace:scope-envelope` E9 and `/ace:scope-review` R10 name `/ace:scope-implement`; scope-review
+  R2 finds delivered work through a step handoff; scope-review's removal and external-state
+  bullets and scope-envelope's E3 point to the shared section.
+- Codex edition: spawns no longer pass `agent_type` (absent from the spawn schema verified on
+  codex-cli 0.162.1); the scope skills' follow-ups use `collaboration.followup_task` and
+  `collaboration.send_message` instead of a fresh spawn each time; `scope-implement` gets its own
+  orchestration text and a generated-only `orchestration-codex.md`; `check-codex` compares
+  source and Codex paths with an allow-list of generated-only files; `models.md` records the
+  verified spawn surface.
+
 ## [0.5.1]
 
 ### Changed -- run feedback on the scope skills

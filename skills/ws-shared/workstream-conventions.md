@@ -6,7 +6,7 @@ Consumed by every skill that works in a workstream (ws). A skill cites this file
 
 - A ws is a directory directly under `.ace/ws/` named `{yyyyMMdd}-{slug}` (lowercase letters, digits, single hyphens, no dots); anything else there is not a ws and is never reused, renamed or deleted.
 - Layout: `{ws}/inputs.md`, `{ws}/decisions.md`, `{ws}/report-{skill}.md` (and `-2`, `-3`), `{ws}/workings/`.
-- The ws is the system of record: no skill in a ws writes to GitHub; a report is shared by hand with `/ace:report-publish`; issues and PRs may be read as inputs.
+- The ws is the system of record: no skill in a ws writes to GitHub (issues, pull requests, comments; pushing a branch is git, not such a write); a report is shared by hand with `/ace:report-publish`; issues and PRs may be read as inputs.
 - Only `/ace:ws-create` creates a ws or writes `inputs.md`: run it as a skill, or read and follow `${CLAUDE_PLUGIN_ROOT}/skills/ws-create/SKILL.md`.
 
 ## Inputs
@@ -26,22 +26,22 @@ Consumed by every skill that works in a workstream (ws). A skill cites this file
 ## Resolving a ws
 
 - Resolve once the inputs are known to be actionable (a read-only lookup of `--ws` may come first) and before any agent work other than the spawn confirmation in orchestration.md's `## Route`, in the orchestrator's own loop.
-- Every path ends in ws-create, "use it" included, so a new subject input in a reused ws is appended by the single writer.
+- Every path ends in ws-create, "use it" included, so a new subject input in a reused ws is appended by the single writer; find-only, which takes no subject input and creates nothing, excepted.
 - Without `--ws`, never by re-deriving a slug: a ws matches when one of the run's inputs lies inside it, or one of the run's subject inputs is recorded (same key) in the ws's `inputs.md` and still asks for what its latest line for that key says; if that is doubtful (the input still concerns the recorded ask but narrows, widens or partly replaces it), the ws is a candidate, unless another ws matches on that key. Shared supporting material and similar slugs never match.
 - Variants (each skill states its own):
 
-| Case | find-or-create (scope-envelope) | find-or-ask (scope-review) |
-|---|---|---|
-| `--ws`: one ws | use it | use it |
-| `--ws`: several | ask: one of them, or stop | ask: one of them, or stop |
-| `--ws`: none | create under that name | ask: create under that name, a ws matching the inputs, or stop |
-| no `--ws`: one match, no candidate | use it | ask: use it (recommended), create new, or stop |
-| no `--ws`: several matches, or any candidate | ask: one of them, or create new | ask: one of them, create new, or stop |
-| no `--ws`: nothing | create with a derived slug | ask: create `{derived name}`, or stop |
+| Case | find-or-create (scope-envelope) | find-or-ask (scope-review) | find-only (scope-implement) |
+|---|---|---|---|
+| `--ws`: one ws | use it | use it | use it |
+| `--ws`: several | ask: one of them, or stop | ask: one of them, or stop | ask: one of them, or stop |
+| `--ws`: none | create under that name | ask: create under that name, a ws matching the inputs, or stop | say so and stop |
+| no `--ws`: one match, no candidate | use it | ask: use it (recommended), create new, or stop | say `--ws` is required and stop |
+| no `--ws`: several matches, or any candidate | ask: one of them, or create new | ask: one of them, create new, or stop | say `--ws` is required and stop |
+| no `--ws`: nothing | create with a derived slug | ask: create `{derived name}`, or stop | say `--ws` is required and stop |
 
 - Offer each ws with its name, its first `inputs.md` entry and the reports it holds; a "create new" option shows the name it will use; a declined choice stops the run.
-- find-or-create passes ws-create the `--ws` value (if any) and the subject inputs (a subject stated only in conversation as `conversation: {what it asks for}`), and ws-create matches; find-or-ask matches and asks itself, then passes ws-create `--ws {chosen name}` and the subject inputs in the same form.
-- Caller check: continue only if the printed `Workstream:` path holds `decisions.md`, `inputs.md` and `workings/`, and `inputs.md` lists this run's subject inputs; otherwise stop and report, writing nothing elsewhere.
+- find-or-create passes ws-create the `--ws` value (if any) and the subject inputs (a subject stated only in conversation as `conversation: {what it asks for}`), and ws-create matches; find-or-ask matches and asks itself, then passes ws-create `--ws {chosen name}` and the subject inputs in the same form; find-only matches and asks itself and runs no ws-create.
+- Caller check: continue only if the printed `Workstream:` path holds `decisions.md`, `inputs.md` and `workings/`, and `inputs.md` lists this run's subject inputs (find-only: the chosen ws holds `decisions.md`); otherwise stop and report, writing nothing elsewhere.
 
 ## Reports over time
 
