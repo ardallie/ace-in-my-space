@@ -52,7 +52,7 @@ Read first:
 - R8 **Revision pass** per orchestration.md; the reviewer is also given the commitment list and its evidence; record it on `Revision pass:`.
 - R9 **Save, interview, record.** Save the report under the ws filename (`Decisions: pending`); then the conventions' interview in a ws, append and report update.
 - R10 **Close.** Print the report path and the D ids added; a sweep prints `$ace:scope-envelope --ws {ws}`. When a sibling owns questions this run raised, name them (a baseline question still awaiting answers in an open exchange -- one that no `decisions.md` entry and no answers R2 read answer -- is cited with its exchange id, not re-sent): they go to that repository's `$ace:agent-consultant` as a pasted list (not the whole report, whose every unresolved line it would answer), and its answers come back as grounding input to a later run in this ws.
-  - A closing review with remediation stages also prints `$ace:scope-implement --ws {ws}`, the remediating run, which reads the report and all of `decisions.md` (not only the D ids added) first and records its decisions there, a `Defer:` take-up included.
+  - A closing review also prints `$ace:scope-implement --ws {ws}`, the remediating run, which reads the report and all of `decisions.md` (not only the D ids added) first and records its decisions there, a `Defer:` take-up included.
 
 ## Conformance
 
