@@ -35,7 +35,7 @@ GIT_EDITOR=true git -c rebase.updateRefs=false -c rebase.rebaseMerges=false -c r
 
 ## Conflicts
 
-- **Resolve real conflicts only**, keeping both sides' intent. Stage only the paths `git diff --name-only -z
+- **Resolve real conflicts only**, keeping both sides' intent. Stage only the paths `git diff-files --name-only -z
   --diff-filter=U` lists, plus any file you regenerated, with `git --literal-pathspecs add --pathspec-from-file=-
   --pathspec-file-nul` -- never `git add -A` or `.` -- after checking that no conflict marker remains in them; then
   continue.
@@ -46,10 +46,11 @@ GIT_EDITOR=true git -c rebase.updateRefs=false -c rebase.rebaseMerges=false -c r
   or abort and restore.
 - **Ambiguous intent** -- a semantic conflict, not just a textual one: both sides changing the same behaviour
   differently, a delete against a modify, a rename against an edit with no clear target. Stop and ask, with the rebase
-  left in progress. The question states the backup name and the exact way back (`git rebase --abort`; the branch then
-  returns to `<orig>`), so the user has it even if the session ends. Offer the proposed resolution, an alternative
-  where one exists, and "abort and restore". Any outcome other than completing the rebase aborts it: restore per the
-  run's Failure section and report `Plan: failed at step 8: aborted at <commit>` with `Push: not attempted`.
+  left in progress. The question states the backup name and the exact way back (`git rebase --abort`, which returns the
+  branch to `<orig>`, then deleting `<marker>`), so the user has it even if the session ends. Offer the proposed
+  resolution, an alternative where one exists, and "abort and restore". Any outcome other than completing the rebase
+  aborts it: restore per the run's Failure section and report `Plan: failed at step 8: aborted at <commit>` with
+  `Push: not attempted`.
 - **rerere:** where the repository already records resolutions, report each one rerere reused and verify it like your
   own. Never enable rerere: that would create `rr-cache` and switch it on for the repository.
 - **The same path conflicting in three or more commits:** ask whether to continue or to abort and restore. Abort
@@ -63,10 +64,10 @@ There is no content invariant: content changes on purpose. `<pre>` names the pre
 suffix) that is not an ancestor of HEAD, else none. `<old base>` is the merge-base of `<pre>` and `<base-tip>`.
 
 1. **Conflict markers.** In `git diff-tree -r -p --text --no-textconv --no-ext-diff <base-tip> HEAD`, and in each
-   replayed commit's own diff, no added line matches `^\+(<{7,}|>{7,}|\|{7,})( |\r?$)` or `^\+={7,}\r?$` --
-   unless `<old base>..<pre>`, scanned the same way, already added that line. `--checks skip` never skips this. With
-   no `<pre>`, nothing is exempt: ask the user to confirm marker-like lines the branch adds on purpose (test fixtures,
-   documentation) before failing.
+   replayed commit's own diff, with carriage returns stripped (`tr -d '\r'`), no added line matches
+   `^\+(<{7,}|>{7,}|\|{7,})( |$)` or `^\+={7,}$` (`grep -a -E`) -- unless `<old base>..<pre>`, scanned the same
+   way, already added that line. `--checks skip` never skips this. With no `<pre>`, nothing is exempt: ask the user to
+   confirm marker-like lines the branch adds on purpose (test fixtures, documentation) before failing.
 2. **Content,** when this run replayed: every path where HEAD differs from `<pre>`
    (`git diff-tree -r --no-renames --name-only <pre> HEAD`) is one upstream changed in `<old base>..<base-tip>` --
    either side of a rename there, or a path under a directory it renamed. A resolution never adds a file the branch

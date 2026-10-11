@@ -66,12 +66,13 @@ A stop prints the stop report (step 11).
 
 ### 1. Preflight: local
 
-`<b>` is the current branch (`git symbolic-ref -q HEAD` without `refs/heads/`) and `<orig>` its tip's SHA, recorded
-literally now. `<marker>` is `$(git rev-parse --git-common-dir)/branch-rewrite-in-progress/<b>`, shared by every
-worktree. Check all of these; stop, naming each that holds:
+`<b>` is the current branch (`git symbolic-ref -q HEAD` without `refs/heads/`; during a rebase in progress, its
+`head-name` under `git rev-parse --git-path rebase-merge`) and `<orig>` its tip's SHA, recorded literally now.
+`<marker>` is `$(git rev-parse --git-common-dir)/branch-rewrite-in-progress/<b>`, shared by every worktree. Check all
+of these; stop, naming each that holds:
 
 - git is older than 2.25.1
-- `<marker>` exists: an earlier run on `<b>` was interrupted. Print its contents and the recovery (Failure and
+- `<marker>` exists as a file: an earlier run on `<b>` was interrupted. Print its contents and the recovery (Failure and
   interruption) as literal commands with its values filled in, for the user to run; do not run them
 - HEAD is detached (`git symbolic-ref -q HEAD` fails)
 - an operation is in progress: `rebase-merge`, `rebase-apply`, `sequencer`, or `BISECT_START` exists under
@@ -218,8 +219,9 @@ Rebase has its own gate (rebase.md).
 
 ### 10. Push
 
-First add `new=<HEAD sha>` to the marker. If HEAD is no longer `refs/heads/<b>` at that SHA, the user moved it: stop
-without restoring, keep the branch, backup, and marker, and report "branch moved during the run".
+`<new>` is the SHA the gate passed on. If HEAD is no longer `refs/heads/<b>` at `<new>`, the user moved it: stop
+without restoring, keep the branch, backup, and marker, and report `Push: stopped: branch moved during the run`.
+Otherwise add `new=<new>` to the marker.
 
 ```
 git push --porcelain --no-follow-tags --force-with-lease=refs/heads/<dst>:<lease sha> <r> refs/heads/<b>:refs/heads/<dst>
@@ -235,7 +237,7 @@ git push --porcelain --no-follow-tags --force-with-lease=refs/heads/<dst>:<lease
   SHA, or nothing when the lease was absent -- it did not (Failure); anything else or an error -- neither restore nor
   push again: keep the branch, backup, and marker, and report "push outcome unknown" with both SHAs, both restore
   lines, and the marker's delete command.
-- Once it lands, delete the marker.
+- Once it lands, delete the marker, and any directories it leaves empty under `branch-rewrite-in-progress`.
 
 ### 11. Report
 
@@ -247,7 +249,7 @@ Commits:
   <short sha> <subject> (<n> paths)
 <the mode's report block>
 Warnings: <each, or none>
-Push: <forced update | new branch, upstream set | up to date | rejected: <reason> | blocked: <reason> | not attempted | outcome unknown>
+Push: <forced update | new branch, upstream set | up to date | rejected: <reason> | blocked: <reason> | stopped: <reason> | not attempted | outcome unknown>
 Backup: <names> (<k> backups of <b>; delete older: <git branch -D <names> | none>)
 Restore (local): git reset --keep refs/heads/<backup>
 Restore (remote): git push --force-with-lease=refs/heads/<dst>:<new sha> <r> <lease sha>:refs/heads/<dst>
@@ -282,12 +284,11 @@ moved it: reset nothing, keep the marker, and report.
   Check it with `git apply --check -R <file>`; if the check fails, stop and keep the marker. Add `saved=<file>` to the
   marker and name the file in the report, then restore those paths with
   `git --literal-pathspecs restore --source=<orig> --worktree --pathspec-from-file=- --pathspec-file-nul`.
-- Rebase: first keep any resolutions as `git branch <backup>-rebased HEAD` (unless that ref exists) -- with a rebase in
-  progress, when HEAD differs from its `onto` (under `git rev-parse --git-path rebase-merge`); after a finished
-  replay, when HEAD is not `<orig>`. Then, with a rebase in progress, `git rebase --abort`; if the branch is still not
-  at `<orig>`, `git reset --keep <orig>`. If that
-  refuses, save the `git diff-files --name-only -z` paths as above, restore them from the index (`restore --worktree`
-  without `--source`), and retry once; else stop and report, keeping the marker. Never `--hard`.
+- Rebase: when the run has completed at least one conflicted pick, first keep the resolutions as
+  `git branch <backup>-rebased HEAD` (unless that ref exists). Then, with a rebase in progress, `git rebase --abort`;
+  if the branch is still not at `<orig>`, `git reset --keep <orig>`. If that refuses, save the
+  `git diff-files --name-only -z` paths as above, restore them from the index (`restore --worktree` without
+  `--source`), and retry once; else stop and report, keeping the marker. Never `--hard`.
 - Verify `refs/heads/<b>` equals `<orig>` and the tracked tree is clean; if not, keep the marker and print the recovery.
   Otherwise delete the marker and report what failed with the backup and the local restore line. A rejected lease means
   someone pushed meanwhile: the user integrates their work and reruns.
@@ -304,14 +305,15 @@ step 1 and prints this recovery as literal commands, with the marker's values fi
    differs from the rebase's `onto`, `git branch <backup>-interrupted HEAD`; then `git rebase --abort` (unstaged
    resolutions are lost). Otherwise the rebase is the user's own: stop until they finish or abort it.
 3. `<b>` must be checked out; if another branch is, `git switch <b>` only when the tracked tree is clean, else stop.
-4. When the marker has `new`: `git fetch <r> refs/heads/<dst>` (into `FETCH_HEAD` only). If it fails, stop and keep
-   the marker. If `FETCH_HEAD` is `new` or descends from it (`git merge-base --is-ancestor <new> FETCH_HEAD`), the push
-   landed: only delete the marker.
+4. When the marker has `new`: with `lease=absent`, `git ls-remote --exit-code <r> refs/heads/<dst>` first -- exit 2
+   means the first push never landed: go to step 5. Otherwise `git fetch <r> refs/heads/<dst>` (into `FETCH_HEAD`
+   only); if it fails, stop and keep the marker. If `FETCH_HEAD` is `new` or descends from it
+   (`git merge-base --is-ancestor <new> FETCH_HEAD`), the push landed: only delete the marker.
 5. If HEAD is not `<orig>`, keep it -- `git branch <backup>-interrupted HEAD`, unless that ref exists -- and list
    `git log --format='%H %s' <orig>..HEAD`. Then restore as under Failure: review or pr -- mixed reset, saved and
    checked patch, restore; rebase -- `git reset --keep <orig>`, with the same fallback. List any file `git status`
    shows that `<orig>` does not track; never delete it.
-6. Delete the marker: `rm <marker>`.
+6. Delete the marker, `rm <marker>`, and any directories it leaves empty under `branch-rewrite-in-progress`.
 
 Git 2.25.1 or later (`--pathspec-from-file` for `restore`, and its 2.25.1 fix). Newer features are optional, each with
 its fallback where used: `git merge-tree --write-tree` and `git grep -m` (2.38), `git check-attr --source` (2.40).
