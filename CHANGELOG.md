@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0]
+
+### Added -- the branch skill
+
+- `/ace:branch review|pr|rebase` rewrites the current feature branch for one purpose -- two
+  review commits (material a reviewer can skip, then the code under review), logical
+  pull-request commits, or a replay onto the latest default branch or a `--base` branch --
+  then force-pushes it under a pinned `--force-with-lease`, keeping a local backup ref, an
+  in-progress marker, and printed restore commands. It is the first skill with
+  `disable-model-invocation: true`; on Codex it stays implicitly invocable, and its Consent
+  rule confirms before changing a branch it was not explicitly asked to rewrite. Needs git
+  2.25.1 or later.
+
+### Changed
+
+- `verification-checks.md` lists rebase mode's project-checks gate as a consumer.
+- `check-codex` expects 24 skills and matches retired `ace-` identifiers as whole words.
+
 ## [0.5.1]
 
 ### Changed -- run feedback on the scope skills

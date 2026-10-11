@@ -1,11 +1,15 @@
 # Verification checks
 
 The `--checks` flag and the shared verification-battery tiers for the review skills that
-run a battery before spawning their team. Consumers:
+run a battery before spawning their team, and for `/ace:branch` rebase mode's project-checks
+gate. Consumers:
 
 - `${CLAUDE_PLUGIN_ROOT}/skills/agent-code-review/SKILL.md` -- Phase 3 shared verification
 - `${CLAUDE_PLUGIN_ROOT}/skills/agent-arch-review/SKILL.md` -- Phase 2 shared verification
 - `${CLAUDE_PLUGIN_ROOT}/skills/scope-review/SKILL.md` -- R3 state and battery
+- `${CLAUDE_PLUGIN_ROOT}/skills/branch/references/rebase.md` -- rebase gate 4, with the
+  flag in `branch`'s SKILL.md Usage. It uses Tiers and Degradation only: it spawns no
+  team, and opts out of the `--prior` and no-compile-surface clauses
 
 `--checks` is a per-skill flag in the `--prior`/`--reviewers` idiom, deliberately not a
 common flag in `input-conventions.md` -- that file's other consumers run no verification
