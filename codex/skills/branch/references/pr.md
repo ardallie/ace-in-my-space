@@ -13,11 +13,11 @@ question, never whole files.
    (written by review mode) stands for the originals it lists: resolve their SHAs where a backup still holds them, and
    otherwise use the list as hints.
 2. **Keep.** An original is sound when it is not a merge; was not written by review mode (no `Absorbed:` list, no
-   list of excluded files); is intentful -- its subject states a change and it is not a placeholder (`wip`, `tmp`), a
-   `fixup!`, `squash!`, or `amend!` commit, or a review response; holds one concern; needs nothing a later commit adds;
-   and is not fixed up or reverted later on the branch. Style is no defect, nor is an exception or merged concern its
-   body names, and doubt counts as sound: rewriting for its own sake churns reviewers. Keep the longest run of sound
-   commits that starts on the base.
+   `Excluded from review:` line); is intentful -- its subject states a change and it is not a placeholder (`wip`,
+   `tmp`), a `fixup!`, `squash!`, or `amend!` commit, or a review response; holds one concern; needs nothing a later
+   commit adds; and is not fixed up or reverted later on the branch. Style is no defect, nor is an exception or merged
+   concern its body names, and doubt counts as sound: rewriting for its own sake churns reviewers. Keep the longest
+   run of sound commits that starts on the base.
    - The run spans the branch: nothing to rewrite.
    - Otherwise its tip, or the base when the run is empty, is the **regroup base**.
 3. **Net change** from the regroup base to HEAD, renames paired (`git diff-tree -r -M -z --raw --numstat`).

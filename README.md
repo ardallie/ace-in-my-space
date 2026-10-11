@@ -167,7 +167,11 @@ agent payloads into `codex/`.
   hook-command variable only.
 - Claude frontmatter carries `argument-hint` and `disable-model-invocation`. Codex folds
   the hint into the skill body and relies on the default
-  `policy.allow_implicit_invocation: true`, so no `agents/openai.yaml` is emitted.
+  `policy.allow_implicit_invocation: true`, so no `agents/openai.yaml` is emitted. For
+  `branch`, the one skill Claude cannot invoke implicitly, this differs: `$ace:branch`
+  stays implicitly invocable on Codex and is held back by its description and its Consent
+  rule, which confirms before changing any branch when the skill was not explicitly
+  requested.
 - Claude agent payloads name Claude tools and permission modes. The Codex payloads use
   `exec_command`, `rg`, `apply_patch`, and `collaboration.spawn_agent`; their prompt-level
   write boundaries remain binding.
@@ -186,7 +190,8 @@ The suite assumes the host session provides:
 
 These are hard requirements, not optional integrations: `/ace:plan-start`,
 `/ace:plan-update`, `/ace:plan-handoff`, `/ace:report-publish`, and every `/ace:pr-*`
-skill stop without them.
+skill stop without them. `/ace:branch` also needs git 2.25.1 or later; for it `gh` is
+optional.
 
 Skills that cite a host surface this plugin does not ship -- a repository's own skills
 tree, registries, script plane, or work-packaging artefacts -- mark the citation `[host]`

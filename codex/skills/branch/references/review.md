@@ -11,8 +11,9 @@ let a reviewer -- a person, or `$ace:agent-code-review commit <sha>` -- read onl
 - Commit 1 is the base plus the excluded paths taken from `<orig>`; commit 2 is `<orig>`'s whole tree. A path the
   classification never saw therefore lands in review, never in commit 1.
 - Each message states plainly which group it holds, in the repository's convention. Commit 1's body lists the excluded
-  paths with their reasons, grouped by family and directory; there, and only there, a directory whose changed files all
-  share one reason may collapse to one line. Pull-request reviewers see the commits, not the run's report.
+  paths with their reasons, grouped by family and directory, under a line reading exactly `Excluded from review:`,
+  which pr mode matches; there, and only there, a directory whose changed files all share one reason may collapse to
+  one line. Pull-request reviewers see the commits, not the run's report.
 - The last commit's body carries an `Absorbed:` paragraph, one line per replaced original: its full SHA, its subject,
   and then ` -- ` and its issue references, if any. It precedes the issue references and the trailer block (step 8).
   pr mode reads that list later, so the history collapsed here is not lost. Each original's trailers -- hook-generated

@@ -1,7 +1,7 @@
 ---
 name: branch
 description: "Rewrites the current feature branch for one purpose -- review (material a reviewer can skip, then the code under review), pr (logical commits), or rebase (onto the latest default branch) -- then force-pushes it under a pinned lease, keeping a local backup. Runs only on an explicit request to rewrite the current branch."
-argument-hint: "<review|pr|rebase> [--dry-run] [--push-backup] [--base <remote>/<branch>] [--checks cheap|full|skip]"
+argument-hint: "<review|pr|rebase> [--dry-run] [--push-backup] [--base <remote>/<branch>] [--checks full|cheap|skip]"
 disable-model-invocation: true
 ---
 # Reshape the current branch
@@ -15,27 +15,31 @@ riskiest operation in the suite: wherever safety conflicts with speed or eleganc
 |---|---|---|
 | `/ace:branch review` | On the base: material a code reviewer can skip, then the code under review (one commit when either is empty) | `/ace:agent-code-review commit <sha>` on the in-scope commit |
 | `/ace:branch pr` | Logical commits a pull-request reviewer can read one by one | `/ace:pr-create` |
-| `/ace:branch rebase` | The branch replayed onto the latest default branch, conflicts resolved | `/ace:branch review`, `/ace:branch pr`, or carry on working |
+| `/ace:branch rebase` | The branch replayed onto the latest default branch, conflicts resolved | `/ace:branch review`, `/ace:branch pr` (with the same `--base`), or carry on working |
 
 - `--dry-run` -- run steps 1-5, print the plan, stop.
 - `--push-backup` -- also push the backup as a new remote branch; by default it stays local.
 - `--base <remote>/<branch>` -- base on that branch instead of the default branch (a stacked branch, or a fork whose
-  upstream is another remote). Split the value at the longest prefix naming a configured remote; with none, print the
-  usage and stop. It replaces only the base side; the default branch is still resolved, fetched, and guarded.
-- `--checks cheap|full|skip` -- rebase mode only: the tier of project checks its gate runs, default `cheap`.
+  upstream is another remote). Split the value at the longest prefix naming a configured remote; with none, or with
+  nothing after it, print the usage and stop. It replaces only the base side; the default branch is still resolved,
+  fetched, and guarded. No later run remembers it, so every `/ace:branch` command the skill prints, and every rerun it
+  tells the user to do, repeats the run's `--base <remote>/<branch>` when one was given ("the same `--base`").
+- `--checks full|cheap|skip` -- rebase mode only: the tier of project checks its gate runs, default `cheap`.
 
 Parse the arguments first: an unknown mode, flag, or value, or `--checks` outside rebase mode, prints this usage and
-stops. `--checks` without a mode implies rebase. With no mode, ask which of the three to run once step 1 passes.
+stops. `--checks` without a mode implies rebase. With no mode and no `--checks`, print this usage and stop.
 
 Ask with `AskUserQuestion`; where it is unavailable, ask in plain text and wait for the answer. Every question here is
-a routing choice: no keep-current option, at most three options, longer lists in the question text.
+a routing choice: no keep-current option, at most three options, longer lists in the question text -- this supersedes
+run-interview's keep-current rule for them.
 
 ## Consent
 
 An explicit request for this rewrite -- invoking `/ace:branch`, or asking in so many words for this skill to rewrite
 the current branch -- is consent to rewrite and force-push the current branch; do not ask again. Consent comes only
 from such an explicit request: when the skill was chosen by inference from a looser request (for example "tidy my
-branch"), confirm before changing any branch. Otherwise ask only where a step below says so.
+branch") -- possible only where the harness allows implicit invocation -- confirm before changing any branch.
+Otherwise ask only where a step below says so.
 
 ## Invariants
 
@@ -53,8 +57,10 @@ branch"), confirm before changing any branch. Otherwise ask only where a step be
   resolve to a stale local branch or a tag). Restore and verify by the literal original SHA, `<orig>`. Never use `@{u}`
   or an abbreviated SHA as a lease.
 - **Nothing waits on a terminal:** `git commit -F -`; `GIT_EDITOR=true` on rebase commands; `git --no-pager`;
-  `GIT_TERMINAL_PROMPT=0` on network commands. Run the push in the foreground with a long timeout; judge it only once
-  it exits.
+  `GIT_TERMINAL_PROMPT=0` on network commands. It does not cover an SSH passphrase or host-key prompt or a credential
+  helper's own prompt, which can block a command until it times out; do not set `GIT_SSH_COMMAND` to suppress them,
+  since it overrides the user's `core.sshCommand`. Run the push in the foreground with a long timeout; judge it only
+  once it exits.
 - **Shell:** run git in a POSIX shell. Shell state does not persist between commands, so repeat environment prefixes
   and write SHAs, the backup name, and the marker path literally into each command. Where a pipeline's result decides
   a guard, run its producers on their own first and stop on their failure.
@@ -68,12 +74,15 @@ A stop prints the stop report (step 11).
 
 `<b>` is the current branch (`git symbolic-ref -q HEAD` without `refs/heads/`; during a rebase in progress, its
 `head-name` under `git rev-parse --git-path rebase-merge`) and `<orig>` its tip's SHA, recorded literally now.
-`<marker>` is `$(git rev-parse --git-common-dir)/branch-rewrite-in-progress/<b>`, shared by every worktree. Check all
-of these; stop, naming each that holds:
+`<common>` is the absolute path of the shared git directory, `"$(cd "$(git rev-parse --git-common-dir)" && pwd)"`,
+recorded literally now (`--git-common-dir` alone can print the relative `.git`). `<marker>` is
+`<common>/branch-rewrite-in-progress/<b>`, shared by every worktree. Check all of these; stop, naming each that holds:
 
 - git is older than 2.25.1
-- `<marker>` exists as a file: an earlier run on `<b>` was interrupted. Print its contents and the recovery (Failure and
-  interruption) as literal commands with its values filled in, for the user to run; do not run them
+- `<marker>` exists as a file: an earlier run on `<b>` was interrupted. Print its contents and the Interruption
+  recovery for the user to run; do not run it
+- `<marker>` exists as a directory: a run on a branch named `<b>/...` was interrupted. Name the marker files under it;
+  a run on that branch prints its recovery
 - HEAD is detached (`git symbolic-ref -q HEAD` fails)
 - an operation is in progress: `rebase-merge`, `rebase-apply`, `sequencer`, or `BISECT_START` exists under
   `git rev-parse --git-path`, or `MERGE_HEAD`, `CHERRY_PICK_HEAD`, or `REVERT_HEAD` resolves with
@@ -89,9 +98,10 @@ of these; stop, naming each that holds:
 
 - **Remote `<r>`:** no remote at all: stop -- the push is part of the contract. Otherwise the branch's upstream remote
   unless it is `.`; else the only remote; else `origin`; with several remotes and none named `origin`, ask which.
-- **Push remote:** `git for-each-ref --format='%(push:remotename)' refs/heads/<b>`; when that prints nothing,
-  `branch.<b>.pushRemote`, then `remote.pushDefault`, then `<r>` (never `@{push}`, which fails without an upstream).
-  When it differs from `<r>`, ask: use it as `<r>`, keep `<r>`, or stop; then continue without re-asking.
+- **Push remote:** `git for-each-ref --format='%(push:remotename)' refs/heads/<b>`; when that prints nothing or `.`,
+  `branch.<b>.pushRemote`, then `remote.pushDefault`, then `<r>`, skipping a `.` value (never `@{push}`, which fails
+  without an upstream). When it differs from `<r>`, ask: use it as `<r>`, keep `<r>`, or stop; then continue without
+  re-asking.
 - **Push target:** stop when `remote.<r>.mirror` is true or `git remote get-url --push --all <r>` prints more than one
   URL. When that URL differs from `git remote get-url <r>`, the probe below must return the same SHA through both URLs,
   or stop.
@@ -139,15 +149,17 @@ With the lease absent, skip the integration test and that question.
 
 ### 4. Warnings
 
-Report; never ask:
+Report; never ask, except for a reviewed pull request (below):
 
 - review and pr: commits by more than one author -- the user becomes author of every new commit
 - merge commits, which the rewrite flattens; rebase drops them, with any change made only in a merge (its gate stops
   the run if that loses content)
 - an open pull request on `<dst>` with reviews, which the push makes outdated:
-  `gh pr list -R <OWNER/REPO from r's URL> --head <dst> --state open --json number,reviews`. When the URL is not a
-  GitHub repository, `gh` is missing, or the call fails: "pull-request reviews not checked (<reason>)"
-- signed commits, whose signatures the rewrite drops
+  `gh pr list -R <OWNER/REPO from r's URL> --head <dst> --state open --json number,reviews`. When it returns an open
+  pull request with a non-empty `reviews` array, ask whether to continue or stop: the reviewers' comments go outdated,
+  and `Restore (remote)` does not undo that. In a dry run, put this in the plan instead of asking. When the URL is not a
+  GitHub repository, `gh` is missing, or the call fails, only warn: "pull-request reviews not checked (<reason>)"
+- signed commits, whose signatures the rewrite drops -- or re-signs as the user, where commit signing is configured
 - a local `<db>` behind `refs/remotes/<r>/<db>`, which `/ace:pr-create` diffs against
 - `<dst>` is not the configured upstream (when that is neither `<db>` nor the `--base` branch): the upstream branch
   keeps the old commits and any pull request open on it
@@ -177,7 +189,8 @@ With `--dry-run`, print the plan and stop: only remote-tracking refs moved; no b
 ### 7. Backup
 
 First re-check, since questions and the fetch left time for the user to act: HEAD is still `refs/heads/<b>` at
-`<orig>`, the clean test passes, and no operation is in progress. Otherwise stop: nothing has changed yet.
+`<orig>`, the clean test passes, no operation is in progress, and nothing exists at `<marker>`. Otherwise stop:
+nothing has changed yet.
 
 - **Name** `branch-backup/<b>/<date -u +%Y%m%dT%H%M%SZ>`. Validate with `git check-ref-format --branch`, then
   `git branch <name> <orig>` -- never `-f`. Any failure, a same-second collision included, is a stop.
@@ -188,7 +201,8 @@ First re-check, since questions and the fetch left time for the user to act: HEA
   expected value means the ref must not exist). A failure stops before rewriting; the report uses the full template
   with `Plan: failed at step 7` and names every backup made, local and remote.
 - **Marker:** write `key=value` lines -- `backup` (and `backup-remote`), `orig`, `branch`, `mode`, `remote`, `dst`,
-  `lease`, `base` -- to a temporary file beside `<marker>` (create its directory), then `mv` it there.
+  `lease`, `base` -- to a temporary file beside `<marker>` (create its directory), then `mv` it there. If that fails,
+  or `<marker>` is then not a file, stop before rewriting and report as for a failed `--push-backup`.
 - **Announce** the backup names and the recovery for each state (Failure and interruption) before rewriting; repeat
   them in every later question.
 - The skill never deletes a backup.
@@ -231,12 +245,13 @@ git push --porcelain --no-follow-tags --force-with-lease=refs/heads/<dst>:<lease
   for `/ace:pr-create`; when that replaces an existing upstream, the report says so.
 - Never `+`, `--force`, or `--mirror`; never fall back to them. A bare `--force-with-lease` passes once a background
   fetch moves the tracking ref; the pinned SHA does not.
-- Read the exit status and the porcelain line for `refs/heads/<dst>` (`=` is up to date; `!` -- a stale lease, a
-  server-side rejection, or a pre-push hook -- is Failure, with its reason reported). If the outcome is unclear
-  after the push exits, check `git ls-remote <r> refs/heads/<dst>` (exact ref): the new HEAD -- it landed; the lease
-  SHA, or nothing when the lease was absent -- it did not (Failure); anything else or an error -- neither restore nor
-  push again: keep the branch, backup, and marker, and report "push outcome unknown" with both SHAs, both restore
-  lines, and the marker's delete command.
+- Read the exit status and the porcelain line for `refs/heads/<dst>` (`=` is up to date; `!` -- a stale lease or a
+  server-side rejection -- is Failure, with its reason reported; a non-zero exit with no porcelain line, as a declining
+  local pre-push hook gives, is also Failure). If the outcome is unclear after the push exits, check
+  `git ls-remote <r> refs/heads/<dst>` (exact ref): the new HEAD -- it landed; the lease SHA, or nothing when the
+  lease was absent -- it did not (Failure); anything else or an error -- neither restore nor push again: keep the
+  branch, backup, and marker, and report `Push: outcome unknown` with both SHAs, both restore lines, and the marker's
+  delete command.
 - Once it lands, delete the marker, and any directories it leaves empty under `branch-rewrite-in-progress`.
 
 ### 11. Report
@@ -265,8 +280,12 @@ Next: <the mode's next step>
   `git push --force-with-lease=refs/heads/<dst>:<new sha> <r> :refs/heads/<dst>`.
 - Next, review: `/ace:agent-code-review commit <full sha>` on the commit holding the in-scope files (the second, or the
   only one when nothing was excluded), with trailing text saying the first commit holds the excluded files. Only an
-  empty in-scope group means nothing needs review. pr: `/ace:pr-create`; with `--base`, note that it targets the
-  default branch, so set the pull request's base by hand. rebase: `/ace:branch review`, `/ace:branch pr`, or carry on.
+  empty in-scope group means nothing needs review. Add that a pull request needs `/ace:branch pr` before
+  `/ace:pr-create`: one described from the two review commits says little. pr: `/ace:pr-create`; with `--base`, note
+  that it targets the default branch and builds the description from the commits and diff since it, so the parent
+  branch's commits are included: edit the description and set the pull request's base by hand, or create it with
+  `gh pr create --base <branch>` instead. rebase: `/ace:branch review`, `/ace:branch pr`, or carry on. Every
+  `/ace:branch` command here carries the same `--base` (Usage).
 - A stop before the backup reports only `/ace:branch <mode>: <b> -- stopped at step <n>: <reasons>`, what moved (at most
   remote-tracking refs), and what the user can do. A dry run reports the header, `Base:`, the plan, `Warnings:`,
   and "nothing changed". A failure after the backup uses the full template.
@@ -280,7 +299,7 @@ moved it: reset nothing, keep the marker, and report.
 - Review and pr: `git reset -q <orig>` (mixed; writes no files). Then `git update-index -q --refresh` and list
   `git diff-files --name-only -z`: these differ from the original -- hook edits, or the user's own. When the list is
   not empty, first save them with plumbing, which no diff setting alters, under `set -C` so nothing is overwritten:
-  `git diff-files -p --binary > "$(git rev-parse --git-common-dir)/branch-rewrite-saved-<backup timestamp>.patch"`.
+  `git diff-files -p --binary > "<common>/branch-rewrite-saved-<backup timestamp>.patch"`.
   Check it with `git apply --check -R <file>`; if the check fails, stop and keep the marker. Add `saved=<file>` to the
   marker and name the file in the report, then restore those paths with
   `git --literal-pathspecs restore --source=<orig> --worktree --pathspec-from-file=- --pathspec-file-nul`.
@@ -296,7 +315,8 @@ moved it: reset nothing, keep the marker, and report.
 
 **Interruption** -- the session ends mid-run or while a question waits. The marker remains, so the next run stops at
 step 1 and prints this recovery as literal commands, with the marker's values filled in (no `orig`: the newest
-`branch-backup/<b>/<timestamp>` without a suffix), for the user to run in order:
+`branch-backup/<b>/<timestamp>` without a suffix), for the user to run in order. They start with
+`cd <absolute top level>` (`git rev-parse --show-toplevel`), since the user may be in a subdirectory:
 
 1. If a git process may still be running, wait; a lock file left by the killed run (`index.lock`, a ref's `.lock`)
    may be removed once none is. A `saved=` line names a patch holding edits a restore set aside: keep it.
@@ -306,8 +326,8 @@ step 1 and prints this recovery as literal commands, with the marker's values fi
    resolutions are lost). Otherwise the rebase is the user's own: stop until they finish or abort it.
 3. `<b>` must be checked out; if another branch is, `git switch <b>` only when the tracked tree is clean, else stop.
 4. When the marker has `new`: with `lease=absent`, `git ls-remote --exit-code <r> refs/heads/<dst>` first -- exit 2
-   means the first push never landed: go to step 5. Otherwise `git fetch <r> refs/heads/<dst>` (into `FETCH_HEAD`
-   only); if it fails, stop and keep the marker. If `FETCH_HEAD` is `new` or descends from it
+   means the first push never landed: go to item 5 (the restore). Otherwise `git fetch <r> refs/heads/<dst>` (without
+   touching local branches); if it fails, stop and keep the marker. If `FETCH_HEAD` is `new` or descends from it
    (`git merge-base --is-ancestor <new> FETCH_HEAD`), the push landed: only delete the marker.
 5. If HEAD is not `<orig>`, keep it -- `git branch <backup>-interrupted HEAD`, unless that ref exists -- and list
    `git log --format='%H %s' <orig>..HEAD`. Then restore as under Failure: review or pr -- mixed reset, saved and

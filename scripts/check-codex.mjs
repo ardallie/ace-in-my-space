@@ -94,11 +94,14 @@ for (const path of sourceAgentFiles) {
   if (stem.startsWith("ace-")) errors.push(`${relative(root, path)}: agent name ${stem} repeats the plugin namespace`);
 }
 
-// The exact identifiers this rename retired: `ace-` plus every live skill and agent name.
+// The prefixed form of every live skill and agent name: `ace-` plus the name. That is each
+// identifier the rename retired, and for a skill added since, such as `branch`, the prefixed form
+// it never shipped under. Matched as a whole word, so `workspace-branch` is no hit.
 // `plan-validate` names both a skill and an agent, so the set holds one entry fewer than skills plus agents.
 const retiredIdentifiers = [...new Set([...sourceSkillNames, ...sourceAgentNames])]
   .map((name) => `${NS}-${name}`)
-  .sort();
+  .sort()
+  .map((identifier) => [identifier, new RegExp(String.raw`(?<![A-Za-z0-9_-])${identifier}(?![A-Za-z0-9_])`)]);
 
 // -- Codex edition -----------------------------------------------------------------------
 
@@ -122,8 +125,8 @@ for (const path of codexFiles) {
   for (const [label, token] of forbidden) {
     if (text.includes(token)) errors.push(`${relative(root, path)}: contains ${label}`);
   }
-  for (const identifier of retiredIdentifiers) {
-    if (text.includes(identifier)) errors.push(`${relative(root, path)}: contains retired identifier ${identifier}`);
+  for (const [identifier, pattern] of retiredIdentifiers) {
+    if (pattern.test(text)) errors.push(`${relative(root, path)}: contains retired identifier ${identifier}`);
   }
 
   const commandPattern = /(?<![A-Za-z0-9_.${}-])\/ace-[a-z0-9]+(?:-[a-z0-9]+)*/g;
@@ -172,8 +175,8 @@ for (const path of [...codexSkillFiles, ...codexAgentFiles]) {
 
 for (const path of sourceFiles) {
   const text = readFileSync(path, "utf8");
-  for (const identifier of retiredIdentifiers) {
-    if (text.includes(identifier)) errors.push(`${relative(root, path)}: contains retired identifier ${identifier}`);
+  for (const [identifier, pattern] of retiredIdentifiers) {
+    if (pattern.test(text)) errors.push(`${relative(root, path)}: contains retired identifier ${identifier}`);
   }
   for (const [label, token] of [
     ["double-prefixed Claude invocation", `/${NS}:${NS}-`],

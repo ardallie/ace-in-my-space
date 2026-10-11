@@ -55,7 +55,7 @@ GIT_EDITOR=true git -c rebase.updateRefs=false -c rebase.rebaseMerges=false -c r
   own. Never enable rerere: that would create `rr-cache` and switch it on for the repository.
 - **The same path conflicting in three or more commits:** ask whether to continue or to abort and restore. Abort
   suggests `$ace:branch review` first, which collapses the branch to two commits, then `$ace:branch rebase`, then
-  `$ace:branch pr`.
+  `$ace:branch pr`, each with the same `--base`.
 
 ## Gate
 
@@ -73,11 +73,13 @@ suffix) that is not an ancestor of HEAD, else none. `<old base>` is the merge-ba
    either side of a rename there, or a path under a directory it renamed. A resolution never adds a file the branch
    did not touch, and nothing the branch had -- a merge commit's own changes included -- is lost outside what upstream
    changed.
-3. **Commits and messages,** when this run replayed: each replayed commit, paired with its original as range-diff
-   pairs them (unpaired ones by replay order), keeps every line of the original message, in order, compared after
-   `git stripspace`; lines a prepare-commit-msg hook added are reported, not failed. An original that range-diff shows
-   as dropped (`<`) but `git cherry` did not mark as upstream became empty during resolution: name it, and ask whether
-   to accept the drop or abort and restore.
+3. **Commits and messages,** when this run replayed: pair each replayed commit with its original as range-diff pairs
+   them. When a resolution changes a patch too much for range-diff to match, it prints the original as a `<` line and
+   the replay as a `>` line; pair such leftovers by subject, then by replay order, leaving out the originals
+   `git cherry` marked as upstream. Each replayed commit keeps every line of its original's message, in order, compared after
+   `git stripspace`; lines a prepare-commit-msg hook added are reported, not failed. An original left unpaired is
+   dropped: expected when `git cherry` marked it; otherwise it became empty during resolution -- name it, and ask
+   whether to accept the drop or abort and restore.
 4. **Project checks** at the `--checks` tier, default `cheap`. The tiers and the record grammar are those of
    `../agent-shared/verification-checks.md` (Tiers; Degradation); its team, spawn, `--prior`,
    and no-compile-surface clauses do not apply here. Discover the checks yourself: read the CI definitions and the
@@ -88,7 +90,7 @@ suffix) that is not an ancestor of HEAD, else none. `<old base>` is the merge-ba
    unverified -- never as a pass -- and the push goes ahead. `skip` is recorded as `skipped by flag`.
 5. **What the rebase changed** in the branch's own patches, when `<pre>` exists: `git --no-pager range-diff
    --no-color <old base>..<pre> <base-tip>..HEAD`, printed in the report unparsed, so every conflict resolution can be
-   reviewed. Dropped commits show as `<` lines.
+   reviewed. A `<` line alone does not mean a drop; gate 3 decides which originals were dropped.
 
 ## Gate failures
 
@@ -103,16 +105,17 @@ user's starting point for a fix. Delete the run's marker. The report shows `Push
 command, the backup, and the local restore line, and tells the user to commit or discard any change a check made before
 rerunning, and not to `git pull`, which would merge the pre-rebase commits back. From there:
 
-- fix, commit, and rerun `$ace:branch rebase`: nothing is left to rewrite, gates 1 and 4 run again, and the push goes
-  out under a lease pinned to the remote's pre-rebase tip, which the branch's reflog still reaches
-- or rerun with `--checks skip` to push without the project checks; gate 1 still runs
+- fix, commit, and rerun `$ace:branch rebase` with the same `--base`: nothing is left to rewrite, gates 1, 4 and 5 run
+  again, and the push goes out under a lease pinned to the remote's pre-rebase tip, which the branch's reflog still
+  reaches
+- or rerun with `--checks skip` and the same `--base` to push without the project checks; gate 1 still runs
 
 Anything else -- a hook, the backup check, a rejected lease -- also follows the run's Failure section.
 
 ## Report block
 
 ```
-Replayed: <n> commits onto <remote>/<branch> at <short tip>; dropped: <list from range-diff, or none>
+Replayed: <n> commits onto <remote>/<branch> at <short tip>; dropped: <originals gate 3 left unpaired, or none>
 Before the rebase: git reset --keep refs/heads/<pre backup>      (when <pre> is an earlier backup)
 Conflicts: <path -- how resolved, or none>; rerere reused: <list or none>
 Gate: markers <clean | found: ...>; content <clean | outside upstream's changes: ...>;
