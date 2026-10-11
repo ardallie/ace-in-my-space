@@ -49,11 +49,11 @@ const skillDirectories = (skillsRoot) => readdirSync(skillsRoot)
 const sourceSkillNames = skillDirectories(join(root, "skills"));
 const sourceAgentNames = sourceAgentFiles.map((path) => path.split(sep).at(-1).replace(/\.md$/, "")).sort();
 
-if (sourceSkillNames.length !== 23) errors.push(`expected 23 Claude skills, found ${sourceSkillNames.length}`);
+if (sourceSkillNames.length !== 24) errors.push(`expected 24 Claude skills, found ${sourceSkillNames.length}`);
 if (sourceAgentNames.length !== 3) errors.push(`expected 3 Claude agents, found ${sourceAgentNames.length}`);
 
 const skillPaths = codexSkillFiles.filter((path) => path.endsWith(`${sep}SKILL.md`));
-if (skillPaths.length !== 23) errors.push(`expected 23 Codex skills, found ${skillPaths.length}`);
+if (skillPaths.length !== 24) errors.push(`expected 24 Codex skills, found ${skillPaths.length}`);
 
 const skillNames = new Set();
 for (const skillPath of skillPaths) {
@@ -95,7 +95,7 @@ for (const path of sourceAgentFiles) {
 }
 
 // The exact identifiers this rename retired: `ace-` plus every live skill and agent name.
-// `plan-validate` names both a skill and an agent, so the 23 map entries dedupe to 22 strings.
+// `plan-validate` names both a skill and an agent, so the set holds one entry fewer than skills plus agents.
 const retiredIdentifiers = [...new Set([...sourceSkillNames, ...sourceAgentNames])]
   .map((name) => `${NS}-${name}`)
   .sort();

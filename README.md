@@ -4,7 +4,7 @@ A suite of agent skills for planning, multi-agent review, pull-request work, rep
 publication, and harness detection. It ships as a single plugin named `ace`, distributed
 from the `ace-in-my-space` marketplace (this repository).
 
-Twenty-three skills and three subagent payloads. The skills invoke one another by name, so
+Twenty-four skills and three subagent payloads. The skills invoke one another by name, so
 they are packaged and versioned together rather than split per workflow.
 
 ## Installation
@@ -94,6 +94,8 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
 
 ### Pull requests
 
+- `/ace:branch` -- rewrites the current branch for review, a pull request, or a rebase onto the
+  default branch, then force-pushes it under a pinned lease, keeping a local backup
 - `/ace:pr-create` -- creates a pull request from the branch's commits
 - `/ace:pr-read` -- reads pull requests and all three of their comment surfaces into the
   session
