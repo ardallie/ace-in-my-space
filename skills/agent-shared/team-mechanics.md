@@ -38,7 +38,7 @@ against both.
 ## Spawning
 
 Spawn all members via the `Agent` tool (`subagent_type: "general-purpose"`, per-member
-`model` as assigned) in a single message so they run concurrently. Spawn-model
+`model` and `effort` as assigned) in a single message so they run concurrently. Spawn-model
 prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per
 the consumer contract in `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` — against the
 `Harness:` block already in context, invoking `/ace:detect-harness` first if none is present.
