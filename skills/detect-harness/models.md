@@ -9,8 +9,8 @@ effort level, on Codex a model and a reasoning effort.
 ## Tier definitions
 
 - **Tier-1** -- the frontier tier: the most capable model, reserved for the most
-  demanding work, at `medium` effort on both harnesses so that maximum effort is not
-  the default.
+  demanding work, at an effort below its maximum on each harness so that maximum effort
+  is not the default.
 - **Tier-2** -- the heavy general-purpose tier: synthesis, collation, judgement, and
   orchestrated writing.
 - **Tier-3** -- the mid tier: bounded, well-briefed work such as per-file mapping,
@@ -41,29 +41,30 @@ subagent's model resolves in this order: the per-call override, the definition's
 finally the parent session's model. Forks (`subagent_type: "fork"`) ignore the override
 and always run the parent's model, so apply a tier's model with a non-fork spawn.
 
-**Effort.** Effort cannot be passed per call: the Agent tool has no effort field. A
-tier's effort applies only through the `effort:` frontmatter of the spawned
-definition, which overrides the session effort while that subagent runs. The
-`CLAUDE_CODE_EFFORT_LEVEL` environment variable takes precedence over frontmatter
-`effort:`, and a `maxEffortLevel` setting (top-level, or per model under
-`modelSettings`) caps it. Effort levels are `low`, `medium`, `high`, `xhigh`, and
-`max`.
+**Effort.** The effort level is passed as the Agent tool's per-call `effort` field.
+Forks ignore it, as they ignore the model override, so apply a tier's effort with a
+non-fork spawn too. Without a per-call value, the spawned definition's `effort:`
+frontmatter applies, overriding the session effort while that subagent runs. The
+`CLAUDE_CODE_EFFORT_LEVEL` environment variable takes precedence over both the per-call
+value and frontmatter `effort:`, and a `maxEffortLevel` setting (top-level, or per model
+under `modelSettings`) caps whichever applies. Effort levels are `low`, `medium`,
+`high`, `xhigh`, and `max`. Verified on Claude Code 2.1.120.
 
 Plugin definitions pinned to a tier (`${CLAUDE_PLUGIN_ROOT}/agents/*.md`) therefore
 carry both the tier's `model:` and `effort:`; update them when this mapping changes. A
-per-call override changes a definition's model but not its effort: passing another
-tier's alias to a pinned definition runs that alias at the definition's effort. A
-definition without `effort:`, including the built-in `general-purpose` type, runs at
-the session effort.
+per-call model override changes a definition's model but not its effort: passing another
+tier's alias to a pinned definition runs that alias at the definition's effort unless
+that tier's effort is passed per call too. A definition without `effort:`, including the
+built-in `general-purpose` type, runs at the session effort when none is passed per call.
 
 **Reporting.** Report each spawn's model by the source that applied: the override, the
 definition's `model:`, the `CLAUDE_CODE_SUBAGENT_MODEL` default, or inherited from the
 parent. A fork always reports inherited; never claim a tier's override took effect on
-one. Report effort as the definition's `effort:` value, subject to the environment
-variable and cap above, or as inherited when the definition sets none. `/tasks`
-(Claude Code v2.1.242 or later) shows each subagent's model, plus its effort when the
-definition sets one; that display, not the agent's self-description, is the record of
-what applied.
+one. Report effort as the per-call value passed, else the definition's `effort:` value, or
+as inherited when neither is set -- in each case as the environment variable and cap
+above leave it. `/tasks` (Claude Code v2.1.242 or later) shows each subagent's model,
+plus its effort where one is set; that display, not the agent's self-description, is
+the record of what applied.
 
 **Workflow tool.** Agents started through the `Workflow` tool take a per-agent model and
 effort: pass the tier's alias as the agent's `model` and its effort level as its
@@ -82,6 +83,12 @@ A tier is a (model, effort) pair, passed through `collaboration.spawn_agent`'s s
 **Overrides.** Both fields are accepted only with `fork_turns: "none"` or a positive
 integer string. Omitting `fork_turns` or passing `"all"` forks the full history and
 rejects overrides.
+
+**Spawn surface.** Verified on codex-cli 0.162.1: `collaboration.spawn_agent` takes
+`task_name`, `message`, `fork_turns`, `model` and `reasoning_effort`, and no
+agent-type field. `collaboration.send_message` steers a running agent and
+`collaboration.followup_task` gives an existing agent another turn; neither takes a
+`model` or `reasoning_effort`, so a different tier needs a new spawn.
 
 **Effort.** Valid reasoning efforts are `low`, `medium`, `high`, `xhigh`, `max`, and
 `ultra`. `gpt-6-luna` supports up to `max`; `gpt-6-astra` and `gpt-6.1-sol` also

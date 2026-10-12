@@ -1,6 +1,6 @@
 ---
 name: plan-implement
-description: "Implements the plan from a GitHub issue: loads it via /ace:plan-read, gates on the Validation audit footer's unresolved-question count, executes the work items sequentially with per-item verification, then posts the session handoff via /ace:plan-handoff. Use when a published plan exists and the user asks to implement it. Do not use when no plan has been published yet (that is /ace:plan-start), or for /ace:plan-route's implement-direct route, which deliberately has no entry-point command."
+description: "Implements the plan from a GitHub issue: loads it via /ace:plan-read, gates on the Validation audit footer's unresolved-question count, executes the work items sequentially with per-item verification, then posts the session handoff via /ace:plan-handoff. Use when a published plan exists and the user asks to implement it. Do not use when no plan has been published yet (that is /ace:plan-start), or for /ace:plan-route's implement-direct route, which deliberately has no entry-point command. Not for a workstream's scope report (/ace:scope-implement)."
 argument-hint: "[<issue>]"
 disable-model-invocation: false
 ---

@@ -4,7 +4,7 @@ A suite of agent skills for planning, multi-agent review, pull-request work, rep
 publication, and harness detection. It ships as a single plugin named `ace`, distributed
 from the `ace-in-my-space` marketplace (this repository).
 
-Twenty-four skills and three subagent payloads. The skills invoke one another by name, so
+Twenty-five skills and three subagent payloads. The skills invoke one another by name, so
 they are packaged and versioned together rather than split per workflow.
 
 ## Installation
@@ -76,7 +76,7 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
   session handoff
 - `/ace:plan-handoff` -- posts a technical handoff comment to a GitHub issue
 
-### Multi-agent analysis
+### Multi-agent analysis and delivery
 
 - `/ace:agent-scope` -- a deliberative panel over a large ambition, producing a staged
   scope envelope
@@ -86,6 +86,9 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
   stages) and its decision log
 - `/ace:scope-review` -- closes a workstream by reviewing delivered work against its scope
   (opt-in `--sweep` for an existing area)
+- `/ace:scope-implement` -- delivers a workstream's scope envelope, or its closing review's
+  remediation stages, as a multi-agent run that commits and pushes a feature branch and
+  leaves a handoff
 - `/ace:agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
   consolidated findings
 - `/ace:agent-code-review` -- pre-PR code review producing severity-graded findings
@@ -141,7 +144,16 @@ node scripts/check-codex.mjs
 The conversion reduces skill frontmatter to `name` and `description`, moves argument
 hints into the body, qualifies internal skill mentions, converts plugin-root paths to
 relative references, adapts questions and subagent spawns, and copies the three supporting
-agent payloads into `codex/`.
+agent payloads into `codex/`. It also writes one file with no source counterpart,
+`codex/skills/scope-implement/orchestration-codex.md`: the Codex spawn and coordination
+mechanics that skill points to; `check-codex` allow-lists it.
+
+`check-codex` checks the edition's structure and forbidden forms, and the Claude source's
+retired identifiers, `/ace:` targets and plugin-root paths -- not the edition's content
+against a fresh build: a direct edit under `codex/` that keeps its structure and adds no
+forbidden form passes it, and the next build silently reverts it.
+Freshness is checked by rebuilding: `git status --porcelain codex` then shows only the changes
+the source edit explains.
 
 ## Harness differences
 
@@ -152,7 +164,7 @@ agent payloads into `codex/`.
 - Claude discovers the three custom agents from the plugin's `agents/` directory. The
   Codex plugin manifest has no custom-agent component, so the Codex orchestrators read
   `codex/agents/*.md` as supporting payloads and pass them through
-  `collaboration.spawn_agent.message` on the built-in `default` role. The named custom
+  `collaboration.spawn_agent.message`; the spawn names no agent type, so the named custom
   role is not preserved.
 - Claude's per-spawn worktree isolation field has no Codex collaboration equivalent.
   The Codex consultant confines file-creating probes to a verified operating-system
@@ -161,17 +173,20 @@ agent payloads into `codex/`.
   it and asks the same ordered options in plain text in Default mode. The structured
   Codex surface accepts at most three questions and two or three options per question,
   so larger interviews are batched; both paths retain keep-current behaviour and one
-  first-position `(Recommended)` option.
+  first-position `(Recommended)` option. `scope-implement`'s Codex reference asks through
+  `request_user_input_async` in Default mode where it is exposed.
 - Claude substitutes `${CLAUDE_PLUGIN_ROOT}` in skill content. Codex resolves supporting
   files relative to the active `SKILL.md`; `${PLUGIN_ROOT}` is not used because it is a
   hook-command variable only.
 - Claude frontmatter carries `argument-hint` and `disable-model-invocation`. Codex folds
   the hint into the skill body and relies on the default
   `policy.allow_implicit_invocation: true`, so no `agents/openai.yaml` is emitted. For
-  `branch`, the one skill Claude cannot invoke implicitly, this differs: `$ace:branch`
-  stays implicitly invocable on Codex and is held back by its description and its Consent
-  rule, which confirms before changing any branch when the skill was not explicitly
-  requested.
+  `branch` and `scope-implement`, the two skills Claude cannot invoke implicitly, this
+  differs: both stay implicitly invocable on Codex. `$ace:branch` is held back by its
+  description and its Consent rule, which confirms before changing any branch when the
+  skill was not explicitly requested; `$ace:scope-implement` by its description, its
+  required `--ws`, and a consent rule that confirms before the first commit when the skill
+  was not explicitly requested.
 - Claude agent payloads name Claude tools and permission modes. The Codex payloads use
   `exec_command`, `rg`, `apply_patch`, and `collaboration.spawn_agent`; their prompt-level
   write boundaries remain binding.
@@ -208,7 +223,8 @@ repository it runs in:
 - `.ace/arch-review/` -- architectural review reports
 - `.ace/retro/` -- retrospectives
 - `.ace/ws/{yyyyMMdd}-{slug}/` -- a workstream: `inputs.md`, `decisions.md`,
-  `report-{skill}.md` (`-2`, `-3`), `workings/`
+  `report-{skill}.md` (`-2`, `-3`), `workings/` (one folder per step, e.g.
+  `workings/implementation/` with the run's `state.md`, `gates.md` and `handoff.md`)
 
 Filenames outside `.ace/ws/` are `{yyyyMMdd}-{HHmm}-{kind}-{suffix}.md`. The `.ace/` root
 is a convention, not a configuration surface; add it to the host repository's `.gitignore`
@@ -246,6 +262,15 @@ Semantic versioning from `0.1.0`. The Claude and Codex manifests carry the same 
 from the same repository release, and `.claude-plugin/marketplace.json` carries it in both
 its `metadata.version` and its plugin entry -- `node scripts/check-codex.mjs` fails if the
 four disagree.
+
+`skills/ws-shared/decisions-template.md` carries a `Seed:` line naming the version whose
+release last changed its header text. A release that changes that text sets the line to its
+own version; `node scripts/check-codex.mjs` pins the line beside a hash of the header text
+and fails when either changes without the other being updated. `/ace:scope-implement`
+replaces a workstream's differing header only when the workstream's `Seed:` is absent or
+lower, compared as semantic versions; a workstream seeded before the line existed counts as
+older, so its differing header, owner-edited or not, is replaced (a copy kept) when its
+first entry is due.
 
 See `CHANGELOG.md` for release notes, including the `0.2.0` invocation migration.
 

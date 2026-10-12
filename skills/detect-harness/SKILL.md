@@ -100,9 +100,7 @@ substituting a different model: emit the failure format with the rejection as th
 explanation line and direct the operator to `models.md`. This failure becomes the
 latest cached resolution. A rejection caused by invalid spawn arguments, such as
 overrides on a full-history fork, requires correcting those arguments; it does not
-establish that the mapped model or effort is stale. On Claude only the alias reaches
-the spawn tool; a harness complaint about a definition's `effort:` value is a
-stale-mapping case, not an argument error.
+establish that the mapped model or effort is stale.
 
 Print nothing else as part of the contract -- downstream skills read the block
 mechanically, keyed on the `Harness:` line.
@@ -121,11 +119,8 @@ position (`model: {Tier-2}`). Consumers resolve them as follows:
   model as inherited; do not claim the requested tier was applied.
 - The block's `Tier-N` value substitutes for the reference; split it into its model
   and effort parts.
-  - On Claude, pass only the alias, verbatim, as the Agent tool's `model` override.
-    The effort cannot be passed per call: it applies only when the spawned
-    definition's `effort:` frontmatter carries it (`models.md`, `### Claude`). A
-    definition without one, such as `general-purpose`, inherits the session effort;
-    report the effort as inherited.
+  - On Claude, pass the alias, verbatim, as the Agent tool's `model` override and the
+    effort as its per-call `effort` (`models.md`, `### Claude`); a fork takes neither.
   - On Codex, pass the parts through the spawn tool's separate `model` and
     `reasoning_effort` fields, and observe the spawn constraints in `models.md`
     (`### Codex`) -- overrides are rejected on full-history (`"all"`) forks, so pass
@@ -134,10 +129,10 @@ position (`model: {Tier-2}`). Consumers resolve them as follows:
   spawn with the harness's own default model selection, and state in the run's report
   that tier resolution was unavailable.
 - Report surfaces record the resolved model and effort for each assignment. On
-  Claude the effort is the spawned definition's `effort:` value, subject to the caps
-  noted in `models.md`, or else inherited. When using default selection, report that
-  overrides were omitted; do not invent a model or effort or use agent
-  self-description as verification.
+  Claude the effort is the per-call value passed, else the spawned definition's
+  `effort:` value, or else inherited, each subject to the overrides in `models.md`. When
+  using default selection, report that overrides were omitted; do not invent a model
+  or effort or use agent self-description as verification.
 
 ### Workflow `--model` arguments
 
@@ -149,10 +144,9 @@ flag or the spawn tool's `model` field.
   by name does not select its tier's effort. On Codex, use any effort specified by
   the caller; otherwise omit the effort override and use the harness default.
   Report an omitted effort as default, not as a known setting.
-  On Claude, effort is honoured only
-  through the spawned definition's `effort:`; when the definition lacks one, the
-  effort is inherited whether or not the caller specified it, and is reported as
-  inherited.
+  On Claude, pass any effort the caller specified as the per-call `effort`; otherwise
+  the spawned definition's `effort:` or the session effort applies, and is reported as
+  that value or as inherited, subject to the overrides in `models.md`.
 - Translate an unsupported model only when the user explicitly permits substitution
   and the workflow or available mapping identifies one unambiguous target tier.
   Translation requires successful tier resolution. Use that tier's settings and

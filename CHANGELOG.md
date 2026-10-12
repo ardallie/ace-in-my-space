@@ -5,6 +5,63 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0]
+
+### Added -- implementation and remediation in a workstream
+
+- `/ace:scope-implement --ws {ws}`: delivers the workstream's current scope report -- its
+  envelope (implementation) or its closing review's remediation stages (remediation), the mode
+  read from the workstream's state -- through design, implementation, integration and
+  verification as a multi-agent run. It verifies every gate clause as behaviour on the delivered
+  tree, its executed output kept whole in its step folder, appends its decisions to
+  `decisions.md` at its header's timing, appending pending entries before any stop (when its
+  first entry is due, replacing a header whose `Seed:` is absent or lower than the current
+  seed's, a copy of the old header kept, and keeping and reporting any other differing
+  header), commits and pushes checkpoints on a feature branch, runs and records a
+  completeness check before each checkpoint and the handoff, keeps `state.md` and `gates.md`
+  in its step folder, and writes a pointer-only `handoff.md` that names its brief and records
+  the harness and orchestrator model of each session. Its agents stop and return any change
+  that would alter the scope, a gate clause, a goal or an accepted decision. It resumes its own
+  runs, reads other runs' records as evidence, and names the next step. It is user-invocable
+  only (`disable-model-invocation: true`), as `/ace:branch` is; on Codex, where it stays
+  implicitly invocable, it confirms before its first commit when not explicitly requested.
+
+### Changed
+
+- `skills/ws-shared/`: a find-only resolution variant (no ws-create); pushing a branch is not a
+  GitHub write; the ground rules let an agent write what its assignment names; a shared
+  `## Probes and external state` section in `orchestration.md`; substantive owner questions
+  asked outside an interview keep run-interview's keep-current option; the decisions template
+  gains a `Seed:` line.
+- `verification-checks.md` lists `scope-implement` as a consumer (Tiers and Degradation, no
+  flag), and its record grammar gains a `(full: no gate resolved)` suffix for a `full` run
+  that falls back to `cheap`'s battery.
+- `/ace:detect-harness` and `models.md`: on Claude, a tier's effort is passed as the Agent
+  tool's per-call `effort`, where it was previously described as applying only through a
+  definition's `effort:` frontmatter; `CLAUDE_CODE_EFFORT_LEVEL` and `maxEffortLevel` govern
+  the per-call value too, and reports state the effort they leave. The shared team spawn and
+  the consultant's spawn list `effort` beside `model`.
+- `/ace:scope-envelope` E9 and `/ace:scope-review` R10 name `/ace:scope-implement`; scope-review
+  R2 finds delivered work through a step handoff; scope-review's removal and external-state
+  bullets and scope-envelope's E3 point to the shared section.
+- `/ace:plan-implement`'s description points to `/ace:scope-implement` for a workstream's
+  scope report.
+- `sibling-exchange-protocol.md`: the registry exclusion also covers a skill that finds a
+  response envelope at the protocol's save path.
+- `/ace:scope-review`'s report template: the Summary no longer sets a sentence count, as the
+  envelope template's already does not.
+- Codex edition: spawns no longer pass `agent_type` (absent from the spawn schema verified on
+  codex-cli 0.162.1); the scope skills' follow-ups use `collaboration.followup_task` and
+  `collaboration.send_message` instead of a fresh spawn each time; `scope-implement` gets its own
+  orchestration text and a generated-only `orchestration-codex.md`; `check-codex` compares
+  source and Codex paths with an allow-list of generated-only files, fails on any top-level
+  `codex/` entry other than `skills` and `agents` and reports a missing one, and forbids
+  `agent_type` and Claude-only `On Claude` passages; `models.md` records the verified spawn
+  surface.
+- `check-codex` pins the decisions template's `Seed:` beside a hash of its header text, and
+  fails when the header changes without a `Seed:` bump.
+- `check-codex` expects 25 skills.
+
 ## [0.6.0]
 
 ### Added -- the branch skill

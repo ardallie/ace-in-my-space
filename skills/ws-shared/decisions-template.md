@@ -1,5 +1,7 @@
 # Decision log
 
+Seed: 0.5.1
+
 This file records the decisions made in this workstream, one entry per decision. Every run that works here, a skill or not, reads it first: an accepted entry is a binding constraint, and it overrides any report text it supersedes. A run records here, at the one-writer rule's timing, the direction-level decisions it takes or the owner gives it, and the owner's answers; its reasoning may stay in its own folder, cited as Source. A new decision is appended; a change to what a direction-level entry decided or states follows the replacement rule below, never a supplement that leaves that entry standing.
 
 ## How to use this log

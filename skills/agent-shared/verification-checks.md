@@ -1,8 +1,8 @@
 # Verification checks
 
 The `--checks` flag and the shared verification-battery tiers for the review skills that
-run a battery before spawning their team, and for `/ace:branch` rebase mode's project-checks
-gate. Consumers:
+run a battery before spawning their team, for `/ace:branch` rebase mode's project-checks
+gate, and for `/ace:scope-implement`'s checkpoints. Consumers:
 
 - `${CLAUDE_PLUGIN_ROOT}/skills/agent-code-review/SKILL.md` -- Phase 3 shared verification
 - `${CLAUDE_PLUGIN_ROOT}/skills/agent-arch-review/SKILL.md` -- Phase 2 shared verification
@@ -10,13 +10,17 @@ gate. Consumers:
 - `${CLAUDE_PLUGIN_ROOT}/skills/branch/references/rebase.md` -- rebase gate 4, with the
   flag in `branch`'s SKILL.md Usage. It uses Tiers and Degradation only: it spawns no
   team, and opts out of the `--prior` and no-compile-surface clauses
+- `${CLAUDE_PLUGIN_ROOT}/skills/scope-implement/SKILL.md` -- checkpoints and final
+  integration. It uses Tiers and Degradation only and takes no flag: it spawns no review
+  team, runs `cheap` at each checkpoint and `full` at final integration, and opts out of
+  the `--prior` clauses
 
 `--checks` is a per-skill flag in the `--prior`/`--reviewers` idiom, deliberately not a
 common flag in `input-conventions.md` -- that file's other consumers run no verification
 battery (`agent-pre-planner`, `agent-scope`, `plan-route`), and `agent-consultant` carries
-its own conditional cheap-gates step and no flag. Each consumer's SKILL.md states where
-its battery runs (at which repository state) and where the results are recorded, and
-restates the flag grammar in its Usage and Phase 1 flag bullets (the per-skill flag
+its own conditional cheap-gates step and no flag. Each consumer's SKILL.md states where its
+battery runs (at which repository state) and where the results are recorded, and a consumer
+with the flag restates its grammar in its Usage and Phase 1 flag bullets (the per-skill flag
 idiom); the tier definitions below are defined here only. A consumer's Usage bullet may
 carry a one-phrase gloss of a tier as a pointer to the definition, never a second
 definition of it.
@@ -24,7 +28,8 @@ definition of it.
 ## Flag grammar
 
 `--checks full|cheap|skip` -- selects the verification tier for the run. Default `cheap`
-for every consumer. If the value is missing or unknown, report the valid values and stop.
+for every consumer that takes the flag. If the value is missing or unknown, report the valid
+values and stop.
 
 **Naming, settled.** The flag name and value set were settled by owner interview against
 the alternatives `--gates` and `--verify` and the value-set variants `full|quick|off` and
@@ -83,7 +88,7 @@ set executed nothing and is recorded as such, exactly as a `skip` run is.
 - **The record grammar.** Wherever a consumer records the shared battery -- a report line,
   a context package -- it records one value in this shape:
 
-  `{tier-or-mode}[ -- {executed commands | no-gate marker}][ (+ --prior pre-build)]`
+  `{tier-or-mode}[ -- {executed commands | no-gate marker}][ (full: no gate resolved)][ (+ --prior pre-build)]`
 
   - `{tier-or-mode}` is `full`, `cheap`, or `skipped by flag`.
   - A tier that executed commands carries them: the executed command list, or a one-line
@@ -92,6 +97,9 @@ set executed nothing and is recorded as such, exactly as a `skip` run is.
   - A tier that executed nothing carries the no-gate marker in its place --
     `cheap -- no gate resolved`.
   - `skipped by flag` carries no command clause; there is nothing to list.
+  - The `(full: no gate resolved)` suffix is appended only by a consumer that runs
+    `cheap`'s battery where `full` resolves no gate (`scope-implement`); the tier then
+    reads `cheap`, so `cheap -- {commands} (full: no gate resolved)`.
   - The `(+ --prior pre-build)` suffix is appended only by a consumer whose `--prior`
     handling builds before spawning (see below).
 

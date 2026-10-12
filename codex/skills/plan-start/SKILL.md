@@ -117,7 +117,6 @@ Spawn-model prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve 
 
 Read `../../agents/plan-drafter.md` in full, then spawn one subagent through `collaboration.spawn_agent`:
 - `task_name`: `ace_plan_drafter_{8hex}`
-- `agent_type`: `"default"`
 - `fork_turns`: `"none"`
 - `message`: the complete payload file followed by the run-specific brief and target-path inputs
 - `model` and `reasoning_effort`: the pair resolved from Phase 1 (default `{Tier-2}`)
@@ -135,7 +134,6 @@ Check that the path exists and the trimmed content is non-empty. If not, report 
 Read `../../agents/plan-validate.md` in full, then spawn a fresh validation subagent through `collaboration.spawn_agent`:
 
 - `task_name`: `ace_plan_validate_{8hex}`
-- `agent_type`: `"default"`
 - `fork_turns`: `"none"`
 - `message`: the complete payload file followed by the draft path, report target path, and exploratory-read cap
 - `model` and `reasoning_effort`: **always** the `{Tier-3}` pair. The `--model` flag from Phase 1 propagates only to the planner (Phase 5); it does not affect the validator. This is intentional — validation quality should not vary with the planning model.
@@ -183,7 +181,6 @@ Compute the audit-footer values:
 - Otherwise, read `../../agents/plan-revisor.md` in full and spawn the revisor through `collaboration.spawn_agent`:
 
   - `task_name`: `ace_plan_revisor_{8hex}`
-  - `agent_type`: `"default"`
   - `fork_turns`: `"none"`
   - `message`: the complete payload file followed by the v1 path, report path, and parsed findings
   - `model` and `reasoning_effort`: the `{Tier-3}` pair

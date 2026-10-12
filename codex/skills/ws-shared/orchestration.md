@@ -1,6 +1,6 @@
 # Orchestration
 
-Consumed by both scope skills. Method stays with the orchestrator and each skill.
+Consumed by the scope skills. Method stays with the orchestrator and each skill.
 
 ## Role
 
@@ -32,7 +32,7 @@ Outcomes to secure, not agents to launch:
 - Revision reviewer: Tier-2 by default; it may take a Tier-1 slot instead of a promoted analyst.
 - Tier-1 ceiling: three roles per run, sceptic and reviewer included. Soft cap about 7-9 analysts for large scopes (excludes sceptic, support, reviewer); smaller scopes get smaller teams.
 - Resolve tiers with `../detect-harness/SKILL.md`; its cache lives only in the orchestrator, so pass resolved values to agents and scripts explicitly.
-- Apply each tier's model and effort through every per-agent control the active route offers (`../detect-harness/models.md` records each route's controls). Where detect-harness says effort cannot be passed per call, that describes a route without a per-agent effort control; on a route that has one, apply effort and report it. Record effort as `inherited` where no control exists, and as `default` where the consumer contract omits it. Add no tier-pinned agent definitions.
+- Apply each tier's model and effort through every per-agent control the active route offers (`../detect-harness/models.md` records each route's controls). Record effort as `inherited` where no control exists, and as `default` where the consumer contract omits it. Add no tier-pinned agent definitions.
 
 ## Override
 
@@ -50,8 +50,13 @@ Copied verbatim into every assignment:
 - A fact names its anchor: a whole-file read (`path`), `path:line`, or an executed command with its exact result kept in the workstream's `workings/`. A sampled, counted-by-inspection or inferred claim is an assessment and says so; a partial read is marked `(sampled: path)`.
 - Settle from code and records before asking; questions are only for what evidence cannot settle.
 - `.ace/specification/` and `.ace/mappings/` are read-only grounding: never flagged stale, regenerated or made a subject; where they contradict source, source wins and the finding is about the source.
-- Never change the shared checkout; a probe writes only in the isolated location its assignment names. Keep a record under the workstream's `workings/`: each finding with an id under your assignment's prefix (as is every other id the record mints, so none reads as a report id or another record's), any option it depends on and its proposed landing (a report section, a decision, a stage, or nowhere, with why), load-bearing ones marked; rejected alternatives with why they lost, hazards a stage must guard, files other work also changes and precedents to follow are findings too. Return its path and only what your assignment asks for.
+- Never change the shared checkout beyond what your assignment names as yours to write; a probe writes only in the isolated location its assignment names. Keep a record under the workstream's `workings/`: each finding with an id under your assignment's prefix (as is every other id the record mints, so none reads as a report id or another record's), any option it depends on and its proposed landing (a report section, a decision, a stage, or nowhere, with why), load-bearing ones marked; rejected alternatives with why they lost, hazards a stage must guard, files other work also changes and precedents to follow are findings too. Return its path and only what your assignment asks for.
 - Propose decisions; never append them to decisions.md.
+
+## Probes and external state
+
+- Once a probe's evidence is in `workings/` and cited, remove only what you created; whoever prepared a copy removes it. Confirm removal where it was written (the copy, temporary scratch, tool output, anything written through dependency directories linked from the checkout), not by what git lists, and report what remains.
+- Shared external state (a running service, a database, a user profile, an account) is not covered by checkout isolation: touch it only with the user's authorisation -- read-only, change and restore, or not at all (those claims stay unverified, owned by the user). One owning agent per resource records and restores what it changed and reports residue.
 
 ## Repository state
 
