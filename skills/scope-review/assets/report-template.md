@@ -17,7 +17,7 @@ Checks: {one value in the verification-checks record grammar}
 
 ## Summary
 Conformance: {n} landed, {n} reinterpreted, {n} diverged, {n} deferred, {n} silently-deferred, {n} premise-void, {n} unverified.
-[The Conformance line appears in a closing review only and counts every row under `## Conformance`. Three to six sentences: what was reviewed against which baseline; the verdict (closing) or the state of the area (sweep); the shape of the remediation; what remains open.]
+[The Conformance line appears in a closing review only and counts every row under `## Conformance`. What was reviewed against which baseline; the verdict (closing) or the state of the area (sweep); the shape of the remediation; what remains open.]
 
 ## Scope
 [What was reviewed, against which baseline, any framing the user set, the remediation boundary; a sweep lists every area swept so far. A binding choice is a D: cite it.]

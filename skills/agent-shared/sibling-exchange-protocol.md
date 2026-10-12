@@ -27,7 +27,8 @@ editing this list only -- the surrounding prose never names skills beyond it.
 
 A skill that only receives a response envelope does not consume this file and stays out of the
 registry: the envelope re-enters as an ordinary input file, which such a skill already accepts
-unchanged, so it needs no reference to the protocol and its absence here is not a gap.
+unchanged, or is found at the protocol's save path, so it needs no reference to the protocol
+beyond that path and its absence here is not a gap.
 
 ## Premise and roles
 
