@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 
@@ -20,6 +21,21 @@ const walkFiles = (directory) => {
   return files;
 };
 
+// The Codex edition holds skills and agent payloads only; any other top-level entry is a stray
+// the per-directory comparison below never sees. Checked before the walks, so a missing
+// directory is reported rather than thrown.
+const codexEntries = readdirSync(codexRoot);
+for (const entry of codexEntries) {
+  if (!["skills", "agents"].includes(entry)) errors.push(`codex/${entry}: unexpected top-level entry`);
+}
+for (const required of ["skills", "agents"]) {
+  if (!codexEntries.includes(required)) errors.push(`codex/${required}: missing`);
+}
+if (errors.length > 0) {
+  console.error(errors.map((error) => `ERROR: ${error}`).join("\n"));
+  process.exit(1);
+}
+
 const sourceSkillFiles = walkFiles(join(root, "skills"));
 const codexSkillFiles = walkFiles(join(codexRoot, "skills"));
 const sourceAgentFiles = walkFiles(join(root, "agents"));
@@ -30,12 +46,26 @@ const codexFiles = [...codexSkillFiles, ...codexAgentFiles];
 const sourceContractFiles = [...sourceSkillFiles, ...sourceAgentFiles];
 const sourceFiles = [...sourceContractFiles, join(root, "README.md")];
 
+// Every Codex file maps to a source file at the same relative path, except the generated-only
+// files the build writes from its own text; each of those exists in the Codex edition only.
+const generatedOnly = ["skills/scope-implement/orchestration-codex.md"];
+for (const rel of generatedOnly) {
+  if (!existsSync(join(codexRoot, ...rel.split("/")))) errors.push(`generated-only file missing: codex/${rel}`);
+  if (existsSync(join(root, ...rel.split("/")))) errors.push(`generated-only file has a source copy: ${rel}`);
+}
+
+const relativePaths = (base, files) => new Set(files.map((path) => relative(base, path).split(sep).join("/")));
 for (const [label, files, convertedFiles] of [
   ["skills", sourceSkillFiles, codexSkillFiles],
   ["agent payloads", sourceAgentFiles, codexAgentFiles],
 ]) {
-  if (files.length !== convertedFiles.length) {
-    errors.push(`${label}: source has ${files.length} files; Codex has ${convertedFiles.length}`);
+  const sourcePaths = relativePaths(root, files);
+  const codexPaths = relativePaths(codexRoot, convertedFiles);
+  for (const rel of sourcePaths) {
+    if (!codexPaths.has(rel)) errors.push(`${label}: ${rel} has no Codex counterpart`);
+  }
+  for (const rel of codexPaths) {
+    if (!sourcePaths.has(rel) && !generatedOnly.includes(rel)) errors.push(`${label}: codex/${rel} has no source counterpart`);
   }
 }
 
@@ -49,11 +79,11 @@ const skillDirectories = (skillsRoot) => readdirSync(skillsRoot)
 const sourceSkillNames = skillDirectories(join(root, "skills"));
 const sourceAgentNames = sourceAgentFiles.map((path) => path.split(sep).at(-1).replace(/\.md$/, "")).sort();
 
-if (sourceSkillNames.length !== 24) errors.push(`expected 24 Claude skills, found ${sourceSkillNames.length}`);
+if (sourceSkillNames.length !== 25) errors.push(`expected 25 Claude skills, found ${sourceSkillNames.length}`);
 if (sourceAgentNames.length !== 3) errors.push(`expected 3 Claude agents, found ${sourceAgentNames.length}`);
 
 const skillPaths = codexSkillFiles.filter((path) => path.endsWith(`${sep}SKILL.md`));
-if (skillPaths.length !== 24) errors.push(`expected 24 Codex skills, found ${skillPaths.length}`);
+if (skillPaths.length !== 25) errors.push(`expected 25 Codex skills, found ${skillPaths.length}`);
 
 const skillNames = new Set();
 for (const skillPath of skillPaths) {
@@ -113,7 +143,9 @@ const forbidden = [
   ["Claude AskUserQuestion surface", "AskUserQuestion"],
   ["Claude Agent tool", "`Agent`"],
   ["Claude subagent_type field", "subagent_type"],
+  ["Codex agent_type field (absent from the spawn schema)", "agent_type"],
   ["Claude argument-hint frontmatter", "argument-hint:"],
+  ["Claude-only passage", "On Claude"],
   ["Claude plugin-qualified slash invocation", `/${NS}:`],
   ["double-prefixed Codex mention", `$${NS}:${NS}-`],
   ["double-prefixed Claude invocation", `/${NS}:${NS}-`],
@@ -133,7 +165,7 @@ for (const path of codexFiles) {
   if (commandPattern.test(text)) errors.push(`${relative(root, path)}: contains Claude slash invocation`);
 
   // A Claude plugin-agent address has no counterpart in Codex; the payload spawn blocks must
-  // have been rewritten to `agent_type: "default"`.
+  // have been rewritten to a direct `collaboration.spawn_agent` call.
   for (const match of text.matchAll(/(?<![$A-Za-z0-9_/-])ace:([a-z0-9][a-z0-9*-]*)/g)) {
     errors.push(`${relative(root, path)}: contains Claude plugin-agent address ace:${match[1]}`);
   }
@@ -233,6 +265,30 @@ if (claudeMarketplace.metadata?.version !== claudeManifest.version) {
 }
 if (claudeEntry?.version !== claudeManifest.version) {
   errors.push(`marketplace ace entry version ${claudeEntry?.version} != plugin version ${claudeManifest.version}`);
+}
+
+// The decisions template's `Seed:` names the release that last changed its header text, and
+// scope-implement replaces only an older-seeded header, so a text change without a bump
+// would silently keep stale headers. The pin holds the seed and a hash of the header as
+// scope-implement compares it (above `## Decisions`, `Seed:` and blank lines and line endings
+// aside). A header change sets `Seed:` to the releasing version and updates both pin values.
+const DECISIONS_SEED = { seed: "0.5.1", sha256: "0288723d50ef8bfa23097b5876bbcd8dbe6aab4074bf302f5973bf4c7bf9bbe6" };
+const templateLines = readFileSync(join(root, "skills", "ws-shared", "decisions-template.md"), "utf8").split(/\r?\n/);
+const decisionsHeading = templateLines.indexOf("## Decisions");
+const seedLines = templateLines.filter((line) => line.startsWith("Seed:"));
+if (decisionsHeading < 0) errors.push("decisions template has no ## Decisions heading");
+else if (seedLines.length !== 1) errors.push(`decisions template carries ${seedLines.length} Seed: lines, expected 1`);
+else {
+  const seed = seedLines[0].slice("Seed:".length).trim();
+  const header = templateLines.slice(0, decisionsHeading)
+    .filter((line) => line.trim() !== "" && !line.startsWith("Seed:"))
+    .join("\n");
+  const sha256 = createHash("sha256").update(header).digest("hex");
+  if (sha256 !== DECISIONS_SEED.sha256 && seed === DECISIONS_SEED.seed) {
+    errors.push(`decisions template header changed but Seed: is still ${seed}; set it to the releasing version and update DECISIONS_SEED`);
+  } else if (sha256 !== DECISIONS_SEED.sha256 || seed !== DECISIONS_SEED.seed) {
+    errors.push(`decisions template Seed: ${seed} or header hash ${sha256} does not match DECISIONS_SEED`);
+  }
 }
 
 const marketplace = JSON.parse(readFileSync(join(root, ".agents", "plugins", "marketplace.json"), "utf8"));

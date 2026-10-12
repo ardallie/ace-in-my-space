@@ -50,11 +50,9 @@ tool output. Do not infer the harness from a model name or probe the environment
 
 1. Identify one active harness. If identification is absent, ambiguous, or unsupported,
    emit the failure format below with the reason and stop resolution.
-2. Read `models.md`. Match Claude Code to `### Claude` and Codex to `### Codex`.
+2. Read `models.md`. Match Codex to `### Codex`.
 3. Require exactly one matching section and exactly one mapping entry for each of
-   Tier-1, Tier-2, and Tier-3. Each Claude entry must provide one non-empty spawn
-   alias and one non-empty effort value; parenthesized reference IDs are not spawn
-   values. Each Codex entry must provide one non-empty model and one non-empty
+   Tier-1, Tier-2, and Tier-3. Each entry must provide one non-empty model and one non-empty
    effort value.
 4. If the file is unreadable, the matching section is missing or duplicated, or its
    tier entries are missing, duplicated, or malformed, emit the failure format with

@@ -37,7 +37,7 @@ against both.
 
 ## Spawning
 
-Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name`, the member brief in `message`, `agent_type: "default"`, `fork_turns: "none"`, and the resolved per-member `model` and `reasoning_effort`. Issue every call before waiting so the members run concurrently. Spawn-model
+Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name`, the member brief in `message`, `fork_turns: "none"`, and the resolved per-member `model` and `reasoning_effort`. Issue every call before waiting so the members run concurrently. Spawn-model
 prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per
 the consumer contract in `../detect-harness/SKILL.md` — against the
 `Harness:` block already in context, invoking `$ace:detect-harness` first if none is present.

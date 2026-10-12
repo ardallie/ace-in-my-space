@@ -8,8 +8,8 @@ tier maps to a model and a reasoning effort.
 ## Tier definitions
 
 - **Tier-1** -- the frontier tier: the most capable model, reserved for the most
-  demanding work, at `medium` effort on both harnesses so that maximum effort is not
-  the default.
+  demanding work, at an effort below its maximum on each harness so that maximum effort
+  is not the default.
 - **Tier-2** -- the heavy general-purpose tier: synthesis, collation, judgement, and
   orchestrated writing.
 - **Tier-3** -- the mid tier: bounded, well-briefed work such as per-file mapping,
@@ -34,6 +34,12 @@ A tier is a (model, effort) pair, passed through `collaboration.spawn_agent`'s s
 **Overrides.** Both fields are accepted only with `fork_turns: "none"` or a positive
 integer string. Omitting `fork_turns` or passing `"all"` forks the full history and
 rejects overrides.
+
+**Spawn surface.** Verified on codex-cli 0.162.1: `collaboration.spawn_agent` takes
+`task_name`, `message`, `fork_turns`, `model` and `reasoning_effort`, and no
+agent-type field. `collaboration.send_message` steers a running agent and
+`collaboration.followup_task` gives an existing agent another turn; neither takes a
+`model` or `reasoning_effort`, so a different tier needs a new spawn.
 
 **Effort.** Valid reasoning efforts are `low`, `medium`, `high`, `xhigh`, `max`, and
 `ultra`. `gpt-6-luna` supports up to `max`; `gpt-6-astra` and `gpt-6.1-sol` also
