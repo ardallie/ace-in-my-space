@@ -98,7 +98,7 @@ Carried unchanged: {ids | none}
 Route: {orchestration facility | direct subagents}[, in {n} waves]
 Override: {the user's override verbatim | none}
 Team:
-- {role and what it owned} -- Tier-{n} -- {resolved model} -- effort {level | inherited | default}
+- {role and what it owned} -- Tier-{n} -- {resolved model} -- effort {level | inherited | default}[ -- {why it departs from the tier's baseline, or the override or cap that changed it}]
 Rationale: {one line}
 Revision pass: {n} findings, {m} applied; draft and findings in {workings path}
 Not verified: {what could not run, and the ids it leaves open or marked (unverified) | none}

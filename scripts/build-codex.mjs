@@ -24,6 +24,14 @@ const assertConversionSource = (text, before, label) => {
 // longer matches its source must fail the build, not silently leave the Claude text in place.
 const replaceRequired = (text, before, after, label) => {
   assertConversionSource(text, before, label);
+  // replace() rewrites only the first match, so a string anchor that recurs would leave its
+  // later copies in Claude form; it must match exactly once.
+  if (typeof before === "string") {
+    const count = text.split(before).length - 1;
+    if (count !== 1) {
+      throw new Error(`Expected conversion source to match exactly once, found ${count} (${label}).`);
+    }
+  }
   return text.replace(before, after);
 };
 
@@ -266,7 +274,7 @@ for (const path of walkFiles(join(outputRoot, "agents"))) {
 // scope-implement's reference.
 const followupScope = "a clarification, a gap or a correction";
 const orchestrationSentence = "Use the `Workflow` tool to run the agents where it is available; otherwise spawn subagents directly.";
-const orchestrationNeutral = "Spawn the agents directly as subagents (route: direct subagents): fan out independent assignments, send load-bearing claims to adversarial verification, collect every result, and synthesise. Spawn each agent with its own `collaboration.spawn_agent` call -- a unique `task_name`, its assignment in `message`, `fork_turns: \"none\"`, and the `model` and `reasoning_effort` that `../detect-harness/SKILL.md`'s consumer contract gives for its tier or override, omitting any override the contract says to omit -- issuing independent calls before waiting; each result arrives through the collaboration completion notification. Share findings through later assignments: a later agent's `message` carries the collected results it must build on or challenge (long records by path, per orchestration.md's `## Route`). Steer a running agent with `collaboration.send_message`, and give an agent a follow-up on its own assignment (" + followupScope + ") with `collaboration.followup_task`; spawn fresh for independent verification, challenge or review, and for a different tier, since a follow-up takes no `model` or `reasoning_effort`.";
+const orchestrationNeutral = "Spawn the agents directly as subagents (route: direct subagents): fan out independent assignments, send load-bearing claims to adversarial verification, collect every result, and synthesise. Spawn each agent with its own `collaboration.spawn_agent` call -- a unique `task_name`, its assignment in `message`, `fork_turns: \"none\"`, and the `model` and `reasoning_effort` selected under `../detect-harness/SKILL.md`'s consumer contract for its tier or explicit override, omitting any override the contract says to omit -- issuing independent calls before waiting; each result arrives through the collaboration completion notification. Share findings through later assignments: a later agent's `message` carries the collected results it must build on or challenge (long records by path, per orchestration.md's `## Route`). Steer a running agent with `collaboration.send_message`, which starts no turn on an idle agent, and give an agent a follow-up on its own assignment (" + followupScope + ") with `collaboration.followup_task`; spawn fresh for independent verification, challenge or review, and whenever its model or effort must change, even within one tier, since neither continuation tool takes a `model` or `reasoning_effort`.";
 for (const skill of ["scope-envelope", "scope-review"]) {
   const path = join(outputRoot, "skills", skill, "SKILL.md");
   writeFileSync(path, replaceRequired(readFileSync(path, "utf8"), orchestrationSentence, orchestrationNeutral, `${skill} orchestration-tool sentence`), "utf8");
@@ -279,8 +287,8 @@ const implementReference = [
   "",
   "Tool mechanics of this skill's direct-subagent route; what the run must secure stays in `SKILL.md`.",
   "",
-  "- Spawn each agent with its own `collaboration.spawn_agent` call: a unique `task_name`, its assignment in `message`, `fork_turns: \"none\"`, and the `model` and `reasoning_effort` that `../detect-harness/SKILL.md`'s consumer contract gives for its tier or override, omitting any override the contract says to omit. Issue independent spawns before waiting.",
-  "- Steer a running agent with `collaboration.send_message`; it starts no turn on an idle agent. Give an existing agent another turn on its own assignment (" + followupScope + ") with `collaboration.followup_task`. Neither takes a `model` or `reasoning_effort`: spawn fresh for a different tier, and for independent verification, challenge or review.",
+  "- Spawn each agent with its own `collaboration.spawn_agent` call: a unique `task_name`, its assignment in `message`, `fork_turns: \"none\"`, and the `model` and `reasoning_effort` selected under `../detect-harness/SKILL.md`'s consumer contract for its tier or explicit override, omitting any override the contract says to omit. Issue independent spawns before waiting.",
+  "- Steer a running agent with `collaboration.send_message`; it starts no turn on an idle agent. Give an existing agent another turn on its own assignment (" + followupScope + ") with `collaboration.followup_task`. Neither takes a `model` or `reasoning_effort`: spawn fresh whenever its model or effort must change, even within one tier, and for independent verification, challenge or review.",
   "- Results arrive as completion notifications, also while you are doing other work. `collaboration.wait_agent` returns on the next mailbox update from any agent or on its timeout, and is no barrier for all agents; do not wait for a notification already collected. `collaboration.list_agents` shows only each agent's latest result. Neither is a ledger: record each result the run relies on in `state.md` as it arrives.",
   "- Every agent works in the one shared checkout, under the parent's sandbox and approvals; this route offers no per-agent isolation and no file lock.",
   "- A command run through `exec_command` can yield before it exits: keep its handle and collect the exit status through that tool's continuation. A yield or a timed-out wait is neither a failure nor a pass, and no reason to start the command again.",
@@ -365,8 +373,8 @@ const teamMechanicsPath = join(outputRoot, "skills", "agent-shared", "team-mecha
 let teamMechanics = readFileSync(teamMechanicsPath, "utf8");
 teamMechanics = replaceAllRequired(
   teamMechanics,
-  "Spawn all members via the `collaboration.spawn_agent` (`agent_type: \"general-purpose\"`, per-member\n`model` and `effort` as assigned) in a single message so they run concurrently.",
-  "Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name`, the member brief in `message`, `fork_turns: \"none\"`, and the resolved per-member `model` and `reasoning_effort`. Issue every call before waiting so the members run concurrently.",
+  "Spawn all members via the `collaboration.spawn_agent` (`agent_type: \"general-purpose\"`, per member its\ntier's `model` and a selected `effort`, but no `name`, since member names are report labels)\nin a single message so they run concurrently.",
+  "Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name` (the member's report label with hyphens replaced by underscores, since the runtime rejects hyphens), the member brief in `message`, `fork_turns: \"none\"`, and its tier's `model` and a selected `reasoning_effort`. Issue every call before waiting so the members run concurrently.",
   "shared team spawn pattern",
 );
 writeFileSync(teamMechanicsPath, teamMechanics, "utf8");
@@ -375,8 +383,8 @@ const consultantPath = join(outputRoot, "skills", "agent-consultant", "SKILL.md"
 let consultant = readFileSync(consultantPath, "utf8");
 consultant = replaceAllRequired(
   consultant,
-  "Spawn all members via the `collaboration.spawn_agent` (`agent_type: \"general-purpose\"`, per-member `model` and `effort` as assigned) in a single message so they run concurrently.",
-  "Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name`, the member brief in `message`, `fork_turns: \"none\"`, and the resolved per-member `model` and `reasoning_effort`. Issue every call before waiting so the members run concurrently.",
+  "Spawn all members via the `collaboration.spawn_agent` (`agent_type: \"general-purpose\"`, per member its tier's `model` and a selected `effort`, but no `name`, since member names are report labels) in a single message so they run concurrently.",
+  "Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name` (the member's report label with hyphens replaced by underscores, since the runtime rejects hyphens), the member brief in `message`, `fork_turns: \"none\"`, and its tier's `model` and a selected `reasoning_effort`. Issue every call before waiting so the members run concurrently.",
   "consultant spawn pattern",
 );
 consultant = replaceRequired(
@@ -401,28 +409,29 @@ for (const [before, after, label] of [
   ["Spawn a single subagent via `collaboration.spawn_agent`:\n- `agent_type`: `ace:plan-drafter`", "Read `../../agents/plan-drafter.md` in full, then spawn one subagent through `collaboration.spawn_agent`:\n- `task_name`: `ace_plan_drafter_{8hex}`\n- `fork_turns`: `\"none\"`\n- `message`: the complete payload file followed by the run-specific brief and target-path inputs", "plan-start drafter spawn block"],
   ["Spawn a fresh subagent via `collaboration.spawn_agent` to validate the draft plan against the codebase:\n\n- `agent_type`: `ace:plan-validate`", "Read `../../agents/plan-validate.md` in full, then spawn a fresh validation subagent through `collaboration.spawn_agent`:\n\n- `task_name`: `ace_plan_validate_{8hex}`\n- `fork_turns`: `\"none\"`\n- `message`: the complete payload file followed by the draft path, report target path, and exploratory-read cap", "plan-start validator spawn block"],
   ["- Otherwise, spawn the `plan-revisor` subagent via `collaboration.spawn_agent`:\n\n  - `agent_type`: `ace:plan-revisor`", "- Otherwise, read `../../agents/plan-revisor.md` in full and spawn the revisor through `collaboration.spawn_agent`:\n\n  - `task_name`: `ace_plan_revisor_{8hex}`\n  - `fork_turns`: `\"none\"`\n  - `message`: the complete payload file followed by the v1 path, report path, and parsed findings", "plan-start revisor spawn block"],
-  ["- `model`: value from Phase 1 (default `{Tier-2}`)", "- `model` and `reasoning_effort`: the pair resolved from Phase 1 (default `{Tier-2}`)", "plan-start drafter model pair"],
-  ["- `model`: **always** `{Tier-3}`.", "- `model` and `reasoning_effort`: **always** the `{Tier-3}` pair.", "plan-start validator model pair"],
-  ["  - `model`: `{Tier-3}`", "  - `model` and `reasoning_effort`: the `{Tier-3}` pair", "plan-start revisor model pair"],
-  ["applies patch hunks", "applies `apply_patch` hunks", "plan-start patch-hunk phrasing"],
+  ["- `model` and `effort`: from the Phase 1 value (default `{Tier-2}`) — for a tier, its model and an effort selected under the consumer contract; for an explicit model, the contract's `--model` rules", "- `model` and `reasoning_effort`: from the Phase 1 value (default `{Tier-2}`) — for a tier, its model and a reasoning effort selected under the consumer contract; for an explicit model, preserve it and pass only a caller-requested effort, otherwise omit `reasoning_effort` under the contract's `--model` rules", "plan-start drafter model pair"],
+  ["- `model` and `effort`: **always** `{Tier-3}` — its model, and an effort selected under the consumer contract.", "- `model` and `reasoning_effort`: **always** the `{Tier-3}` model and a reasoning effort selected under the consumer contract.", "plan-start validator model pair"],
+  ["  - `model` and `effort`: `{Tier-3}` — its model, and an effort selected under the consumer contract", "  - `model` and `reasoning_effort`: the `{Tier-3}` model and a reasoning effort selected under the consumer contract", "plan-start revisor model pair"],
   [/- Do not invoke `EnterPlanMode` or `ExitPlanMode`[^\n]*/, "- Do not require or attempt to change Codex collaboration mode. Run in the current mode and use the documented plain-text question fallback when `request_user_input` is unavailable.", "plan-start plan-mode tool ban"],
 ]) {
   planStart = replaceRequired(planStart, before, after, label);
 }
+// The phrase recurs (the revisor's description and its failure recovery); convert every copy.
+planStart = replaceAllRequired(planStart, "applies patch hunks", "applies `apply_patch` hunks", "plan-start patch-hunk phrasing");
 writeFileSync(planStartPath, planStart, "utf8");
 
 const planValidatePath = join(outputRoot, "skills", "plan-validate", "SKILL.md");
 let planValidate = readFileSync(planValidatePath, "utf8");
 planValidate = replaceRequired(
   planValidate,
-  "Spawn the `plan-validate` subagent via `collaboration.spawn_agent` with `agent_type: ace:plan-validate` and `model: {Tier-3}`",
-  "Read `../../agents/plan-validate.md` in full, then spawn a validation subagent through `collaboration.spawn_agent` with a run-suffixed `task_name`, `fork_turns: \"none\"`, `message` set to the complete payload followed by the run inputs, and the Tier-3 `model` plus `reasoning_effort`",
+  "Spawn the `plan-validate` subagent via `collaboration.spawn_agent` with `agent_type: ace:plan-validate`, `model: {Tier-3}` and an `effort` selected from Tier-3's baseline under the effort policy",
+  "Read `../../agents/plan-validate.md` in full, then spawn a validation subagent through `collaboration.spawn_agent` with a run-suffixed `task_name`, `fork_turns: \"none\"`, `message` set to the complete payload followed by the run inputs, the Tier-3 `model` and a `reasoning_effort` selected from its baseline under the effort policy",
   "standalone validator spawn pattern",
 );
 planValidate = replaceRequired(
   planValidate,
-  "the agent file's frontmatter `model:` is the fallback for direct invocation",
-  "the parent session's default model is the fallback when tier resolution is unavailable",
+  "the agent file's frontmatter `model:` and `effort:` are the fallback for direct invocation",
+  "the harness's default selection for both settings is the fallback when tier resolution is unavailable",
   "plan-validate model fallback",
 );
 planValidate = replaceRequired(
@@ -470,10 +479,10 @@ let detect = readFileSync(detectPath, "utf8");
 for (const [before, after, label] of [
   [/^description:.*$/m, "description: \"Prints the Codex agent model and reasoning-effort mapping for the suite's three capability tiers, read from models.md beside this skill. Invoke before spawning tiered agents when no valid cached resolution is present; see the cache check for reuse and invalidation rules.\"", "detect-harness description"],
   [/On Claude:\n\n```\n[\s\S]*?```\n\n(?=On Codex:)/, "", "detect-harness Claude output block strip"],
-  ["tier: a space-separated model and effort, applied per the consumer contract below\n", "tier: a space-separated model and effort, which a consumer splits into the spawn\ntool's `model` and `reasoning_effort` fields\n", "detect-harness tier-value shape"],
-  ["report the\n  model as inherited; do not claim", "report the\n  assignment as inherited; do not claim", "detect-harness inherited-model wording"],
-  ["substitutes for the reference; split it into its model\n  and effort parts.\n  - On Claude, pass the alias, verbatim, as the `collaboration.spawn_agent`'s `model` override and the\n    effort as its per-call `effort` (`models.md`, `### Claude`); a fork takes neither.\n  - On Codex, pass the parts through the spawn tool's separate `model` and\n    `reasoning_effort` fields, and observe the spawn constraints in `models.md`\n    (`### Codex`) -- overrides are rejected on full-history (`\"all\"`) forks, so pass\n    `fork_turns: \"none\"` or a positive integer string.", "substitutes for the reference. It is a space-separated\n  pair: split it into the spawn tool's separate `model` and\n  `reasoning_effort` fields, and observe the spawn constraints in `models.md`\n  (`### Codex`) -- overrides are rejected on full-history (`\"all\"`) forks, so pass\n  `fork_turns: \"none\"` or a positive integer string.", "detect-harness tier-value consumer note"],
-  ["- Report surfaces record the resolved model and effort for each assignment. On\n  Claude the effort is the per-call value passed, else the spawned definition's\n  `effort:` value, or else inherited, each subject to the overrides in `models.md`. When\n  using default selection, report that overrides were omitted; do not invent a model\n  or effort or use agent self-description as verification.", "- Report surfaces record the resolved model and, on Codex, reasoning effort used for\n  each assignment. When using default selection, report that overrides were omitted;\n  do not invent a model or effort or use agent self-description as verification.", "detect-harness report effort note"],
+  ["tier: its model and baseline effort, space-separated, applied per the consumer contract\nbelow ", "tier: a space-separated model and baseline reasoning effort, applied per the consumer\ncontract below ", "detect-harness tier-value shape"],
+  ["report the settings as inherited; do not claim", "report both settings as inherited; do not claim", "detect-harness inherited-model wording"],
+  ["substitutes for the reference; split it into its model\n  and baseline effort, and select the effort to pass under the effort policy below.\n  - On Claude, pass the alias, verbatim, as the `collaboration.spawn_agent`'s `model` override and the\n    selected effort as its per-call `effort` (`models.md`, `### Claude`); a fork takes\n    neither.\n  - On Codex, pass the model and the selected effort through the spawn tool's separate\n    `model` and `reasoning_effort` fields, and observe the spawn constraints in\n    `models.md` (`### Codex`) -- overrides are rejected on full-history (`\"all\"`)\n    forks, so a tiered spawn passes `fork_turns: \"none\"` with a self-contained brief.", "substitutes for the reference; split it into its model\n  and baseline reasoning effort, and select the effort to pass under the effort policy\n  below. Pass the model and selected effort through the spawn tool's separate `model`\n  and `reasoning_effort` fields, observing `models.md` (`### Codex`): tiered overrides\n  require `fork_turns: \"none\"` with a self-contained brief. Omitted or `\"all\"` forks\n  inherit both settings and reject overrides.", "detect-harness tier-value consumer note"],
+  ["- Report surfaces record the resolved model and the effort requested for each\n  assignment, per the effort policy's Record rule. On Claude the effort is the per-call\n  value passed, else the spawned definition's `effort:` value, or else inherited; the\n  overrides in `models.md` can change the level that applies. When using default\n  selection, report that overrides were omitted; do not invent a model or effort or use\n  agent self-description as verification.", "- Report surfaces record the resolved model and the reasoning effort requested for\n  each assignment, per the effort policy's Record rule. When using default selection,\n  report that overrides were omitted; do not invent a model or effort or use agent\n  self-description as verification.", "detect-harness report effort note"],
   ["Match Claude Code to `### Claude` and Codex to `### Codex`.", "Match Codex to `### Codex`.", "detect-harness Claude section match strip"],
   ["Each Claude entry must provide one non-empty spawn\n   alias and one non-empty effort value; parenthesized reference IDs are not spawn\n   values. Each Codex entry", "Each entry", "detect-harness Claude entry rule strip"],
   ["\n  On Claude, pass any effort the caller specified as the per-call `effort`; otherwise\n  the spawned definition's `effort:` or the session effort applies, and is reported as\n  that value or as inherited, subject to the overrides in `models.md`.", "", "detect-harness --model Claude effort note strip"],
@@ -484,9 +493,15 @@ writeFileSync(detectPath, detect, "utf8");
 
 const modelsPath = join(outputRoot, "skills", "detect-harness", "models.md");
 let models = readFileSync(modelsPath, "utf8");
+// The strip below removes everything from `### Claude` to `### Codex`; a section inserted
+// between them would vanish silently, so refuse any further heading inside that span.
+const claudeBlock = models.match(/\n### Claude\n([\s\S]*?)(?=\n### Codex\n)/);
+if (claudeBlock && /^#{1,3} /m.test(claudeBlock[1])) {
+  throw new Error("Expected `### Claude` to sit directly before `### Codex`, with no heading between them (models Claude tier block strip).");
+}
 for (const [before, after, label] of [
   ["Data file for `$ace:detect-harness` (`../detect-harness/SKILL.md`),", "Data file for `$ace:detect-harness` (`SKILL.md`),", "models data-file self reference"],
-  ["\nOn each harness a tier maps to a model and an effort: on Claude a model alias and an\neffort level, on Codex a model and a reasoning effort.", " Each\ntier maps to a model and a reasoning effort.", "models per-harness tier preamble"],
+  ["\nOn each harness a tier maps to a model and a baseline effort: on Claude a model alias and an\neffort level, on Codex a model and a reasoning effort.", " Each\ntier maps to a model and a baseline reasoning effort.", "models per-harness tier preamble"],
   [/\n### Claude\n[\s\S]*?(?=\n### Codex\n)/, "", "models Claude tier block strip"],
 ]) {
   models = replaceRequired(models, before, after, label);

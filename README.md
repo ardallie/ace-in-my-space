@@ -113,7 +113,8 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
 ### Utilities
 
 - `/ace:detect-harness` -- detects the agent harness and prints the capability-tier
-  mapping the other skills resolve spawn models against
+  mapping (each tier's model and baseline effort) the other skills resolve spawn settings
+  against, and states the effort policy for tiered spawns
 - `/ace:run-interview` -- presents open questions interactively under the option-list
   rules
 - `/ace:run-retro` -- writes a retrospective report on a finished run

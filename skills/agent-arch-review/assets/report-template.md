@@ -12,7 +12,7 @@ Source: [per `## Standard header fields` in
 `conversation context` item alone may carry exactly one parenthesised reference naming
 what the context is about -- `conversation context ({issue or package reference})`, a
 defined form, not free prose; a later `--prior`-only re-review seeds its scope from it]
-Analysts: {count} total, the sceptic counted inside it. Models: {the split -- e.g. `5 x Tier-3 + a Tier-2 sceptic`, or with a promotion `4 x Tier-3 + a Tier-2 {concern} + a Tier-2 sceptic`, or `all {model} via --model` -- recorded as the resolved model names}. Sizing: {work-package scope (six) | narrow scope (three-to-five) | re-review (--prior, reduced band)}. Rationale: {one line: the scope signals behind the size and the flexible-slot specialisations chosen}.
+Analysts: {count} total, the sceptic counted inside it. Models: {the split -- e.g. `5 x Tier-3 + a Tier-2 sceptic`, or with a promotion `4 x Tier-3 + a Tier-2 {concern} + a Tier-2 sceptic`, or `all {model} via --model` -- recorded as the resolved model names, each with its effort}. Sizing: {work-package scope (six) | narrow scope (three-to-five) | re-review (--prior, reduced band)}. Rationale: {one line: the scope signals behind the size and the flexible-slot specialisations chosen}.
 Checks: [the report-level record of what the shared battery did or did not run, emitted as
 one line in the record grammar of `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/verification-checks.md`: the
 applied --checks tier or mode (full | cheap | skipped by flag), then a one-line summary of
@@ -29,7 +29,8 @@ staleness check]
 ## Analysts
 
 [Numbered list -- one entry per spawned analyst, using the Phase 3 `arch-{specialisation-slug}-{suffix}`
-names, each as `[name] -- [specialisation] -- [model]`, the sceptic last. This list is for the
+names, each as `[name] -- [specialisation] -- [model] -- effort [level | inherited | default]`, appending
+`-- [why it departs from its tier's baseline, or the override or cap that changed it]` where one applies, the sceptic last. This list is for the
 human reader; no downstream tooling parses it.]
 
 ## Enhanced brief

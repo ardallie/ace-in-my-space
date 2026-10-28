@@ -8,7 +8,7 @@ Date: {yyyy-MM-dd, local date}
 [Emit `Stage:` only when the analysis covers a numbered stage/phase/track of a larger sweep; omit the line entirely otherwise.]
 Stage: {n}/{m}
 Source: {per `## Standard header fields` in `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/report-conventions.md`}
-Analysts: {N} non-sceptic + 1 sceptic. Models: {the split -- e.g. `4 x Tier-3 + a Tier-2 sceptic`, or with a load-bearing promotion `3 x Tier-3 + a Tier-2 {concern} + a Tier-2 sceptic`, or `all {model} via --model` -- recorded as the resolved model names}. Sizing: {auto-sized from scope | set via --agents {N}}. Rationale: {one line: the band the scope size selected, the dominant scope signals, and any concern grouping applied to fit the budget}.
+Analysts: {N} non-sceptic + 1 sceptic. Models: {the split -- e.g. `4 x Tier-3 + a Tier-2 sceptic`, or with a load-bearing promotion `3 x Tier-3 + a Tier-2 {concern} + a Tier-2 sceptic`, or `all {model} via --model` -- recorded as the resolved model names, each with its effort}. Sizing: {auto-sized from scope | set via --agents {N}}. Rationale: {one line: the band the scope size selected, the dominant scope signals, and any concern grouping applied to fit the budget}.
 Grounded at: [per the shared grammar -- read by this skill's own git-state staleness check
 when the report is passed back as a positional input]
 
@@ -24,8 +24,9 @@ resolves each file item as a path.]
 ## Analysts
 
 [Numbered list of `N + 1` entries: the `N` non-sceptic specialists, each as
-`[name] -- [specialisation] -- [model]`, followed by the sceptic as the final entry
-`[name] -- [sceptic description] -- [model]`. Names follow the Phase 4 convention
+`[name] -- [specialisation] -- [model] -- effort [level | inherited | default]`, followed by the sceptic as the final
+entry `[name] -- [sceptic description] -- [model] -- effort [level | inherited | default]`; any entry appends
+`-- [why it departs from its tier's baseline, or the override or cap that changed it]` where one applies. Names follow the Phase 4 convention
 `{role}-{suffix}`.]
 
 ## Enhanced brief

@@ -113,11 +113,11 @@ For free-text inputs, Phase 4 finalises only the timestamp and suffix; the subag
 
 ### Phase 5 — Spawn planning subagent
 
-Spawn-model prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per the consumer contract in `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` — against the `Harness:` block already in context, invoking `/ace:detect-harness` first if none is present; where the detect-harness package is absent, resolve tiers against the harness's own model catalogue. This applies to every subagent spawn in this skill (Phases 5, 7, and 9).
+Model and effort prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per the consumer contract in `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` — against the `Harness:` block already in context, invoking `/ace:detect-harness` first if none is present, and reading that contract's effort policy if it is not already in context — and select each spawn's effort from its tier's baseline under that policy; where the detect-harness package is absent, resolve tiers against the harness's own model catalogue. This applies to every subagent spawn in this skill (Phases 5, 7, and 9).
 
 Spawn a single subagent via `Agent`:
 - `subagent_type`: `ace:plan-drafter`
-- `model`: value from Phase 1 (default `{Tier-2}`)
+- `model` and `effort`: from the Phase 1 value (default `{Tier-2}`) — for a tier, its model and an effort selected under the consumer contract; for an explicit model, the contract's `--model` rules
 - Brief: assembled in Phase 2
 - Target path: from Phase 4 for slug-derived inputs. For free-text inputs, instead pass the timestamp and 8-hex suffix and the path convention `.ace/plans/{yyyyMMdd}-{HHmm}-plan-v0-{slug}-{8hex}.md`; the subagent derives a ≤3-keyword slug from the plan title and composes the final path itself.
 
@@ -132,7 +132,7 @@ Check that the path exists and the trimmed content is non-empty. If not, report 
 Spawn a fresh subagent via `Agent` to validate the draft plan against the codebase:
 
 - `subagent_type`: `ace:plan-validate`
-- `model`: **always** `{Tier-3}`. The `--model` flag from Phase 1 propagates only to the planner (Phase 5); it does not affect the validator. This is intentional — validation quality should not vary with the planning model.
+- `model` and `effort`: **always** `{Tier-3}` — its model, and an effort selected under the consumer contract. The `--model` flag from Phase 1 propagates only to the planner (Phase 5); it does not affect the validator's settings. This is intentional — validation quality should not vary with the planning model.
 - Brief: the absolute path to the draft plan file written in Phase 5, plus the full report target path `.ace/plans/{yyyyMMdd}-{HHmm}-val-v1-{slug}-{8hex}.md`, composed by the orchestrator from the plan's slug and 8-hex id, reusing the Phase 4 timestamp — draft, report, and revision share one prefix, matching the Phase 10 banner — so the artefact set is deterministic. The report version matches the next plan revision the orchestrator will produce — for a `plan-v0` draft, the report is `val-v1` and the revised plan will be `plan-v1`.
 - Exploratory-read cap: the subagent caps additional codebase reads (files discovered during validation but not mentioned in the plan) at 40. Files explicitly referenced by the plan are exempt from the cap.
 
@@ -177,7 +177,7 @@ Compute the audit-footer values:
 - Otherwise, spawn the `plan-revisor` subagent via `Agent`:
 
   - `subagent_type`: `ace:plan-revisor`
-  - `model`: `{Tier-3}`
+  - `model` and `effort`: `{Tier-3}` — its model, and an effort selected under the consumer contract
   - Brief: the v1 path (the pre-seeded file with the footer already appended), the report path, and the parsed-and-resolved findings from Phase 8 (with their resolution state — applied / advisory / resolved-from-context / resolved-by-interview / unresolved). Do not pass the timestamp, the unresolved-question count, or the draft path; the orchestrator owns the footer and the revisor edits in place.
 
   The revisor reads the v1 file once, applies Edit calls to fold the resolved findings into the body, and returns a trailing ` ```result ` block with an `applied_count` key. It does not call Write and does not edit the audit footer.

@@ -88,15 +88,15 @@ Generate the run's hex suffix and capture the working-tree state and current com
 
 **Model assignment.** When model guidance was supplied (Phase 1 — via `--model` or the additional instructions), assign models per analyst to honour it and record the assignment in the `Analysts:` rationale. When none was supplied:
 
-- The **sceptic** runs on Tier-2 — its premise-challenging judgement is where the heavier tier pays off.
-- Other analysts run on Tier-3 — adequate for scoped analytical lenses, with the sceptic's Tier-2 slot covering the open-ended judgement. Do not raise this default without new evidence.
+- The **sceptic** runs on Tier-2 — its premise-challenging judgement is the work that most needs depth.
+- Other analysts run on Tier-3 — adequate for scoped analytical lenses, with the sceptic's Tier-2 slot covering the open-ended judgement. Do not move these analysts to a higher tier without new evidence; their effort follows the effort policy.
 - At most one non-sceptic analyst owning the single most load-bearing concern (an architecture, cross-package-boundary, or unresolved-design lens) may be promoted to Tier-2; none if no concern clearly stands out.
 
-Record each analyst's assigned model; it surfaces in the `## Analysts` list and the Summary's `Analysts:` line, together with the team-size rationale.
+Record each analyst's resolved model and the effort it ran at, with a one-line reason where that effort departs from its tier's baseline; they surface in the `## Analysts` list and the Summary's `Analysts:` line, together with the team-size rationale.
 
 **Naming.** Name each analyst `arch-{specialisation-slug}-{suffix}` (e.g. `arch-architecture-a3f9b2c1`, `arch-sceptic-a3f9b2c1`) and use these names in the report's `## Analysts` list.
 
-Spawn the analysts in a single message and hand off the context package per `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/team-mechanics.md` (spawning, package handoff), passing each analyst's model assignment as the per-spawn `model` parameter.
+Spawn the analysts in a single message and hand off the context package per `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/team-mechanics.md` (spawning, package handoff), passing each analyst's model assignment as the per-spawn `model`, with its effort selected per the shared spawning rule.
 
 When `--prior` was supplied, build the affected projects once before spawning (the project's build command, where the project defines one — a scope with no build surface skips this step) and state in the package that the built state is current — analysts reuse it for probes (no-rebuild test runs) instead of each rebuilding the same HEAD. This pre-build is a probe-support step, not part of the shared battery: it runs under every `--checks` tier, `skip` included, and appends the `(+ --prior pre-build)` suffix to the `Checks:` record per `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/verification-checks.md`, so a `skip` run never reads as having built nothing. Under `--checks full` the battery's own build satisfies it — build once and omit the suffix.
 

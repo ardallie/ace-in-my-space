@@ -37,10 +37,13 @@ against both.
 
 ## Spawning
 
-Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name`, the member brief in `message`, `fork_turns: "none"`, and the resolved per-member `model` and `reasoning_effort`. Issue every call before waiting so the members run concurrently. Spawn-model
-prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per
-the consumer contract in `../detect-harness/SKILL.md` — against the
-`Harness:` block already in context, invoking `$ace:detect-harness` first if none is present.
+Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name` (the member's report label with hyphens replaced by underscores, since the runtime rejects hyphens), the member brief in `message`, `fork_turns: "none"`, and its tier's `model` and a selected `reasoning_effort`. Issue every call before waiting so the members run concurrently. Model and effort prescriptions here are tier
+references (`Tier-1`-`Tier-3`); resolve them at spawn time per the consumer contract in
+`../detect-harness/SKILL.md` — against the `Harness:` block already
+in context, invoking `$ace:detect-harness` first if none is present, and reading that
+contract's effort policy if it is not already in context — and select each member's effort
+from its tier's baseline under that policy. An explicit model given through `--model` follows
+that contract's `--model` rules instead.
 Where the detect-harness package is absent, resolve tiers against the harness's own model
 catalogue.
 

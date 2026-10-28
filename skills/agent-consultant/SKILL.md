@@ -94,11 +94,11 @@ Capture the working-tree state (`git status --porcelain`) and the current commit
 
 **Team shape.** Group the answerable-here questions by the repository area they implicate into **one to four researchers** -- questions sharing modules, contracts, or reasoning share a researcher. Choose the fewest researchers that give every question an owner; never pad -- two questions about one seam take one researcher. When `--agents N` was supplied, honour it exactly. The **sceptic** is always spawned on top.
 
-**Model assignment.** When model guidance was supplied (Phase 1), honour it per researcher. Otherwise the sceptic runs on Tier-2 -- its premise-challenging judgement is where the heavier tier pays off -- and researchers run on Tier-3, adequate for scoped verification lenses. When one question is direction-setting (its answer commits or forecloses a development direction on either side), promote its owner to Tier-2; at most one promotion, and none if no question clearly stands out. Record the assignment in the `Researchers:` rationale.
+**Model assignment.** When model guidance was supplied (Phase 1), honour it per researcher. Otherwise the sceptic runs on Tier-2 -- its premise-challenging judgement is the work that most needs depth -- and researchers run on Tier-3, adequate for scoped verification lenses. When one question is direction-setting (its answer commits or forecloses a development direction on either side), promote its owner to Tier-2; at most one promotion, and none if no question clearly stands out. Record the assignment in the `Researchers:` rationale, and each researcher's resolved model and the effort it ran at, with a one-line reason where that effort departs from its tier's baseline, in the `## Researchers` list.
 
 **Naming.** Name each researcher `consult-{lens-slug}-{suffix}` (e.g. `consult-write-contracts-a3f9b2c1`); the sceptic is `consult-sceptic-{suffix}`. These names fill the report's `## Researchers` list.
 
-Spawn all members via the `Agent` tool (`subagent_type: "general-purpose"`, per-member `model` and `effort` as assigned) in a single message so they run concurrently. Spawn-model prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per the consumer contract in `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` -- against the `Harness:` block already in context, invoking `/ace:detect-harness` first if none is present. Where the detect-harness package is absent, resolve tiers against the harness's own model catalogue. Spawn any researcher expected to run file-creating execution probes with `isolation: "worktree"`, so probe artefacts never exist in the shared tree the other members are reading.
+Spawn all members via the `Agent` tool (`subagent_type: "general-purpose"`, per member its tier's `model` and a selected `effort`, but no `name`, since member names are report labels) in a single message so they run concurrently. Model and effort prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per the consumer contract in `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` -- against the `Harness:` block already in context, invoking `/ace:detect-harness` first if none is present, and reading that contract's effort policy if it is not already in context -- and select each member's effort from its tier's baseline under that policy. An explicit model given through `--model` follows that contract's `--model` rules instead. Where the detect-harness package is absent, resolve tiers against the harness's own model catalogue. Spawn any researcher expected to run file-creating execution probes with `isolation: "worktree"`, so probe artefacts never exist in the shared tree the other members are reading.
 
 **Package handoff** -- assemble the context package into a temporary file and pass its path to each member; the content is fixed at assembly time, so determinism is preserved. The package carries: the request verbatim (recap included); the member's owned questions; the Phase 3 exploration notes and recorded gate results (established facts -- do not re-run); the grounding file's path (consultable, exempt from the read cap); and any additional instructions.
 
@@ -155,7 +155,7 @@ Consultant: {role description of this repository, from Phase 3}
 Grounded at: [HEAD short-hash plus tree state -- e.g. `ff6df1d, clean tree`]
 Coverage: {n} answered, {m} in part, {p} cannot-settle [human-read roll-up: the courier
 judges whether another round is needed without opening the body]
-Researchers: {N} + 1 sceptic. Models: {the split, or `all {model} via --model` -- recorded as the resolved model names}.
+Researchers: {N} + 1 sceptic. Models: {the split, or `all {model} via --model` -- recorded as the resolved model names, each with its effort}.
 Rationale: {one line: the question grouping applied, any promotion, and whether
 identifiers were minted}.
 
@@ -168,8 +168,10 @@ report is self-contained; no path in it resolves outside this repository.
 
 ## Researchers
 
-[Numbered list, one entry per member: `[name] -- [questions owned] -- [model]`, the
-sceptic last as `[name] -- Sceptic -- [model]`. Names follow the Phase 4 convention.]
+[Numbered list, one entry per member: `[name] -- [questions owned] -- [model] -- effort
+[level | inherited | default]`, the sceptic last as `[name] -- Sceptic -- [model] -- effort
+[level | inherited | default]`; any entry
+appends `-- [why it departs from its tier's baseline, or the override or cap that changed it]` where one applies. Names follow the Phase 4 convention.]
 
 ## Answers
 
