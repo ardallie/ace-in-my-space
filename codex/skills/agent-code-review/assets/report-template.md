@@ -21,10 +21,12 @@ Prior: {path passed to --prior}
 
 ## Reviewers
 
-1. review-{specialisation-slug}-{suffix} — [role description] — [model]
-2. review-{specialisation-slug}-{suffix} — [role description] — [model]
-3. review-{specialisation-slug}-{suffix} — [role description] — [model] [omit under --reviewers 2]
-4. review-sceptic-{suffix} — Sceptic — [model] [numbered after the last specialist]
+1. review-{specialisation-slug}-{suffix} — [role description] — [model] — effort [level | inherited | default]
+2. review-{specialisation-slug}-{suffix} — [role description] — [model] — effort [level | inherited | default]
+3. review-{specialisation-slug}-{suffix} — [role description] — [model] — effort [level | inherited | default] [omit under --reviewers 2]
+4. review-sceptic-{suffix} — Sceptic — [model] — effort [level | inherited | default] [numbered after the last specialist]
+
+[Any entry appends `— [why it departs from its tier's baseline, or the override or cap that changed it]` where one applies.]
 
 ## Findings
 

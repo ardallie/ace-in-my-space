@@ -5,6 +5,91 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1]
+
+### Changed -- a tier's effort is a baseline
+
+- `/ace:detect-harness`'s consumer contract carries the suite's effort policy, its single
+  source. Every tiered spawn passes an effort. The orchestrator selects it for each
+  assignment, starting from the tier's baseline, and may pass any level the model supports.
+  Raising or lowering the baseline is an expected outcome. Agents whose outputs are compared
+  directly get equal efforts. A change of effort takes a fresh spawn, never a continuation.
+  An explicit effort instruction binds. Where the workflow has a settings surface, the
+  effort requested is recorded, and a departure from the baseline carries its reason; an
+  override or cap is noted only where it is known, since the orchestrator cannot see it.
+  The plan pipeline has no settings surface and records nothing. A `Tier-N` value is
+  described as the tier's model and baseline effort; the block's format is unchanged. A
+  cached block carries only baselines, so a spawn site reads the policy before spawning
+  when the policy is not already in context. The invalid-arguments example now names an
+  unsupported non-baseline effort only for a harness that rejects one.
+- `--model`: a requested effort binds; an explicit model without one keeps the default-effort
+  rule. A spawn that needs full-history inheritance omits both overrides, and it does not
+  count as applying a tier. In the shared Codex clause, tiered spawns pass
+  `fork_turns: "none"`; the positive-integer-string option is gone.
+- `models.md`:
+  - Tier-1 is defined by its work and its place in the order. It makes no capability claim
+    and places no restriction on its effort, and each tier's effort is described as its
+    baseline.
+  - The Claude mapping moves Tier-1 from `fable` `medium` to `opus` `xhigh`.
+  - The Claude section is re-verified on Claude Code 2.1.312. 0.7.0 stamped it 2.1.120,
+    which predates the Agent tool's per-call `effort` (2.1.292), so that route cannot have
+    been verified there. It records:
+    - each mapped alias's effort levels, and the fallback for an unsupported level;
+    - `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`;
+    - that `SendMessage` takes no model or effort;
+    - the Workflow tool's per-agent effort;
+    - that agent-team teammates take no documented per-spawn effort, so tiered spawns pass
+      no `name`. The shared spawn sentence says so too: member names are report labels.
+
+    Claims taken from the documentation rather than observed are stamped as documented,
+    and one is stamped as inferred.
+- `ws-shared/orchestration.md`:
+  - Relative cost guidance replaces the fixed Tier-1-to-Tier-2 cost ratio.
+  - The Tier-1 ceiling counts roles by their settings, not their tier label. A role counts
+    when any of its agents runs Tier-1's model at Tier-1's baseline effort or higher;
+    without tier resolution, the roles assigned Tier-1 count. `--model` still beats the
+    ceiling.
+  - The ceiling caps the effort policy's raises. A raise that would make a fourth role
+    count toward the Tier-1 ceiling either stays at the baseline or is recorded as an
+    override.
+  - Efforts compare in the order `models.md` lists them, and an inherited or default
+    effort counts at the tier's baseline.
+  - A follow-up continues an agent only while its effort suits the work.
+  - The allocation record carries each departure's reason, and any override or cap where
+    it is known. A role whose assignments differ lists each level, comma-separated.
+- Every tiered spawn site names both settings: the shared team spawn and the consultant's
+  spawn, the agent-* skills' spawn instructions, plan-start Phases 5, 7 and 9,
+  plan-validate Phase 2 and plan-update step 6. The validator and the revisor are tiered
+  spawns too, and the validator's settings still do not follow `--model`.
+- Report surfaces record effort:
+  - the agent-* analyst, reviewer, panel and researcher lists, with a slot for the reason
+    behind a departure and for an `inherited` or `default` effort;
+  - their `Models:` lines;
+  - the scope templates' `## Run record` team lines, which gain a departure-reason slot.
+- The agent-* tier rationales no longer assume a cost ratio or a heavier tier:
+  - the sceptic's Tier-2 default rests on the depth its work needs;
+  - `/ace:agent-scope`'s mixture rule speaks of the tier order.
+- `scripts/build-codex.mjs`: conversion anchors follow the reworded shared passages. A
+  string anchor must now match exactly once. That change converts plan-start's second
+  `patch hunks` mention in the Codex edition. The `### Claude` strip refuses a span that
+  holds another heading.
+- Codex team and consultant spawns derive each `task_name` from the member's report label
+  with hyphens replaced by underscores; the runtime rejects hyphenated task names.
+- `scripts/check-codex.mjs` forbids `CLAUDE_CODE_`, `maxEffortLevel` and `SendMessage` in
+  the Codex edition.
+- Codex Tier-3 moves from `gpt-6-luna` at `max` to `gpt-6.1-terra` at `high`.
+  The Codex section is re-verified on the session's codex-cli 0.165.0 runtime:
+  all three mapped models support `low`, `medium`, `high`, `xhigh`, `max` and `ultra`;
+  tier overrides require `fork_turns: "none"` and explicit user, project or skill
+  instructions; omitted or `"all"` forks inherit both settings. Continuation tools
+  take no model or effort, so changing either requires a fresh spawn, even within a
+  tier. The section also records default-setting precedence and the distinction
+  between message payloads and selectable custom-agent definitions.
+- Codex build replacements apply the shared effort policy across scope, team,
+  consultant and plan spawns, preserve explicit-model default effort and unknown-tier
+  fallbacks, and remove the unsupported positive-integer fork option. The generated
+  mapping and output prose describe effort as a baseline.
+
 ## [0.7.0]
 
 ### Added -- implementation and remediation in a workstream

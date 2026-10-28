@@ -37,11 +37,15 @@ against both.
 
 ## Spawning
 
-Spawn all members via the `Agent` tool (`subagent_type: "general-purpose"`, per-member
-`model` and `effort` as assigned) in a single message so they run concurrently. Spawn-model
-prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per
-the consumer contract in `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` — against the
-`Harness:` block already in context, invoking `/ace:detect-harness` first if none is present.
+Spawn all members via the `Agent` tool (`subagent_type: "general-purpose"`, per member its
+tier's `model` and a selected `effort`, but no `name`, since member names are report labels)
+in a single message so they run concurrently. Model and effort prescriptions here are tier
+references (`Tier-1`-`Tier-3`); resolve them at spawn time per the consumer contract in
+`${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` — against the `Harness:` block already
+in context, invoking `/ace:detect-harness` first if none is present, and reading that
+contract's effort policy if it is not already in context — and select each member's effort
+from its tier's baseline under that policy. An explicit model given through `--model` follows
+that contract's `--model` rules instead.
 Where the detect-harness package is absent, resolve tiers against the harness's own model
 catalogue.
 

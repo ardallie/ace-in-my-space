@@ -113,13 +113,13 @@ For free-text inputs, Phase 4 finalises only the timestamp and suffix; the subag
 
 ### Phase 5 — Spawn planning subagent
 
-Spawn-model prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per the consumer contract in `../detect-harness/SKILL.md` — against the `Harness:` block already in context, invoking `$ace:detect-harness` first if none is present; where the detect-harness package is absent, resolve tiers against the harness's own model catalogue. This applies to every subagent spawn in this skill (Phases 5, 7, and 9).
+Model and effort prescriptions here are tier references (`Tier-1`-`Tier-3`); resolve them at spawn time per the consumer contract in `../detect-harness/SKILL.md` — against the `Harness:` block already in context, invoking `$ace:detect-harness` first if none is present, and reading that contract's effort policy if it is not already in context — and select each spawn's effort from its tier's baseline under that policy; where the detect-harness package is absent, resolve tiers against the harness's own model catalogue. This applies to every subagent spawn in this skill (Phases 5, 7, and 9).
 
 Read `../../agents/plan-drafter.md` in full, then spawn one subagent through `collaboration.spawn_agent`:
 - `task_name`: `ace_plan_drafter_{8hex}`
 - `fork_turns`: `"none"`
 - `message`: the complete payload file followed by the run-specific brief and target-path inputs
-- `model` and `reasoning_effort`: the pair resolved from Phase 1 (default `{Tier-2}`)
+- `model` and `reasoning_effort`: from the Phase 1 value (default `{Tier-2}`) — for a tier, its model and a reasoning effort selected under the consumer contract; for an explicit model, preserve it and pass only a caller-requested effort, otherwise omit `reasoning_effort` under the contract's `--model` rules
 - Brief: assembled in Phase 2
 - Target path: from Phase 4 for slug-derived inputs. For free-text inputs, instead pass the timestamp and 8-hex suffix and the path convention `.ace/plans/{yyyyMMdd}-{HHmm}-plan-v0-{slug}-{8hex}.md`; the subagent derives a ≤3-keyword slug from the plan title and composes the final path itself.
 
@@ -136,7 +136,7 @@ Read `../../agents/plan-validate.md` in full, then spawn a fresh validation suba
 - `task_name`: `ace_plan_validate_{8hex}`
 - `fork_turns`: `"none"`
 - `message`: the complete payload file followed by the draft path, report target path, and exploratory-read cap
-- `model` and `reasoning_effort`: **always** the `{Tier-3}` pair. The `--model` flag from Phase 1 propagates only to the planner (Phase 5); it does not affect the validator. This is intentional — validation quality should not vary with the planning model.
+- `model` and `reasoning_effort`: **always** the `{Tier-3}` model and a reasoning effort selected under the consumer contract. The `--model` flag from Phase 1 propagates only to the planner (Phase 5); it does not affect the validator's settings. This is intentional — validation quality should not vary with the planning model.
 - Brief: the absolute path to the draft plan file written in Phase 5, plus the full report target path `.ace/plans/{yyyyMMdd}-{HHmm}-val-v1-{slug}-{8hex}.md`, composed by the orchestrator from the plan's slug and 8-hex id, reusing the Phase 4 timestamp — draft, report, and revision share one prefix, matching the Phase 10 banner — so the artefact set is deterministic. The report version matches the next plan revision the orchestrator will produce — for a `plan-v0` draft, the report is `val-v1` and the revised plan will be `plan-v1`.
 - Exploratory-read cap: the subagent caps additional codebase reads (files discovered during validation but not mentioned in the plan) at 40. Files explicitly referenced by the plan are exempt from the cap.
 
@@ -183,14 +183,14 @@ Compute the audit-footer values:
   - `task_name`: `ace_plan_revisor_{8hex}`
   - `fork_turns`: `"none"`
   - `message`: the complete payload file followed by the v1 path, report path, and parsed findings
-  - `model` and `reasoning_effort`: the `{Tier-3}` pair
+  - `model` and `reasoning_effort`: the `{Tier-3}` model and a reasoning effort selected under the consumer contract
   - Brief: the v1 path (the pre-seeded file with the footer already appended), the report path, and the parsed-and-resolved findings from Phase 8 (with their resolution state — applied / advisory / resolved-from-context / resolved-by-interview / unresolved). Do not pass the timestamp, the unresolved-question count, or the draft path; the orchestrator owns the footer and the revisor edits in place.
 
   The revisor reads the v1 file once, applies `apply_patch` hunks to fold the resolved findings into the body, and returns a trailing ` ```result ` block with an `applied_count` key. It does not replace the file wholesale and does not edit the audit footer.
 
 **Post-spawn checks.** After the conditional spawn (or after pre-seed when the spawn was skipped), verify the v1 file exists and is non-empty. If verification fails, report and stop; the original draft and report are preserved on disk for manual recovery. Do not chain `$ace:report-publish`. When the revisor was spawned, parse the trailing ` ```result ` block from its reply and compare its `applied_count` against the number of applied/advisory/resolved findings passed to it (applied + advisory + resolved-from-context + resolved-by-interview; unresolved findings are excluded, as the revisor leaves them untouched by contract). On a mismatch, emit a one-line warning naming both counts — a revisor that silently folded fewer findings than passed still produces a non-empty file and would otherwise pass unnoticed. The warning does not stop the run.
 
-If the revisor reports a patch failure (non-unique anchor or anchor not found), the orchestrator reports the error and stops. The v1 on disk may be partially revised (the revisor applies patch hunks incrementally); the original draft remains pristine on disk for re-copying during manual recovery.
+If the revisor reports a patch failure (non-unique anchor or anchor not found), the orchestrator reports the error and stops. The v1 on disk may be partially revised (the revisor applies `apply_patch` hunks incrementally); the original draft remains pristine on disk for re-copying during manual recovery.
 
 ### Phase 10 — Publish v1 as a GitHub issue
 

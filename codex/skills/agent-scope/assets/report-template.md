@@ -12,7 +12,7 @@ Grounding: [collated specification ({repo-relative path}) | project specificatio
 Grounded at: [per the shared grammar -- read by the consuming pre-planner's git-state
 staleness check]
 Panel: {N} lenses + 1 sceptic. Models: {the split, or `all {model} via --model` --
-recorded as the resolved model names}.
+recorded as the resolved model names, each with its effort}.
 Rationale: {one line: the implicated axes, the grouping applied, and whether a
 sibling-seam probe was assigned}.
 
@@ -25,8 +25,9 @@ stage's pre-planner run produces one.
 
 ## Panel
 
-[Numbered list, one entry per member: `[name] -- [axes owned] -- [model]`, the sceptic
-last as `[name] -- Sceptic -- [model]`.]
+[Numbered list, one entry per member: `[name] -- [axes owned] -- [model] -- effort [level | inherited | default]`,
+the sceptic last as `[name] -- Sceptic -- [model] -- effort [level | inherited | default]`; any entry appends
+`-- [why it departs from its tier's baseline, or the override or cap that changed it]` where one applies.]
 
 ## Envelope
 

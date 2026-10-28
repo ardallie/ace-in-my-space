@@ -4,14 +4,14 @@ Consumed by the scope skills. Method stays with the orchestrator and each skill.
 
 ## Role
 
-- Add, re-task and follow up agents as the work reveals the need (verification, gap-filling, adversarial checks); caps count roles, not spawns.
+- Add, re-task and follow up agents as the work reveals the need (verification, gap-filling, adversarial checks); caps count roles, not spawns. A follow-up continues an agent only while its effort suits the follow-up; otherwise spawn fresh, per detect-harness's effort policy.
 
 ## Route
 
 - The SKILL.md's orchestration sentence names the route: the orchestration facility it names, or direct subagents.
 - Facility agents run in the background; every user-facing step (ws choice, authorisation, routing consent, interview) stays in the orchestrator's own loop.
 - Agents inherit no conversation history: give each everything it needs, a unique id prefix, the template forms its record feeds and the `## Ground rules` below verbatim included; pass long records and sources by path, naming the parts each agent needs, not inline; a return that restates a record is paid for twice.
-- Before the ws is resolved, confirm that agents can be spawned: resolve tiers with detect-harness, then spawn one Tier-3 support agent through the route the run will use, with a minimal read-only task the run can use -- list the existing `.ace/ws/` directories, each with the entries under `## Inputs` in its `inputs.md` and its `report-*` files -- and continue only once its result comes back. This agent gets only that task and its tier values (not the ground rules), writes nothing, and is not a role on `Team:`. If the orchestration facility cannot spawn it, retry with direct subagents and use that route for the run (a rejected tier value is not such a failure: follow detect-harness's stale-mapping rule); if no agent can be spawned at all, say the skill's multi-agent guarantees cannot be met and stop; never run solo.
+- Before the ws is resolved, confirm that agents can be spawned: resolve tiers with detect-harness, then spawn one Tier-3 support agent through the route the run will use, with a minimal read-only task the run can use -- list the existing `.ace/ws/` directories, each with the entries under `## Inputs` in its `inputs.md` and its `report-*` files -- and continue only once its result comes back. This agent gets only that task and its model and effort (not the ground rules), writes nothing, and is not a role on `Team:`. If the orchestration facility cannot spawn it, retry with direct subagents and use that route for the run (a rejected tier value is not such a failure: follow detect-harness's stale-mapping rule); if no agent can be spawned at all, say the skill's multi-agent guarantees cannot be met and stop; never run solo.
 
 ## Guarantees
 
@@ -27,12 +27,12 @@ Outcomes to secure, not agents to launch:
 ## Team and tiers
 
 - Sceptic: Tier-1, always; challenges premise, framing, simpler alternatives, unstated assumptions and gold-plating; each SKILL.md adds its angle.
-- Analysts: Tier-2; up to two promoted to Tier-1 for the matters needing most judgement. A Tier-1 role costs several times a Tier-2 one for the same reading: worth it where judgement, not breadth, is the bottleneck.
+- Analysts: Tier-2; up to two promoted to Tier-1 for the matters needing most judgement. Higher settings cost more for the same reading: reserve them for work where judgement, not breadth, is the bottleneck.
 - Support agents: Tier-3, sparingly, for mechanical, verification or exploration tasks; not analysts.
-- Revision reviewer: Tier-2 by default; it may take a Tier-1 slot instead of a promoted analyst.
-- Tier-1 ceiling: three roles per run, sceptic and reviewer included. Soft cap about 7-9 analysts for large scopes (excludes sceptic, support, reviewer); smaller scopes get smaller teams.
+- Revision reviewer: Tier-2 by default; it may run at settings that count toward the Tier-1 ceiling instead of a promoted analyst, taking that analyst's place.
+- Tier-1 ceiling: three roles per run, sceptic and reviewer included. It counts roles by their settings, not their tier label: a role counts when any of its agents runs Tier-1's model at Tier-1's baseline effort or higher, whatever tier it was assigned, because tiers can share a model and effort varies per assignment, so a label alone does not bound cost. Without tier resolution, count the roles assigned Tier-1. Compare efforts in the order `models.md` lists the model's levels, lowest first; a role whose effort is `inherited` or `default` counts at its tier's baseline. Soft cap about 7-9 analysts for large scopes (excludes sceptic, support, reviewer); smaller scopes get smaller teams.
 - Resolve tiers with `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md`; its cache lives only in the orchestrator, so pass resolved values to agents and scripts explicitly.
-- Apply each tier's model and effort through every per-agent control the active route offers (`${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/models.md` records each route's controls). Record effort as `inherited` where no control exists, and as `default` where the consumer contract omits it. Add no tier-pinned agent definitions.
+- Apply each role's tier model, and an effort selected for each assignment under detect-harness's effort policy from that tier's baseline (reading that policy before the first tiered spawn if it is not already in context), through every per-agent control the active route offers (`${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/models.md` records each route's controls). Precedence: an explicit instruction or `--model` beats the Tier-1 ceiling (see Override), and the ceiling caps the effort policy's raises -- where a raise would make a fourth role count toward the Tier-1 ceiling, keep that role at its tier's baseline, or record the breach in the allocation record as an override. Record effort as `inherited` where no control exists; where the consumer contract omits an effort, record it as that contract's `--model` rules direct. Add no tier-pinned agent definitions.
 
 ## Override
 
@@ -41,7 +41,7 @@ Outcomes to secure, not agents to launch:
 
 ## Allocation record
 
-Per role: what it owned, tier, resolved model, effort (`inherited` or `default` where so), plus the route and a one-line rationale; the template's `## Run record` holds it.
+Per role: what it owned, tier, resolved model, effort requested (`inherited` or `default` where so; where a role's assignments differ, each level comma-separated) with a one-line reason for each level that departs from the tier's baseline and the override or cap where one is known to have changed the requested level, plus the route and a one-line rationale; the template's `## Run record` holds it.
 
 ## Ground rules
 

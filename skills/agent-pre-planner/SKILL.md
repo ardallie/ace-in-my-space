@@ -72,15 +72,15 @@ The auto-sizing rubric — the scope signals, the count bands, the sizing rule, 
 3. **Fit the concerns into the band to determine the non-sceptic count `N`**, per the sizing rule under the rubric's Count bands heading and its Reconciling `N` against the identified concerns section. When `--agents N` was supplied (Phase 1), honour it exactly — it overrides the band, and the reconciliation rules still apply. Fall back to `N = 1` for a narrow scope with no clear concern split, or `N = 3` only when scope is genuinely inconclusive.
 4. **Name each non-sceptic analyst's specialisation** from the (possibly grouped) concerns. These specialisations feed into Phase 4 together with the model assignment below.
 5. **Assign each analyst's model.** When model guidance was supplied (Phase 1 — via `--model` or the additional instructions), honour it per analyst — the default assignment below does not apply. When none was supplied:
-   - The **sceptic** runs on Tier-2. Its premise-challenging judgement is where the heavier tier pays off.
-   - Non-sceptic analysts run on Tier-3. The orchestrator runs the heavier session model, so verification-oriented lenses do not each need Tier-2.
+   - The **sceptic** runs on Tier-2. Its premise-challenging judgement is the work that most needs depth.
+   - Non-sceptic analysts run on Tier-3. The orchestrator synthesises and checks their output, so verification-oriented lenses do not each need Tier-2.
    - When the scope falls in the broad or cross-cutting band, additionally promote the single most load-bearing concern — an architecture, cross-package-boundary, or unresolved-design lens — to Tier-2. At most one such promotion, and none if no concern clearly stands out.
 
-   Record each analyst's assigned model; it surfaces in the Analysts list and the Summary.
+   Record each analyst's resolved model and the effort it ran at, with a one-line reason where that effort departs from its tier's baseline; they surface in the Analysts list and the Summary.
 
 ### Phase 4 — Spawn analysts
 
-Generate the run's hex suffix, capture the working-tree state and current commit, spawn all `N + 1` analysts in a single message, and hand off the context package per `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/team-mechanics.md` (run suffix, pre-spawn capture, spawning, package handoff) — Phase 5's tree-hygiene check compares against the capture. Pass each analyst's Phase 3 model assignment as the per-spawn `model` parameter.
+Generate the run's hex suffix, capture the working-tree state and current commit, spawn all `N + 1` analysts in a single message, and hand off the context package per `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/team-mechanics.md` (run suffix, pre-spawn capture, spawning, package handoff) — Phase 5's tree-hygiene check compares against the capture. Pass each analyst's Phase 3 model assignment as the per-spawn `model`, with its effort selected per the shared spawning rule.
 
 Each analyst receives: the brief (verbatim), the context package (by path, per the shared handoff rule), their specialisation, any additional instructions from the user, and the analyst instructions in `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/analysis-conventions.md` `## Analyst instructions` (rules 1-8; `agent-arch-review`'s local rules 9 and 10 — the runtime-behaviour corrective instruments and the `--prior` prior-report classification — do not apply here).
 
