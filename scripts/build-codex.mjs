@@ -271,7 +271,7 @@ for (const path of walkFiles(join(outputRoot, "agents"))) {
 }
 
 // One wording for what a follow-up covers, shared by the scope skills' replacement and
-// scope-implement's reference.
+// scope-implement's and scope-code-review's references.
 const followupScope = "a clarification, a gap or a correction";
 const orchestrationSentence = "Use the `Workflow` tool to run the agents where it is available; otherwise spawn subagents directly.";
 const orchestrationNeutral = "Spawn the agents directly as subagents (route: direct subagents): fan out independent assignments, send load-bearing claims to adversarial verification, collect every result, and synthesise. Spawn each agent with its own `collaboration.spawn_agent` call -- a unique `task_name`, its assignment in `message`, `fork_turns: \"none\"`, and the `model` and `reasoning_effort` selected under `../detect-harness/SKILL.md`'s consumer contract for its tier or explicit override, omitting any override the contract says to omit -- issuing independent calls before waiting; each result arrives through the collaboration completion notification. Share findings through later assignments: a later agent's `message` carries the collected results it must build on or challenge (long records by path, per orchestration.md's `## Route`). Steer a running agent with `collaboration.send_message`, which starts no turn on an idle agent, and give an agent a follow-up on its own assignment (" + followupScope + ") with `collaboration.followup_task`; spawn fresh for independent verification, challenge or review, and whenever its model or effort must change, even within one tier, since neither continuation tool takes a `model` or `reasoning_effort`.";
@@ -297,7 +297,25 @@ const implementReference = [
 const implementDir = join(outputRoot, "skills", "scope-implement");
 writeFileSync(join(implementDir, "SKILL.md"), replaceRequired(readFileSync(join(implementDir, "SKILL.md"), "utf8"), orchestrationSentence, implementOrchestration, "scope-implement orchestration-tool sentence"), "utf8");
 writeFileSync(join(implementDir, "orchestration-codex.md"), implementReference, "utf8");
-for (const dir of ["scope-envelope", "scope-implement", "scope-review", "ws-create", "ws-shared"]) {
+// scope-code-review analyses like the scope baselines, so it takes their replacement, but the
+// mechanics that replacement leaves unstated live in a generated-only reference of its own
+// (check-codex allow-lists it). The other scope skills' generated text stays as it was.
+const codeReviewOrchestration = orchestrationNeutral + " Before the first spawn, read `../scope-code-review/orchestration-codex.md` for this route's mechanics.";
+const codeReviewReference = [
+  "# Codex orchestration",
+  "",
+  "Tool mechanics of this skill's direct-subagent route; what the run must secure stays in `SKILL.md`.",
+  "",
+  "- Results arrive as completion notifications, also while you are doing other work. `collaboration.wait_agent` returns on the next mailbox update from any agent or on its timeout, and is no barrier for the team; do not wait for a notification already collected. `collaboration.list_agents` shows only each agent's latest result. Neither is a record: collect each result into the run's records under `workings/scope-code-review[-n]/` (the plan record and the per-agent records) as it arrives, before anything relies on it.",
+  "- Steer a running agent with `collaboration.send_message`; it starts no turn on an idle agent. Give an existing agent another turn on its own assignment (" + followupScope + ") with `collaboration.followup_task`. Neither takes a `model` or `reasoning_effort`: spawn fresh for independent verification, challenge or review, the revision reviewer included, and whenever an agent's model or effort must change, even within one tier.",
+  "- A command run through `exec_command` can yield before it exits, the battery and the shared test run among them: keep its handle and collect the exit status through that tool's continuation until it exits. A yield or a timed-out wait is neither a failure nor a pass, and no reason to run the command again.",
+  "- Where `request_user_input` is unavailable (Default mode), ask through `request_user_input_async` where it is exposed, before plain text. It returns at once and the answer arrives later as a new user message; only work that depends on the answer waits for it.",
+  "- Every agent works in the one shared checkout, under the parent's sandbox and approvals; this route offers no per-agent isolation and no file lock, so every probe that writes files takes the disposable-copy branch of the isolation rule in `SKILL.md`.",
+].join("\n") + "\n";
+const codeReviewDir = join(outputRoot, "skills", "scope-code-review");
+writeFileSync(join(codeReviewDir, "SKILL.md"), replaceRequired(readFileSync(join(codeReviewDir, "SKILL.md"), "utf8"), orchestrationSentence, codeReviewOrchestration, "scope-code-review orchestration-tool sentence"), "utf8");
+writeFileSync(join(codeReviewDir, "orchestration-codex.md"), codeReviewReference, "utf8");
+for (const dir of ["scope-code-review", "scope-envelope", "scope-implement", "scope-review", "ws-create", "ws-shared"]) {
   for (const path of walkFiles(join(outputRoot, "skills", dir))) {
     if (/workflow/i.test(readFileSync(path, "utf8"))) {
       throw new Error(`Orchestration-tool wording survived conversion: ${relative(repositoryRoot, path)}`);
