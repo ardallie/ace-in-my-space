@@ -30,7 +30,7 @@ Consumed by every skill that works in a workstream (ws). A skill cites this file
 - Without `--ws`, never by re-deriving a slug: a ws matches when one of the run's inputs lies inside it, or one of the run's subject inputs is recorded (same key) in the ws's `inputs.md` and still asks for what its latest line for that key says; if that is doubtful (the input still concerns the recorded ask but narrows, widens or partly replaces it), the ws is a candidate, unless another ws matches on that key. Shared supporting material and similar slugs never match.
 - Variants (each skill states its own):
 
-| Case | find-or-create (scope-envelope) | find-or-ask (scope-review) | find-only (scope-implement) |
+| Case | find-or-create (scope-envelope) | find-or-ask (scope-review) | find-only (scope-implement, scope-code-review) |
 |---|---|---|---|
 | `--ws`: one ws | use it | use it | use it |
 | `--ws`: several | ask: one of them, or stop | ask: one of them, or stop | ask: one of them, or stop |

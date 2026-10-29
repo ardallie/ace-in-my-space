@@ -48,7 +48,7 @@ const sourceFiles = [...sourceContractFiles, join(root, "README.md")];
 
 // Every Codex file maps to a source file at the same relative path, except the generated-only
 // files the build writes from its own text; each of those exists in the Codex edition only.
-const generatedOnly = ["skills/scope-implement/orchestration-codex.md"];
+const generatedOnly = ["skills/scope-implement/orchestration-codex.md", "skills/scope-code-review/orchestration-codex.md"];
 for (const rel of generatedOnly) {
   if (!existsSync(join(codexRoot, ...rel.split("/")))) errors.push(`generated-only file missing: codex/${rel}`);
   if (existsSync(join(root, ...rel.split("/")))) errors.push(`generated-only file has a source copy: ${rel}`);
@@ -79,11 +79,11 @@ const skillDirectories = (skillsRoot) => readdirSync(skillsRoot)
 const sourceSkillNames = skillDirectories(join(root, "skills"));
 const sourceAgentNames = sourceAgentFiles.map((path) => path.split(sep).at(-1).replace(/\.md$/, "")).sort();
 
-if (sourceSkillNames.length !== 25) errors.push(`expected 25 Claude skills, found ${sourceSkillNames.length}`);
+if (sourceSkillNames.length !== 26) errors.push(`expected 26 Claude skills, found ${sourceSkillNames.length}`);
 if (sourceAgentNames.length !== 3) errors.push(`expected 3 Claude agents, found ${sourceAgentNames.length}`);
 
 const skillPaths = codexSkillFiles.filter((path) => path.endsWith(`${sep}SKILL.md`));
-if (skillPaths.length !== 25) errors.push(`expected 25 Codex skills, found ${skillPaths.length}`);
+if (skillPaths.length !== 26) errors.push(`expected 26 Codex skills, found ${skillPaths.length}`);
 
 const skillNames = new Set();
 for (const skillPath of skillPaths) {

@@ -14,6 +14,11 @@ gate, and for `/ace:scope-implement`'s checkpoints. Consumers:
   integration. It uses Tiers and Degradation only and takes no flag: it spawns no review
   team, runs `cheap` at each checkpoint and `full` at final integration, and opts out of
   the `--prior` clauses
+- `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/SKILL.md` -- K6 battery and test
+  run. It takes the flag (default `cheap`) and uses Tiers and Degradation: it runs
+  the battery once, before the reviewers, on the pinned state -- each gate in the checkout
+  when the checkout is that state and the gate writes nothing, else in an isolated copy --
+  and opts out of the `--prior` clauses, since it takes no `--prior` flag
 
 `--checks` is a per-skill flag in the `--prior`/`--reviewers` idiom, deliberately not a
 common flag in `input-conventions.md` -- that file's other consumers run no verification
