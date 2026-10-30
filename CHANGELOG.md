@@ -41,6 +41,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   for its own findings and its own direction-level choices about them. Close hands a
   `not ready` report to `/ace:report-triage` on the delivery branch, then to a repeat
   `/ace:scope-code-review --ws {ws}`.
+- Cost: the Claude edition's trial measured about 4x current practice's cost
+  (`/ace:branch review`, then `/ace:agent-code-review`, on the same tree) and about 4.5x its
+  active time, on one delivery and on the text as trialled, before its last revisions, which
+  add agent work.
 - Codex edition: the skill takes the scope skills' direct-subagent replacement and a
   generated-only `orchestration-codex.md` of its own, covering result collection, follow-ups
   and fresh spawns, yielded commands, asynchronous questions and isolated writing probes;
