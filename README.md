@@ -89,8 +89,9 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
 - `/ace:scope-implement` -- delivers a workstream's scope envelope, or its closing review's
   remediation stages, as a multi-agent run that commits and pushes a feature branch and
   leaves a handoff
-- `/ace:scope-code-review` -- the workstream's pre-PR code review (requires `--ws`): reviews
-  the delivery against its scope and decision log, advisory, ending in a merge verdict
+- `/ace:scope-code-review` -- reviews a workstream's delivery at code level before its pull
+  request, reading the scope and decision log as settled (requires `--ws`); advisory, ending
+  in a merge verdict; not the closing review
 - `/ace:agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
   consolidated findings
 - `/ace:agent-code-review` -- pre-PR code review producing severity-graded findings
