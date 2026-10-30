@@ -91,7 +91,9 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
   leaves a handoff
 - `/ace:scope-code-review` -- reviews a workstream's delivery at code level before its pull
   request, reading the scope and decision log as settled (requires `--ws`); advisory, ending
-  in a merge verdict; not the closing review
+  in a merge verdict; not the closing review; its trial on the Claude edition measured
+  about 4x current practice's cost (`/ace:branch review`, then `/ace:agent-code-review`) and
+  about 4.5x its active time, on one delivery
 - `/ace:agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
   consolidated findings
 - `/ace:agent-code-review` -- pre-PR code review producing severity-graded findings
