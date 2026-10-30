@@ -66,7 +66,7 @@ I{n} [high|low][ (not re-examined)] -- {...}. Evidence ({...}): {...}
 O{n} [high|low][ (not re-examined)] -- {...}. Evidence ({...}): {...}
 ### Confirmed
 V{n} -- {what was verified and why it needs no change}. Evidence ({...}): {...}
-[The first line of every finding is id-led and self-contained; its clauses follow as bullets. Ids are unique, never rebound, numbered per kind and continued above the prior's highest. Weights, for this kind:
+[The first line of every finding is id-led and self-contained, its Evidence clause on it, a bulleted finding's included; its other clauses follow as bullets. Ids are unique, never rebound, numbered per kind and continued above the prior's highest. Weights, for this kind:
 - C and R: `[high]` must change before merge unless an accepted entry holds it. It spans critical-class (the delivery fails its purpose, or data, security or integrity is exposed), high-class (incorrect behaviour or data loss in realistic use) and moderate-class findings (a real defect, or drift that misleads, with bounded impact). A failing battery gate or subject gate at the reviewed state is a `[high]` C. So is a test the shared test run reports failing at the reviewed state that fails again when rerun alone; one that passes alone is weighted by its owner from what makes it fail, never left unweighted. `[low]` is elective: minor-class (cosmetic, stylistic, low impact).
 - I: observational; `[high]` changes how the delivery should be read.
 - O: always elective; `[high]` marks a large payoff.
@@ -108,7 +108,7 @@ Team:
 - {role and what it owned} -- Tier-{n} -- {resolved model} -- effort {level | inherited | default}[ -- {why it departs from the tier's baseline, or the override or cap that changed it}]
 Rationale: {one line}; sizing in the plan record
 Test run: {{command summary} in {isolated copy}, {result}; basis {selected test files | selected test files plus tests mapped to the selected source by {the instructions | the runner's map | the runner's related-test mode}}[; widened by adopted coverage challenge {ids}: {tests added}, {result}] | not run: {--checks skip | redundant under full | no test the selected set touches}}
-Verification: {n} adversarial outcomes ({n} upheld, {n} narrowed, {n} refuted); {n} anchor checks at {Grounded at}; outcome lines in {workings path}
+Verification: {n} adversarial outcomes ({n} upheld, {n} narrowed, {n} refuted); {n} anchor checks at {Grounded at} over {the anchor forms checked}; outcome lines in {workings path}
 Revision pass: {n} findings, {m} applied; draft and findings in {workings path}
 Not verified: {what could not run, and the ids it leaves open or marked (unverified) | none}
 External state: {none | one entry per resource: {resource} -- {authorised use} -- residue {what remains | none}}
