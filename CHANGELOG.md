@@ -5,6 +5,62 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0]
+
+### Added -- code review in a workstream
+
+- `/ace:scope-code-review --ws {ws}`: reviews a workstream's delivery at code level before its
+  pull request -- correctness, robustness, security, tests, maintainability, the seams between
+  stages and skill text -- reading the envelope, the closing review, `decisions.md` and the
+  delivery records as settled instead of re-arguing them. It requires `--ws` and resolves the
+  workstream with the find-only variant. The subject -- the current branch by default, or a
+  named `branch`, `commit` or `folder` -- is pinned by SHA and read as git objects, never the
+  working tree; the default subject is tied to the delivery records by content (the delivered
+  tree or the combined diff's patch-id), the branch name only corroborating, and a mismatch
+  gets one routing question. It changes nothing in the user's checkout, branch, index or refs,
+  except a fetch the owner allows.
+- Selection applies `/ace:branch`'s role classifier, read in place; every subject file gets a
+  plan-record row, selected or set aside with its reason, and instruction files in the selected
+  set are detected and reviewed through a skill-text lens. Load is measured diff-first against
+  a per-slice limit (12,000 lines, provisional); beyond it the run adds slices or asks, and
+  nothing is truncated. The team is sized by ownership, not by a count: every selected file has
+  one owner, every stage seam is a named duty, and every risk signal gets depth. A Tier-1
+  sceptic challenges in two families: coverage, before any reviewer starts, and calibration,
+  over the findings index. The `--checks` battery (default `cheap`) and a test run over the
+  tests the selected set touches run once, before the reviewers, and their results go to every
+  reviewer and verifier. Verification follows weight: every `[high]`, contested or
+  sceptic-flagged finding gets an adversarial outcome, by executed refutation for `[high]`;
+  every `[low]` and new Confirmed finding gets a scripted anchor check.
+- The report, `report-scope-code-review.md` at the workstream root, grades Correction, Risk,
+  Insight, Opportunity and Confirmed findings, the first four `[high]` or `[low]`, and derives
+  its verdict mechanically: `ready` when no `[high]` Correction or Risk is left unheld by a logged
+  entry and no blocking question is open, else `not ready`, bound to the checks tier that ran
+  and the review set. A repeat review covers the files changed since its prior and those its
+  findings cite, and accounts for every prior id. The skill is advisory: it changes no product
+  code, publishes nothing, and appends to `decisions.md` only owner answers, `Defer:` entries
+  for its own findings and its own direction-level choices about them. Close hands a
+  `not ready` report to `/ace:report-triage` on the delivery branch, then to a repeat
+  `/ace:scope-code-review --ws {ws}`.
+- Codex edition: the skill takes the scope skills' direct-subagent replacement and a
+  generated-only `orchestration-codex.md` of its own, covering result collection, follow-ups
+  and fresh spawns, yielded commands, asynchronous questions and isolated writing probes;
+  `check-codex` allow-lists it, and the build's wording guard covers the skill. The edition is
+  validated as packaging only: it builds and passes its check. Its runtime behaviour is
+  unverified, and nothing claims it matches the Claude edition's capability or cost.
+
+### Changed
+
+- `/ace:scope-implement`'s Close names `/ace:scope-code-review --ws {ws}` (adding
+  `branch {branch}` when the checkout is not on the delivery's branch) where it named
+  `/ace:agent-code-review origin/{branch}`; its condition is unchanged.
+- `workstream-conventions.md`'s find-only variant names `scope-code-review`, and
+  `verification-checks.md` lists it as a consumer: it takes the flag (default `cheap`), uses
+  Tiers and Degradation, runs the battery once before the reviewers on the pinned state, and
+  opts out of the `--prior` clauses.
+- `/ace:agent-code-review` and `/ace:branch` are unchanged; the former remains the pre-PR
+  review outside a workstream.
+- `check-codex` expects 26 skills.
+
 ## [0.7.1]
 
 ### Changed -- a tier's effort is a baseline
