@@ -4,7 +4,7 @@ A suite of agent skills for planning, multi-agent review, pull-request work, rep
 publication, and harness detection. It ships as a single plugin named `ace`, distributed
 from the `ace-in-my-space` marketplace (this repository).
 
-Twenty-five skills and three subagent payloads. The skills invoke one another by name, so
+Twenty-six skills and three subagent payloads. The skills invoke one another by name, so
 they are packaged and versioned together rather than split per workflow.
 
 ## Installation
@@ -89,6 +89,8 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
 - `/ace:scope-implement` -- delivers a workstream's scope envelope, or its closing review's
   remediation stages, as a multi-agent run that commits and pushes a feature branch and
   leaves a handoff
+- `/ace:scope-code-review` -- the workstream's pre-PR code review (requires `--ws`): reviews
+  the delivery against its scope and decision log, advisory, ending in a merge verdict
 - `/ace:agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
   consolidated findings
 - `/ace:agent-code-review` -- pre-PR code review producing severity-graded findings
@@ -145,9 +147,12 @@ node scripts/check-codex.mjs
 The conversion reduces skill frontmatter to `name` and `description`, moves argument
 hints into the body, qualifies internal skill mentions, converts plugin-root paths to
 relative references, adapts questions and subagent spawns, and copies the three supporting
-agent payloads into `codex/`. It also writes one file with no source counterpart,
-`codex/skills/scope-implement/orchestration-codex.md`: the Codex spawn and coordination
-mechanics that skill points to; `check-codex` allow-lists it.
+agent payloads into `codex/`. It also writes two files with no source counterpart:
+`codex/skills/scope-implement/orchestration-codex.md`, the Codex spawn and coordination
+mechanics that skill points to, and `codex/skills/scope-code-review/orchestration-codex.md`,
+the Codex mechanics that skill points to -- collecting results into its records, follow-ups
+and fresh spawns, yielded commands, asynchronous questions and isolated writing probes;
+`check-codex` allow-lists both.
 
 `check-codex` checks the edition's structure and forbidden forms, and the Claude source's
 retired identifiers, `/ace:` targets and plugin-root paths -- not the edition's content
@@ -174,8 +179,9 @@ the source edit explains.
   it and asks the same ordered options in plain text in Default mode. The structured
   Codex surface accepts at most three questions and two or three options per question,
   so larger interviews are batched; both paths retain keep-current behaviour and one
-  first-position `(Recommended)` option. `scope-implement`'s Codex reference asks through
-  `request_user_input_async` in Default mode where it is exposed.
+  first-position `(Recommended)` option. The Codex references of `scope-implement` and
+  `scope-code-review` ask through `request_user_input_async` in Default mode where it is
+  exposed.
 - Claude substitutes `${CLAUDE_PLUGIN_ROOT}` in skill content. Codex resolves supporting
   files relative to the active `SKILL.md`; `${PLUGIN_ROOT}` is not used because it is a
   hook-command variable only.
