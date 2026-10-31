@@ -29,7 +29,7 @@ Read first, once `--ws` is given; this file states only its deltas:
 - M1 **Workstream.** Once the spawn confirmation in orchestration.md's `## Route` passes, resolve `--ws` (find-only). Read `inputs.md` and the current reports (the conventions' `## Discovery and currency`); `decisions.md` per the read-first list.
 - M2 **Mode** (current per the conventions' `## Discovery and currency`): a current closing review is the brief, for remediation -- with no remediation stages, there is nothing to deliver; with no current closing review, a current envelope is the brief, for implementation. A discovery sweep alone, or neither, is no brief: say so and point to `/ace:scope-envelope --ws {ws}`. Ask when the state is ambiguous.
 - M3 **Earlier work.** Read the step set (the conventions' `## Discovery and currency`) and any old-layout records, as the conventions' `## Old-layout workstreams` reads them; then search the rest of `workings/`, outside the folders holding a report's records, for the brief's filename, reading hits that cite its stages (as `{brief file}#S{k}`, or in a record naming the brief).
-  - **Done:** a handoff for the brief -- the artefact of a scope-implement step whose `Brief:` names it, or an old-layout handoff that clause attributes to it -- not at `Status: partial`, that accounts for every gate clause as met, unverified with an owner, or held by an accepted `Defer:`. Say so and name the next step per Close; nothing is re-run. It outranks any state record.
+  - **Done:** a handoff for the brief -- the artefact of a scope-implement step whose `Brief:` names it, or an old-layout handoff that clause attributes to it -- not at `Status: partial`, that accounts for every gate clause as met, unverified with an owner, or held by an accepted `Defer:`. Say so and name the next steps per Close; nothing is re-run. It outranks any state record.
   - **Resume:** the highest-numbered scope-implement step whose state record names the brief, carries no `Stopped:` line, and whose artefact is absent or at `Status: partial` is continued (the conventions' `## Steps`). An unfinished old-layout run is never resumed (`## Old-layout workstreams`).
   - **Other records** -- another step's state, notes, partial handoffs, delivery claims, and old-layout records as that clause has them -- are evidence, re-verified at the current state before anything leans on them; this run keeps its own records in its own step folder.
   - A newer brief (a later envelope, a repeat closing review) opens a new step.
@@ -110,9 +110,9 @@ Next: {the next step(s) Close printed, as printed, in print order | pending}
 
 ## Close
 
-- After a delivering run, print the handoff path and status, each stage's outcome, the D ids appended, the remaining limitations (unverified clauses and owners, open items, residue), the branch and pushed commits (or none and why), and the next step.
-- Next step:
-  - After a partial stop: `/ace:scope-implement --ws {ws}`, which resumes it.
-  - After implementation: `/ace:scope-review --ws {ws}`.
-  - After remediation, or with nothing to deliver, each that applies, in this order: the repeat closing review `/ace:scope-review --ws {ws}`, if a gate clause is left unverified (a deferred one is not), or the open items hold drift or a `Defer:` whose trigger has fired; then `/ace:scope-code-review --ws {ws}` (adding `branch {branch}` when the checkout is not on the delivery's branch), if the delivery's branch, at its current remote tip, carries content no default-branch commit carries (Git's tree or patch-id test, never ancestry; a branch gone from the remote carries nothing). With neither, the workstream's scope work is complete.
-- On the done and nothing-to-deliver exits, print why the run stopped and the next step only, each condition judged read-only at the current state. The delivery's branch and open items come, on a done exit, from the handoff M3 found; with nothing to deliver, from the delivery-record set (the conventions' `## Discovery and currency`), else the review's `Delivered:`.
+- After a delivering run, print the handoff path and status, each stage's outcome, the D ids appended, the remaining limitations (unverified clauses and owners, open items, residue), the branch and pushed commits (or none and why), and the next steps.
+- Next steps: the conventions' `## Hand-off loop` edges for the case that applies, in that section's form, written on the handoff's `Next:` as printed. This run judges the case:
+  - after a partial stop: the partial edge, which resumes this step;
+  - after implementation: the implementation edge;
+  - after remediation, or with nothing to deliver: the closing-review rule, which names the records it reads.
+- On the done and nothing-to-deliver exits, print why the run stopped and the next steps only. On a done exit the case is the found handoff's mode, and the closing-review rule reads that handoff as the remediation run's own.

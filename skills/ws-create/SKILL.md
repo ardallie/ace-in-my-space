@@ -27,6 +27,6 @@ The skill is idempotent: the same inputs or name give `reused`, changing nothing
 Print, as the last lines:
 
 - one line saying why this ws: created for which subject, matched on which key, or named;
-- `Workstream: .ace/ws/{name} (created | reused)`.
+- `Workstream: .ace/ws/{ws} (created | reused)`.
 
-When the user invoked this skill (not a scope skill), add the command to run next, with the subject inputs filled in (one inside the ws named ws-relative, a `conversation` subject as its ask): `/ace:scope-envelope --ws {name} {subject inputs}` or `/ace:scope-review --ws {name} {subject inputs}`.
+When the user invoked this skill (not a scope skill), add the command to run next, in the form of the conventions' `## Hand-off loop`, with the subject inputs filled in (one inside the ws named ws-relative, a `conversation` subject as its ask): `/ace:scope-envelope --ws {ws} {subject inputs}` or `/ace:scope-review --ws {ws} {subject inputs}`.
