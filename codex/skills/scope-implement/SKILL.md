@@ -13,6 +13,7 @@ As the orchestrator, spawn the agents directly as subagents (route: direct subag
 Read first, once `--ws` is given; this file states only its deltas:
 
 - `../ws-shared/workstream-conventions.md` -- this skill uses the **find-only** resolution variant.
+- The ws's `index.md`, once the ws is resolved, for orientation only (the conventions' `## Workstream index`).
 - The ws's `decisions.md`, once the ws is resolved: the header, then every entry, confirming the read reached the last.
 - `../ws-shared/orchestration.md`
 - `../detect-harness/SKILL.md`
@@ -25,15 +26,15 @@ Read first, once `--ws` is given; this file states only its deltas:
 
 ## Workstream and mode
 
-- M1 **Workstream.** Once the spawn confirmation in orchestration.md's `## Route` passes, resolve `--ws` (find-only). Read `inputs.md` and the current reports; `decisions.md` per the read-first list.
-- M2 **Mode** (current per the conventions' `## Reports over time`): a current closing review is the brief, for remediation -- with no remediation stages, there is nothing to deliver; with no current closing review, a current envelope is the brief, for implementation. A discovery sweep alone, or neither, is no brief: say so and point to `$ace:scope-envelope --ws {ws}`. Ask when the state is ambiguous.
-- M3 **Earlier work.** Look in the step folders (`workings/implementation*`, `workings/remediation*`), then search the rest of `workings/`, outside the folders of the steps that wrote reports, for the brief's filename, reading hits that cite its stages (as `{brief file}#S{k}`, or in a record naming the brief). Earlier runs kept records flat or elsewhere, so a missing folder or handoff proves nothing.
-  - **Done:** a step handoff (`handoff.md` in a delivery step's folder or flat in `workings/`, from any run) naming the brief, not `Status: partial`, that accounts for every gate clause as met, unverified with an owner, or held by an accepted `Defer:`. Say so and name the next step per Close; nothing is re-run. It outranks any state record.
-  - **Resume:** this skill's own `state.md` for the brief (its `Run:` lines name this skill) with no complete handoff beside it is continued, in its own step folder.
-  - **Other records** -- another run's state, notes, partial handoffs, delivery claims -- are evidence, re-verified at the current state before anything leans on them; this run keeps its own records beside them.
-  - A newer brief (an envelope's `-2`, a repeat closing review) starts a new run of the step.
-- M4 The nothing-to-deliver, done and no-brief exits ask nothing after resolution and write nothing; M2's question on an ambiguous state comes before any exit.
-- M5 **Step folder:** `workings/implementation/` or `workings/remediation/`; when another run's records occupy it, the next free `-2`, `-3` beside it. A resumed run keeps its folder.
+- M1 **Workstream.** Once the spawn confirmation in orchestration.md's `## Route` passes, resolve `--ws` (find-only). Read `inputs.md` and the current reports (the conventions' `## Discovery and currency`); `decisions.md` per the read-first list.
+- M2 **Mode** (current per the conventions' `## Discovery and currency`): a current closing review is the brief, for remediation -- with no remediation stages, there is nothing to deliver; with no current closing review, a current envelope is the brief, for implementation. A discovery sweep alone, or neither, is no brief: say so and point to `$ace:scope-envelope --ws {ws}`. Ask when the state is ambiguous.
+- M3 **Earlier work.** Read the step set (the conventions' `## Discovery and currency`) and any old-layout records, as the conventions' `## Old-layout workstreams` reads them; then search the rest of `workings/`, outside the folders holding a report's records, for the brief's filename, reading hits that cite its stages (as `{brief file}#S{k}`, or in a record naming the brief).
+  - **Done:** a handoff for the brief -- the artefact of a scope-implement step whose `Brief:` names it, or an old-layout handoff that clause attributes to it -- not at `Status: partial`, that accounts for every gate clause as met, unverified with an owner, or held by an accepted `Defer:`. Say so and name the next step per Close; nothing is re-run. It outranks any state record.
+  - **Resume:** the highest-numbered scope-implement step whose state record names the brief, carries no `Stopped:` line, and whose artefact is absent or at `Status: partial` is continued (the conventions' `## Steps`). An unfinished old-layout run is never resumed (`## Old-layout workstreams`).
+  - **Other records** -- another step's state, notes, partial handoffs, delivery claims, and old-layout records as that clause has them -- are evidence, re-verified at the current state before anything leans on them; this run keeps its own records in its own step folder.
+  - A newer brief (a later envelope, a repeat closing review) opens a new step.
+- M4 **Read-only exits:** no brief, nothing to deliver, done, a declined M2 question, and a declined or stop answer to a base question (M5). Apart from M2's question on an ambiguous state, which comes before every other exit, and the base questions, asked after them, they ask nothing after resolution; each takes no step and writes nothing (the conventions' `## Steps`).
+- M5 **Open:** a run M3 does not resume opens its step, `workings/{nn}-scope-implement/` (the conventions' `## Steps`), once M3 has decided not to resume, `## Git`'s base questions -- case 2's proper-ancestor question, the question for the base where the brief relies on content the default branch lacks, and the owner's say-so for a tree that is not clean -- are answered, and the overlap question (`## Discovery and currency`), if asked, is answered proceed. The base is settled before the open and checked out, or fast-forwarded, after it, before the pre-check; the state record writes the base already settled. A resumed run keeps its step. Where the ws holds old-layout records and no numbered step, this open switches it to the numbered layout, stated as `## Old-layout workstreams` directs.
 
 ## The brief
 
@@ -41,8 +42,8 @@ Read first, once `--ws` is given; this file states only its deltas:
 - A pre-check of the gate clauses against the starting state decides only what needs building. Gate evidence is taken on the delivered tree: a clause met before building, `(holds today)` included, is verified again after the last change that could affect it.
 - Open items: a still-open `[blocking]` question holds the stage that owns it -- ask the owner (the conventions' questions outside the interview) or wait for a sibling's answers, working on independent stages meanwhile; never deliver against a guess. Under an open `[deferrable]` question, text marked `(follows Q{n})` stands and the handoff names it. A stage settles the questions and assumptions it owns. A settlement that would change the scope, a goal, an accepted decision or a gate clause an owner's answer set, or that the report says the stage escalates, is the owner's; one that would change only what any other gate clause requires is a direction entry in the log.
 - Implementation: `## Input coverage` and the out-of-scope `X{n}` bound the deliverable with the goals. Consultation answers are given as input or found by an open `Exchange:` id of the envelope, in the ws or at the sibling-exchange protocol's save path (`.ace/reports/*-agent-consultant-{8hex}.md`); where several answer one exchange, the latest `Date:` wins, and on a tie the owner decides. A fact is evidence for its dependent stage (the state record names the facts each stage relied on); a choice goes to the log in the header's form for consultation answers; a preference goes to the owner. An answer that only confirms a fallback the brief already names is no choice: it gets no log entry, and the handoff's `Relied on:` names it.
-- Remediation: the remediation stages are the deliverable; backlog stays deferred, and a take-up is a log entry superseding its `Defer:`; Conformance and the file-collision matrix inform the work and its file ownership. All of `decisions.md` binds, not only the review's `Decisions:` line. The delivered set is the review's `Delivered:`, located by content; the baseline's implementation handoff and every remediation handoff since add their branches and open items.
-- Drift: before the handoff, compare the files this ws delivered as they stand now with the brief's `Grounded at:` tree, by content, not ancestry; a difference no record of this ws's runs accounts for is drift, later commits on the delivery's own branch included, while another workstream's change is drift only where it contradicts an accepted entry or a gate clause. Drift is remediated only where it makes a gate clause fail, a clause relative to existing behaviour being judged against the state the run starts from. Other drift goes to the run's records and the handoff's open items, with any `Defer:` whose trigger has fired, for the next closing review: no log entry, no question.
+- Remediation: the remediation stages are the deliverable; backlog stays deferred, and a take-up is a log entry superseding its `Defer:`; Conformance and the file-collision matrix inform the work and its file ownership. All of `decisions.md` binds, not only the review's `Decisions:` line. The delivered set is the review's `Delivered:`, located by content; the delivery-record set (the conventions' `## Discovery and currency`) adds its records' branches and open items.
+- Drift: before the handoff, compare the files this ws delivered as they stand now with the brief's `Grounded at:` tree, by content, not ancestry; a difference no record of this ws's runs accounts for is drift, later commits on the delivery's own branch included. The delivery-record set's commits, a triage record's included, are recorded delivery, its baseline envelope being the brief (implementation) or the envelope the brief's `Baseline:` names (remediation), while another workstream's change is drift only where it contradicts an accepted entry or a gate clause. Drift is remediated only where it makes a gate clause fail, a clause relative to existing behaviour being judged against the state the run starts from. Other drift goes to the run's records and the handoff's open items, with any `Defer:` whose trigger has fired, for the next closing review: no log entry, no question.
 
 ## Decisions
 
@@ -75,7 +76,7 @@ orchestration.md applies, with these deltas:
 ## Git
 
 - Settle the base before the pre-check, taking the first case that applies:
-  1. The branch carrying this ws's delivery (named by this ws's handoffs, its state records or the review's `Delivered:`), while no default-branch commit carries that content -- a commit with the branch tip's tree, or with the patch-id of its combined diff from the merge-base, since squash merges and rewrites defeat ancestry.
+  1. The branch carrying this ws's delivery (named by the delivery-record set (the conventions' `## Discovery and currency`), by this ws's state records or by the review's `Delivered:`), while no default-branch commit carries that content -- a commit with the branch tip's tree, or with the patch-id of its combined diff from the merge-base, since squash merges and rewrites defeat ancestry.
   2. The checkout's non-default branch, when its tip is the default branch's tip and its name (some or all of the ws's slug words, abbreviated or not), upstream or the trailing text ties it to this ws. A tied branch whose tip is a proper ancestor of the default branch's tip is a question to the owner: fast-forward it (it is then this case), or start from the tip on a new branch (case 3). Any other tied branch whose content a default-branch commit already carries is left as it is.
   3. The default branch's tip.
 - If the brief relies on content its `Grounded at:` commit carries and the default branch lacks, ask the owner for the base. Check the base out from a clean tree before the pre-check, or with the owner's say-so. Never stash, discard or rewrite changes the run did not make.
@@ -84,23 +85,28 @@ orchestration.md applies, with these deltas:
 
 ## Records
 
-- `state.md`, current as the run progresses: it opens with `Brief: {report file}` and one `Run:` line per session (this skill; the harness detect-harness identified; the orchestrator's model id as the session's configuration reports it, else `unknown`; the date), then the base, starting commit and branch, assignments and ownership, accepted results, pending commands and entries, check results, evidence paths, next actions, and a pointer to `decisions.md`'s header for its rules, never an id range.
-- `gates.md`: each gate clause `met -- {evidence path}`, `deferred -- D{n}` or `unverified -- {why}; owner: {owner}`, and each owned question or assumption with its settlement.
-- `handoff.md`, on completion, or `Status: partial` when the run stops with work left; pointers only, no decision content:
+- `workings/{nn}-scope-implement/state.md`, the state record (the conventions' `## Steps`), current as the run progresses: after its opening lines (`Brief: {report file}`, then the `Run:` lines), the base, starting commit and branch, assignments and ownership, accepted results, pending commands and entries, check results, evidence paths, next actions, and a pointer to `decisions.md`'s header for its rules, never an id range.
+- `workings/{nn}-scope-implement/gates.md`: each gate clause `met -- {evidence path}`, `deferred -- D{n}` or `unverified -- {why}; owner: {owner}`, and each owned question or assumption with its settlement.
+- The handoff, `{nn}-scope-implement.md` in the ws root, is the step's artefact (the conventions' `## Steps`), of mode implementation or remediation (M2); it is written on completion, or at `Status: partial` when the run stops with work left; pointers only, no decision content:
 
 ```
 Brief: {report file}
+Mode: implementation | remediation
+Date: {yyyy-MM-dd}
 Status: complete | partial -- {what remains}
 Run: {per session: harness, orchestrator model id, date}
-Branch: {name}, pushed to {remote} | {name}, unchanged | none
-Commits: {hashes or range | none} -- {commit where the gates were verified; the delivering commit, where found}
-Gates: {n} met, {n} deferred, {n} unverified -- gates.md[; unverified: {S{k}.{m}} owner {owner}, ...]
+Workings: workings/{nn}-scope-implement/ -- state.md, gates.md
+Branch: {name}, pushed to {remote} | {name}, not pushed -- {why} | {name}, unchanged | none
+Commits: {hashes or range | none} -- {the commit the last checkpoint passed on[; the delivering commit, where found] | no change | withheld}[; electives: {hashes}]
+Gates: {n} met, {n} deferred, {n} unverified -- workings/{nn}-scope-implement/gates.md[; unverified: {S{k}.{m}} owner {owner}, ...]
 Checks: {final result in verification-checks.md's record grammar} | none -- no change
 Relied on: {(follows Q{n}) texts; consultation facts per stage; answers that only confirmed a fallback} | none
 Decisions: {D ids this run appended | none}[; header replaced | ; header kept -- {owner's edit | stale plugin}]
 Open: {Defer D ids this run appended or whose trigger has fired; drift for the next closing review; residue} | none
-Next: {command}
+Next: {the next step(s) Close printed, as printed, in print order | pending}
 ```
+
+- The workstream index, regenerated as the conventions' `## Workstream index` directs.
 
 ## Close
 
@@ -109,4 +115,4 @@ Next: {command}
   - After a partial stop: `$ace:scope-implement --ws {ws}`, which resumes it.
   - After implementation: `$ace:scope-review --ws {ws}`.
   - After remediation, or with nothing to deliver, each that applies, in this order: the repeat closing review `$ace:scope-review --ws {ws}`, if a gate clause is left unverified (a deferred one is not), or the open items hold drift or a `Defer:` whose trigger has fired; then `$ace:scope-code-review --ws {ws}` (adding `branch {branch}` when the checkout is not on the delivery's branch), if the delivery's branch, at its current remote tip, carries content no default-branch commit carries (Git's tree or patch-id test, never ancestry; a branch gone from the remote carries nothing). With neither, the workstream's scope work is complete.
-- On the done and nothing-to-deliver exits, print why the run stopped and the next step only, each condition judged read-only at the current state. The delivery's branch and open items come, on a done exit, from the handoff M3 found; with nothing to deliver, from the baseline's implementation handoff and every remediation handoff since, else the review's `Delivered:`.
+- On the done and nothing-to-deliver exits, print why the run stopped and the next step only, each condition judged read-only at the current state. The delivery's branch and open items come, on a done exit, from the handoff M3 found; with nothing to deliver, from the delivery-record set (the conventions' `## Discovery and currency`), else the review's `Delivered:`.
