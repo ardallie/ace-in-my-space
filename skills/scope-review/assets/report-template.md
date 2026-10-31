@@ -8,12 +8,13 @@ Source: {each given input, comma-separated: inputs.md key form where one exists,
 Prior: {file | none (declined: {file})}
 Grounded at: {short hash}, {clean tree | dirty ({n} modified files)}[; HEAD moved to {hash} during the run]
 Decisions: {D ids this run added | none | pending}
+Next: {the next step(s) Close printed, as printed, in print order | pending}
 Mode: {closing review | discovery sweep}
-Baseline: {report-scope-envelope.md, decisions.md | scope document paths | none}
+Baseline: {envelope file, decisions.md | scope document paths | none}
 Delivered: {PRs, branch or commit range; how found | none (discovery sweep)}
 Checks: {one value in the verification-checks record grammar}
 
-[Bracketed paragraphs like this one are guidance: follow them, then delete them. Inside a line form, `[...]` marks an optional part, except tags: where a form shows `[blocking|deferrable]` or `[high|low]`, write exactly one of the two (`[blocking]`, ...); `[Resolved]` and `[Routed]` are written as shown. Unbracketed prose, such as the Stages paragraph, is kept verbatim. H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Exchange:` (envelope only): one line per counterpart, written when this run routes or consumes a round and carried forward while that exchange stays open, omitted otherwise. `pending` only between save and append, never in the final report. `Decisions:` carries ids only.]
+[Bracketed paragraphs like this one are guidance: follow them, then delete them. Inside a line form, `[...]` marks an optional part, except tags: where a form shows `[blocking|deferrable]` or `[high|low]`, write exactly one of the two (`[blocking]`, ...); `[Resolved]` and `[Routed]` are written as shown. Unbracketed prose, such as the Stages paragraph, is kept verbatim. H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Exchange:` (envelope only): one line per counterpart, written when this run routes or consumes a round and carried forward while that exchange stays open, omitted otherwise. `Decisions: pending` only between save and append, never in the final report; `Next: pending` until Close (the workstream conventions' `## Steps`). `Baseline:` names the envelope by its ws-relative file: its numbered artefact, or an old-layout report (the workstream conventions' `## Old-layout workstreams`). `Decisions:` carries ids only.]
 
 ## Summary
 Conformance: {n} landed, {n} reinterpreted, {n} diverged, {n} deferred, {n} silently-deferred, {n} premise-void, {n} unverified.
@@ -116,6 +117,6 @@ Rationale: {one line}
 Revision pass: {n} findings, {m} applied; draft and findings in {workings path}
 Not verified: {what could not run, and the ids it leaves open or marked (unverified) | none}
 External state: {none | one entry per resource: {resource} -- {authorised use} -- residue {what remains | none}}
-Workings: {path}
+Workings: workings/{nn}-scope-review/
 
 [Always the last section.]
