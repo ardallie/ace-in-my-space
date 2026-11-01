@@ -18,12 +18,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   any setting aside of an unheld `[high]` Correction or Risk. Each actionable finding gets one
   outcome from a closed list, with its pointer. Before each commit (after it, in a disposable
   worktree, where the owner lets it proceed over a dirty checkout) it runs
-  `verification-checks.md`'s `cheap` tier and each applied finding's `Check:`; it pushes once,
-  never forced, and never amends, merges or commits workstream records. Report mode works on the
-  delivery branch, by scope-implement's base rules; PR mode on the pull request's head branch
-  (same repository, open), tied to the delivery by content as the code review ties its subject,
-  and then answers the review by running `/ace:pr-response` and reading the posts back, which
-  needs `gh`. Its artefact, the triage record, is a delivery record, rewritten after each commit,
+  `verification-checks.md`'s `cheap` tier and each applied finding's `Check:`; it commits its
+  own paths with `git commit --only`, so a change the owner staged stays out, pushes once, never
+  forced, and never amends, merges or commits workstream records. Report mode works on the
+  delivery branch, by scope-implement's base rules, and never checks out, fast-forwards or pushes
+  the default branch; PR mode on the pull request's head branch (same repository, open), tied to
+  the delivery by content as the code review ties its subject. Either mode stops on a branch name
+  it would put in a command that holds a character outside `A-Z a-z 0-9 . _ / -` or begins with
+  `-`, since quoting does not stop command substitution. PR mode then answers the review by
+  running `/ace:pr-response` and reading the posts back, which needs `gh`. Its artefact, the
+  triage record, is a delivery record, rewritten after each commit,
   after the push, at its outcome table, before and after its posts and at its close, and it says
   what `Posted:` records if posts fail part-way or the read-back fails. It is user-invocable only
   (`disable-model-invocation: true`), as `/ace:scope-implement` is; on Codex, where it stays
@@ -42,9 +46,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   step.
 - `index.md`, the workstream index: a derived view, regenerated whole from the step folders and
   the artefacts' headers by each run that takes a step (ws-create writes the first), never a
-  record and never edited in part; where it disagrees with them, they win. A root `index.md`
-  not opening `# Workstream index` is the owner's, never overwritten, and while it stands no
-  run writes an index in that workstream.
+  record and never edited in part; where it disagrees with them, they win. A non-empty root
+  `index.md` not opening `# Workstream index` is the owner's, never overwritten, and while it
+  stands no run writes an index in that workstream; an empty one is rebuilt.
 - `prompts/`: a new workstream's folder for owner- or agent-written prompts and briefs. No skill
   writes, moves or deletes anything in it, it is never indexed, and a brief there is named as a
   step's input (`prompts/brief.md`), never listed in `inputs.md`.
@@ -103,7 +107,9 @@ earlier plugin version there: those versions write the old names, and no skill d
   longer the handoff, says whether the decision-log header was kept or replaced. Its base,
   remediation and drift read the delivery-record set, triage records included. Its `Commits:`,
   which the triage record shares, lists every commit the run made, electives included, by hash,
-  oldest first, never as a range, or reads `none -- commits withheld` when they are withheld.
+  oldest first, never as a range, or reads `none -- commits withheld` when they are withheld,
+  and `none -- pending` before the first commit; `Checks:` reads `pending` before the first
+  checkpoint.
 - `/ace:scope-code-review`: a `not ready` verdict routes to
   `/ace:scope-report-triage --ws {ws}`, then the repeat review, where it named
   `/ace:report-triage`, whose edits stayed uncommitted; a `ready` one covering the delivery
@@ -117,7 +123,9 @@ earlier plugin version there: those versions write the old names, and no skill d
   their next steps from the loop; the report templates gain `Next:`.
 - README lists the triage, the new layout and three skills Claude cannot invoke implicitly;
   `check-codex` expects 27 skills; the build's code-review reference names the step folder.
-- `/ace:report-triage`, the `/ace:pr-*` skills and `verification-checks.md` are unchanged.
+- `/ace:pr-response` gains one line: it stops before its push-state gate fetches the head when
+  the head-branch name holds a character outside `A-Z a-z 0-9 . _ / -` or begins with `-`.
+  `/ace:report-triage`, the other `/ace:pr-*` skills and `verification-checks.md` are unchanged.
 
 ## [0.8.0]
 

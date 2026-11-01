@@ -80,12 +80,13 @@ orchestration.md applies, with these deltas:
 ## Git
 
 - Settle the base before the pre-check, taking the first case that applies:
-  1. The branch carrying this ws's delivery (named by the delivery-record set (the conventions' `## Discovery and currency`), by this ws's state records or by the review's `Delivered:`), while it carries content no default-branch commit carries (the conventions' default-branch test, `## Hand-off loop`).
+  1. The branch carrying this ws's delivery (the delivery branch (the conventions' `## Hand-off loop`), or named by this ws's state records or by the review's `Delivered:`), while it carries content no default-branch commit carries (the conventions' default-branch test, `## Hand-off loop`).
   2. The checkout's non-default branch, when its tip is the default branch's tip and its name (some or all of the ws's slug words, abbreviated or not), upstream or the trailing text ties it to this ws. A tied branch whose tip is a proper ancestor of the default branch's tip is a question to the owner: fast-forward it (it is then this case), or start from the tip on a new branch (case 3). Any other tied branch whose content a default-branch commit already carries is left as it is.
   3. The default branch's tip.
 - If the brief relies on content its `Grounded at:` commit carries and the default branch lacks, ask the owner for the base. Check the base out from a clean tree before the pre-check, or with the owner's say-so. Never stash, discard or rewrite changes the run did not make.
 - Commits go on the base in cases 1 and 2; in case 3, a new branch is created at the first commit, named per the repository's conventions, else after the ws's slug, suffixed `-2`, `-3` where that name is taken. Commits never land on a branch carrying other work. Stage only run-owned paths, never bypass hooks, push each checkpoint. No force-push or merge, and no GitHub write (the conventions' `## Workstream`): follow-ups go to the handoff, and to a `Defer:` where direction-level.
 - Workstream records are never committed, even where `.ace/` is not ignored; product and repository documentation is part of the delivery.
+- scope-report-triage reads this section in place in report mode (its T5), with deltas matched by the phrases they quote: an edit here changes that triage too, so keep each quoted phrase or update its delta in the same change.
 
 ## Records
 
@@ -105,12 +106,14 @@ Next: {the next step(s) Close printed, as printed, in print order | pending}
 Run: {per session: harness, orchestrator model id, date}
 Workings: workings/{nn}-scope-implement/ -- state.md, gates.md
 Branch: {name}, pushed to {remote} | {name}, not pushed -- {why} | {name}, unchanged | none
-Commits: {each commit the run made, electives included, by hash, oldest first, comma-separated, never a range, as git's A..B omits A | none} -- {the commit the last checkpoint passed on[; the delivering commit, where found] | no change | commits withheld}[; electives: {hashes}]
+Commits: {each commit the run made, electives included, by hash, oldest first, comma-separated, never a range, as git's A..B omits A | none} -- {the commit the last checkpoint passed on | no change | commits withheld | pending}[; electives: {hashes, oldest first, comma-separated}]
 Gates: {n} met, {n} deferred, {n} unverified -- workings/{nn}-scope-implement/gates.md[; unverified: {S{k}.{m}} owner {owner}, ...]
-Checks: {final result in verification-checks.md's record grammar} | none -- no change
+Checks: {final result in verification-checks.md's record grammar} | none -- no change | pending
 Relied on: {(follows Q{n}) texts; consultation facts per stage; answers that only confirmed a fallback} | none
 Open: {Defer D ids this run appended or whose trigger has fired; drift for the next closing review; residue} | none
 ```
+
+`Commits:` reads `none -- pending` on a write before the run's first commit, and `Checks:` reads `pending` on a write before its first checkpoint.
 
 ## Close
 
