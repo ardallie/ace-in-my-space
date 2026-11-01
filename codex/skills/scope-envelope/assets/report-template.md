@@ -4,7 +4,7 @@ Title: {concise; no trailing full stop; no issue, package or stage numbers; no r
 Type: scope
 Date: {yyyy-MM-dd}
 Workstream: .ace/ws/{name}
-Source: {each given input, comma-separated: inputs.md key form where one exists, else the literal ref (branch, commit range, ws report file) | none given: the prior file, else the ws's inputs.md keys, else none}
+Source: {each given input, comma-separated: inputs.md key form where one exists, else the literal ref (branch, commit range, ws report file) | given only --ws: the prior file, else the ws's inputs.md keys, else none}
 Prior: {file | none (declined: {file})}
 Grounded at: {short hash}, {clean tree | dirty ({n} modified files)}[; HEAD moved to {hash} during the run]
 Exchange: {8hex} -- {counterpart repository} -- round {k}; request {path}[; answers {path}]
