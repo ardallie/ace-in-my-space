@@ -76,7 +76,7 @@ What the conventions' `## Steps` leaves to this skill:
   5. Read the PR back with `$ace:pr-read {pr}`: per row, the reply or summary item this run posted, its marker and cited SHA, against the table.
   6. Write the final `Posted:` (`## Record`), naming by comment id each mismatch, each id left unanswered and each duplicate (a new reply on a comment marked answered). Nothing more is posted to correct one.
 
-  With posts withheld -- by the trailing text, or by a withheld commit or push (T12): run 1 and 2, write `Posted: none -- withheld`, and run no pr-response. pr-response's gate failing after the push: the commits stand, `Posted: none -- {its reason}`, `Status: partial`, and the read-back (5) is skipped, as pr-response's own order puts that gate before its posts. A GitHub call failing mid-post: the read-back lists the ids answered and those not, `Status: partial`. Neither is retried automatically: a retry re-posts.
+  With posts withheld -- by the trailing text, or by a withheld commit or push (T12): run 1 and 2, write `Posted: none -- withheld`, and run no pr-response. pr-response's gate failing after the push: the commits stand, `Posted: none -- {its reason}`, `Status: partial`, and the read-back (5) is skipped, as pr-response's own order puts that gate before its posts. A GitHub call failing mid-post: the read-back lists the ids answered and those not, `Status: partial`, and the final `Posted:` takes the form led by the summary comment's URL where the read-back finds that comment, else `none -- {why}; replies {n} of {m}`, either reading `read back matching` where the posts that landed match the table, else naming their mismatches, and naming on `unanswered:` the ids not answered. Neither is retried automatically: a retry re-posts. A read-back that itself fails is not retried either: the record keeps `Posted: pending`, read as posts that may have landed, at `Status: partial -- posts not read back: {why}`.
 
 ## Outcomes
 
@@ -113,7 +113,7 @@ What the conventions' `## Steps` leaves to this skill:
 ## Record
 
 - The state record, `workings/{nn}-scope-report-triage/state.md` (the conventions' `## Steps`), current as the run progresses: after its opening lines, the base, the starting commit, the branch and the branch the checkout was on, and the uncommitted paths a proceed answer left out (T5); the work order; each question with its answer or decline, and each entry appended; before each commit (under that proceed, after it), its checkpoint's results (T11), their outputs kept beside it; each commit and pushed SHA as it is made; the outcome table; each id the read-back finds answered. Scratch goes outside the checkout; removal and shared external state: `../ws-shared/orchestration.md`'s `## Probes and external state`.
-- The triage record, `{nn}-scope-report-triage.md` in the ws root, is the step's artefact: written at `Status: partial` immediately before the run's first commit, push or post, or T13's first record write where that comes first, after any confirmation Usage requires, and rewritten as the run goes until its close, so no stop or crash leaves a commit, push or post unrecorded; a stop before then writes `Stopped:` (the conventions' `## Steps`). Pointers and outcomes only; bare ids as the conventions' `## Identifiers` reads them:
+- The triage record, `{nn}-scope-report-triage.md` in the ws root, is the step's artefact: written at `Status: partial` immediately before the run's first commit, push or post, or T13's first record write where that comes first, after any confirmation Usage requires, and rewritten after each commit, after the push, at T13's outcome table, at each `Posted:` write (`pending` before pr-response posts, then the final value), and at its close, so no stop or crash leaves a commit, push or post unrecorded; a stop before then writes `Stopped:` (the conventions' `## Steps`). Pointers and outcomes only; bare ids as the conventions' `## Identifiers` reads them:
 
 ```
 # Scope report triage
@@ -125,10 +125,10 @@ Status: complete | partial -- {what remains}
 Decisions: {D ids this run appended | none}
 Next: {the next step(s) Close printed, as printed, in print order | pending}
 Branch: {name}, pushed to {remote} | {name}, not pushed -- {why} | {name}, unchanged | none
-Commits: {hashes or range | none} -- {the commit the last checkpoint passed on[; the delivering commit, where found] | no change | withheld}[; electives: {hashes}]
+Commits: {each commit the run made, electives included, by hash, oldest first, comma-separated, never a range, as git's A..B omits A | none} -- {the commit the last checkpoint passed on[; the delivering commit, where found] | no change | commits withheld}[; electives: {hashes}]
 Checks: {the last checkpoint's battery result in verification-checks.md's record grammar} | none -- no change
 Open: {awaiting-answer ids with their questions; Defer D ids this run appended; unverified checks and their owners; next-round comment ids; residue} | none
-Posted: {pending | none -- {why} | none -- {why}; replies {n} of {m}[; unanswered: {comment ids}][; duplicates: {comment ids}] | {summary comment URL}; replies {n} of {m}; read back {matching | mismatches: {comment id} -- {what differs}, ...}[; unanswered: {comment ids}][; duplicates: {comment ids}]}
+Posted: {pending | none -- {why} | none -- {why}; replies {n} of {m}; read back {matching | mismatches: {comment id} -- {what differs}, ...}[; unanswered: {comment ids}][; duplicates: {comment ids}] | {summary comment URL}; replies {n} of {m}; read back {matching | mismatches: {comment id} -- {what differs}, ...}[; unanswered: {comment ids}][; duplicates: {comment ids}]}
 
 ## Outcomes
 - {id} -- {outcome} -- {pointer}[ (follows {code review file}#Q{n})][ -- note: {the semantics the fix invented}][ -- check unverified, owner {owner}][ -- {[x] | [i]}][ -- answered by {reply id}: no new reply]

@@ -105,7 +105,7 @@ Next: {the next step(s) Close printed, as printed, in print order | pending}
 Run: {per session: harness, orchestrator model id, date}
 Workings: workings/{nn}-scope-implement/ -- state.md, gates.md
 Branch: {name}, pushed to {remote} | {name}, not pushed -- {why} | {name}, unchanged | none
-Commits: {hashes or range | none} -- {the commit the last checkpoint passed on[; the delivering commit, where found] | no change | withheld}[; electives: {hashes}]
+Commits: {each commit the run made, electives included, by hash, oldest first, comma-separated, never a range, as git's A..B omits A | none} -- {the commit the last checkpoint passed on[; the delivering commit, where found] | no change | commits withheld}[; electives: {hashes}]
 Gates: {n} met, {n} deferred, {n} unverified -- workings/{nn}-scope-implement/gates.md[; unverified: {S{k}.{m}} owner {owner}, ...]
 Checks: {final result in verification-checks.md's record grammar} | none -- no change
 Relied on: {(follows Q{n}) texts; consultation facts per stage; answers that only confirmed a fallback} | none
