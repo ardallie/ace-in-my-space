@@ -1,6 +1,6 @@
 ---
 name: ws-create
-description: "Finds or creates a workstream -- the .ace/ws/{yyyyMMdd}-{slug}/ directory holding index.md, inputs.md, decisions.md, prompts/ and workings/ -- for given inputs or a name, reusing the one those inputs already belong to, and prints its path."
+description: "Finds or creates a workstream -- a .ace/ws/{yyyyMMdd}-{slug}/ directory, a new one holding index.md, inputs.md, decisions.md, prompts/ and workings/ -- for given inputs or a name, reusing the one those inputs already belong to, and prints its path."
 ---
 # Workstream create
 
@@ -29,4 +29,4 @@ Print, as the last lines:
 - one line saying why this ws: created for which subject, matched on which key, or named;
 - `Workstream: .ace/ws/{ws} (created | reused)`.
 
-When the user invoked this skill (not a scope skill), add the command to run next, in the form of the conventions' `## Hand-off loop`, with the subject inputs filled in (one inside the ws named ws-relative, a `conversation` subject as its ask): `$ace:scope-envelope --ws {ws} {subject inputs}` or `$ace:scope-review --ws {ws} {subject inputs}`.
+When the user invoked this skill (not a scope skill), add the next step, in the form of the conventions' `## Hand-off loop`, with the subject inputs filled in (one inside the ws named ws-relative, a `conversation` subject as its ask): `$ace:scope-envelope --ws {ws} {subject inputs}` or `$ace:scope-review --ws {ws} {subject inputs}`.

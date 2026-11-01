@@ -4,7 +4,7 @@ Title: {concise; no trailing full stop; no issue, package or stage numbers; no r
 Type: scope
 Date: {yyyy-MM-dd}
 Workstream: .ace/ws/{name}
-Source: {each given input, comma-separated: inputs.md key form where one exists, else the literal ref (branch, commit range, ws report file)}
+Source: {each given input, comma-separated: inputs.md key form where one exists, else the literal ref (branch, commit range, ws report file) | none given: the prior file, else the ws's inputs.md keys, else none}
 Prior: {file | none (declined: {file})}
 Grounded at: {short hash}, {clean tree | dirty ({n} modified files)}[; HEAD moved to {hash} during the run]
 Exchange: {8hex} -- {counterpart repository} -- round {k}; request {path}[; answers {path}]
@@ -12,7 +12,7 @@ Decisions: {D ids this run added | none | pending}
 Next: {the next step(s) Close printed, as printed, in print order | pending}
 Grounding: {specification file read | none}
 
-[Bracketed paragraphs like this one are guidance: follow them, then delete them. Inside a line form, `[...]` marks an optional part, except tags: where a form shows `[blocking|deferrable]` or `[high|low]`, write exactly one of the two (`[blocking]`, ...); `[Resolved]` and `[Routed]` are written as shown. Unbracketed prose, such as the Stages paragraph, is kept verbatim. H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Exchange:` (envelope only): one line per counterpart, written when this run routes or consumes a round and carried forward while that exchange stays open, omitted otherwise. `Decisions: pending` only between save and append, never in the final report; `Next: pending` until Close (the workstream conventions' `## Steps`). `Decisions:` carries ids only.]
+[Bracketed paragraphs like this one are guidance: follow them, then delete them. Inside a line form, `[...]` marks an optional part, except tags: where a form shows `[blocking|deferrable]` or `[high|low]`, write exactly one of the two (`[blocking]`, ...); `[Resolved]` and `[Routed]` are written as shown. Unbracketed prose, such as the Stages paragraph, is kept verbatim. H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Source:` names this kind's own input, as the workstream conventions' `## Steps` has each input line do; an input-less envelope's `Source:` names what supplies its ambition: its prior where one exists, else the ws's `inputs.md` keys (E2). `Exchange:` (envelope only): one line per counterpart, written when this run routes or consumes a round and carried forward while that exchange stays open, omitted otherwise. `Decisions: pending` only between save and append, never in the final report; `Next: pending` until Close (the workstream conventions' `## Steps`). `Decisions:` carries ids only.]
 
 ## Summary
 [The ambition; the direction in one sentence; the shape of the stages; every blocking question and load-bearing (unverified) claim. States nothing the body does not; cites D, never restates. Ends: "When delivered, $ace:scope-review in this workstream closes it."]
