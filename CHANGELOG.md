@@ -33,6 +33,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`disable-model-invocation: true`), as `/ace:scope-implement` is; on Codex, where it stays
   implicitly invocable, it confirms once, naming each effect, before its first commit, push or
   GitHub post when not explicitly requested.
+  An old-layout `/ace:agent-code-review` file in the workstream's root is sent to
+  `/ace:scope-code-review --ws {ws} leads from {file}`.
 - Numbered steps: each run of a scope skill in a workstream takes a step -- a folder
   `workings/{nn}-{skill}/` holding its `state.md` and records, beside one root artefact
   `{nn}-{skill}.md`, numbered from `01` in the order runs open their steps -- in place of
