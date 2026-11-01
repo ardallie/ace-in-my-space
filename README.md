@@ -4,7 +4,7 @@ A suite of agent skills for planning, multi-agent review, pull-request work, rep
 publication, and harness detection. It ships as a single plugin named `ace`, distributed
 from the `ace-in-my-space` marketplace (this repository).
 
-Twenty-six skills and three subagent payloads. The skills invoke one another by name, so
+Twenty-seven skills and three subagent payloads. The skills invoke one another by name, so
 they are packaged and versioned together rather than split per workflow.
 
 ## Installation
@@ -88,12 +88,20 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
   (opt-in `--sweep` for an existing area)
 - `/ace:scope-implement` -- delivers a workstream's scope envelope, or its closing review's
   remediation stages, as a multi-agent run that commits and pushes a feature branch and
-  leaves a handoff
+  leaves its handoff, `{nn}-scope-implement.md`, in the workstream root
 - `/ace:scope-code-review` -- reviews a workstream's delivery at code level before its pull
-  request, reading the scope and decision log as settled (requires `--ws`); advisory, ending
-  in a merge verdict; not the closing review; its trial on the Claude edition measured
-  about 4x current practice's cost (`/ace:branch review`, then `/ace:agent-code-review`) and
-  about 4.5x its active time, on one delivery
+  request, reading the scope and decision log as settled and the delivery records for what
+  was delivered (requires `--ws`); advisory, ending in a merge verdict, a `not ready`
+  verdict routing to `/ace:scope-report-triage` and then a repeat review; not the closing
+  review; its trial on the Claude edition measured about 4x current practice's cost
+  (`/ace:branch review`, then `/ace:agent-code-review`) and about 4.5x its active time, on
+  one delivery
+- `/ace:scope-report-triage` -- remediates a workstream's current code review, or a pull
+  request's review tied to its delivery, in a scope-report-triage run in that workstream,
+  inline: verifies each finding against HEAD, commits and pushes the fixes to the delivery
+  branch or the pull request's head, and in PR mode answers the review through
+  `/ace:pr-response` (requires `--ws`; explicit-only on Claude); not for a review outside
+  a workstream
 - `/ace:agent-pre-planner` -- pre-plan analysis producing an enhanced brief plus
   consolidated findings
 - `/ace:agent-code-review` -- pre-PR code review producing severity-graded findings
@@ -191,12 +199,14 @@ the source edit explains.
 - Claude frontmatter carries `argument-hint` and `disable-model-invocation`. Codex folds
   the hint into the skill body and relies on the default
   `policy.allow_implicit_invocation: true`, so no `agents/openai.yaml` is emitted. For
-  `branch` and `scope-implement`, the two skills Claude cannot invoke implicitly, this
-  differs: both stay implicitly invocable on Codex. `$ace:branch` is held back by its
-  description and its Consent rule, which confirms before changing any branch when the
-  skill was not explicitly requested; `$ace:scope-implement` by its description, its
-  required `--ws`, and a consent rule that confirms before the first commit when the skill
-  was not explicitly requested.
+  `branch`, `scope-implement` and `scope-report-triage`, the three skills Claude cannot
+  invoke implicitly, this differs: all three stay implicitly invocable on Codex.
+  `$ace:branch` is held back by its description and its Consent rule, which confirms before
+  changing any branch when the skill was not explicitly requested; `$ace:scope-implement` by
+  its description, its required `--ws`, and a consent rule that confirms before the first
+  commit when the skill was not explicitly requested; `$ace:scope-report-triage` by its
+  description, its required `--ws`, and a rule that confirms once, naming each effect,
+  before its first commit, push or GitHub post when the skill was not explicitly requested.
 - Claude agent payloads name Claude tools and permission modes. The Codex payloads use
   `exec_command`, `rg`, `apply_patch`, and `collaboration.spawn_agent`; their prompt-level
   write boundaries remain binding.
@@ -214,9 +224,9 @@ The suite assumes the host session provides:
   Windows)
 
 These are hard requirements, not optional integrations: `/ace:plan-start`,
-`/ace:plan-update`, `/ace:plan-handoff`, `/ace:report-publish`, and every `/ace:pr-*`
-skill stop without them. `/ace:branch` also needs git 2.25.1 or later; for it `gh` is
-optional.
+`/ace:plan-update`, `/ace:plan-handoff`, `/ace:report-publish`, and every `/ace:pr-*` skill
+stop without them; `/ace:scope-report-triage` needs `gh` in PR mode. `/ace:branch` also
+needs git 2.25.1 or later; for it `gh` is optional.
 
 Skills that cite a host surface this plugin does not ship -- a repository's own skills
 tree, registries, script plane, or work-packaging artefacts -- mark the citation `[host]`
@@ -232,9 +242,16 @@ repository it runs in:
 - `.ace/scope/` -- scope envelopes
 - `.ace/arch-review/` -- architectural review reports
 - `.ace/retro/` -- retrospectives
-- `.ace/ws/{yyyyMMdd}-{slug}/` -- a workstream: `inputs.md`, `decisions.md`,
-  `report-{skill}.md` (`-2`, `-3`), `workings/` (one folder per step, e.g.
-  `workings/implementation/` with the run's `state.md`, `gates.md` and `handoff.md`)
+- `.ace/ws/{yyyyMMdd}-{slug}/` -- a workstream. A new one holds in its root `inputs.md`,
+  `decisions.md` (the decision log), `index.md` (the workstream index: a derived view,
+  regenerated whole and never a record, that every reader reads first; the step folders and
+  artefacts' headers win over it), `prompts/` (owner- or agent-written prompts and briefs,
+  never indexed, nothing in it written by a skill), and one artefact `{nn}-{skill}.md` per
+  step (`{nn}` is the step number, at least two digits from `01`, in launch order); and
+  under `workings/` one folder `workings/{nn}-{skill}/` per step, holding its `state.md`
+  and other records. A workstream begun before this layout (`report-scope-{kind}.md`,
+  `workings/implementation/` and the like) is read in place, never renamed or back-filled.
+  The rules are `skills/ws-shared/workstream-conventions.md`'s.
 
 Filenames outside `.ace/ws/` are `{yyyyMMdd}-{HHmm}-{kind}-{suffix}.md`. The `.ace/` root
 is a convention, not a configuration surface; add it to the host repository's `.gitignore`

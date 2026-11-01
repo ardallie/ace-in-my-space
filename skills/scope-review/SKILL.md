@@ -34,7 +34,7 @@ Per the conventions' `## Steps`. Every report and delivery record this skill rea
 
 - Open point: once R2 has settled the mode, the baseline, the delivered work (a found set confirmed), the grounding commit, the prior and the sweep area, with its questions, and the conventions' overlap question (`## Discovery and currency`), if asked; before R3's first `workings/` write.
 - Read-only exits, beyond the conventions' shared ones (`## Steps`): the stop when no baseline or delivered work is found (Modes); a discovery sweep named as a closing review's prior (Repeat runs and prior); any R2 question the user declines.
-- Resume: never; a repeat review or sweep opens a new step.
+- Resume: never; a repeat review or sweep that opens takes a new step.
 - Artefact: a scope review report, `{nn}-scope-review.md`; input line `Source:`; `Mode: closing review | discovery sweep`; status field `Decisions:`. Its records: `workings/{nn}-scope-review/`.
 
 ## Modes
@@ -61,7 +61,7 @@ Per the conventions' `## Steps`. Every report and delivery record this skill rea
 - R7 **Synthesise.** Completeness check against the Guarantees; dispositions; any area in scope that no agent examined, listed under Outside the stages with its reason; remediation stages; the file-collision matrix; draft the full report, header included, to `workings/`.
 - R8 **Revision pass** per orchestration.md; the reviewer is also given the commitment list and its evidence; record it on `Revision pass:`.
 - R9 **Save, interview, record.** Save the report as the step's artefact (Step), with `Decisions: pending` and `Next: pending`; then the conventions' interview in a ws, append and report update.
-- R10 **Close.** Write the report's `Next:`, the next steps it prints, as the artefact's final write; then print the report path, the D ids added and the next steps: the conventions' `## Hand-off loop` edges for a review, in that section's form -- a sweep's into the loop; a closing review's by whether it has remediation stages, one with none printing the closing-review rule's lines, judged as that rule says. When a sibling owns questions this run raised, the loop's sibling edge, its questions listed after the next steps (a baseline question still awaiting answers in an open exchange -- one that no `decisions.md` entry and no answers R2 read answer -- is cited with its exchange id, not re-sent): the list is pasted, not the whole report, whose every unresolved line it would answer.
+- R10 **Close.** Write the report's `Next:`, the next steps this Close prints, as the artefact's final write; then print the report path, the D ids added and the next steps: the conventions' `## Hand-off loop` edges for a review, in that section's form -- a sweep's into the loop; a closing review's by whether it has remediation stages, one with none printing the closing-review rule's lines, judged as that rule says. When a sibling owns questions this run raised, the loop's sibling edge, its questions listed after the next steps (a baseline question still awaiting answers in an open exchange -- one that no `decisions.md` entry and no answers R2 read answer -- is cited with its exchange id, not re-sent): the list is pasted, not the whole report, whose every unresolved line it would answer.
   - Not printed, as it describes the remediation run a closing review with remediation stages prints: that run reads the report and all of `decisions.md` (not only the D ids added) first and records its decisions there, a `Defer:` take-up included.
 
 ## Conformance
