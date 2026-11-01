@@ -23,7 +23,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   delivery branch, by scope-implement's base rules; PR mode on the pull request's head branch
   (same repository, open), tied to the delivery by content as the code review ties its subject,
   and then answers the review by running `/ace:pr-response` and reading the posts back, which
-  needs `gh`. Its artefact, the triage record, is a delivery record. It is user-invocable only
+  needs `gh`. Its artefact, the triage record, is a delivery record, rewritten after each commit,
+  after the push, at its outcome table, before and after its posts and at its close, and it says
+  what `Posted:` records if posts fail part-way or the read-back fails. It is user-invocable only
   (`disable-model-invocation: true`), as `/ace:scope-implement` is; on Codex, where it stays
   implicitly invocable, it confirms once, naming each effect, before its first commit, push or
   GitHub post when not explicitly requested.
@@ -99,14 +101,18 @@ earlier plugin version there: those versions write the old names, and no skill d
   root as its step artefact, `{nn}-scope-implement.md`, gaining `Date:`, `Mode:` and
   `Workings:`; `state.md` and `gates.md` stay in its step folder, and the state record, no
   longer the handoff, says whether the decision-log header was kept or replaced. Its base,
-  remediation and drift read the delivery-record set, triage records included.
+  remediation and drift read the delivery-record set, triage records included. Its `Commits:`,
+  which the triage record shares, lists every commit the run made, electives included, by hash,
+  oldest first, never as a range, or reads `none -- commits withheld` when they are withheld.
 - `/ace:scope-code-review`: a `not ready` verdict routes to
   `/ace:scope-report-triage --ws {ws}`, then the repeat review, where it named
   `/ace:report-triage`, whose edits stayed uncommitted; a `ready` one covering the delivery
   prints, where the report leaves something to triage, an optional triage, then the owner's
   pull request and a PR-mode triage once that has a review (that the delivery is complete,
   instead, where it has already reached the default branch). Its plan record moves to its step
-  folder, and its report gains `Next:` and names leads in its Scope, not on `Source:`.
+  folder, and its report gains `Next:` and names leads in its Scope, not on `Source:`. Its
+  template no longer calls a `[low]` Correction or Risk elective: it is remediated by default,
+  like every Correction and Risk, and need not change before merge.
 - `/ace:scope-envelope` and `/ace:scope-review` save their reports as step artefacts and print
   their next steps from the loop; the report templates gain `Next:`.
 - README lists the triage, the new layout and three skills Claude cannot invoke implicitly;
