@@ -2,7 +2,7 @@
 
 Seed: 0.9.0
 
-This file records the decisions made in this workstream, one entry per decision. Every run in this workstream reads it before any work leans on it: an accepted entry is a binding constraint, and it overrides any report text it supersedes. Any other work done in this workstream follows what this header asks of a run. A run records here, at the one-writer rule's timing, the direction-level decisions it takes or the owner gives it, and the owner's answers; its reasoning may stay in its own records, cited as Source. A new decision is appended; a change to what a direction-level entry decided or states follows the replacement rule below, never a supplement that leaves that entry standing.
+This file records the decisions made in this workstream, one entry per decision. Every run in this workstream reads it first: an accepted entry is a binding constraint, and it overrides any report text it supersedes. Any other work done in this workstream follows what this header asks of a run. A run records here, at the one-writer rule's timing, the direction-level decisions it takes or the owner gives it, and the owner's answers; its reasoning may stay in its own records, cited as Source. A new decision is appended; a change to what a direction-level entry decided or states follows the replacement rule below, never a supplement that leaves that entry standing.
 
 ## How to use this log
 
