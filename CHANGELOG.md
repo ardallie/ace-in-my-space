@@ -5,6 +5,114 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0]
+
+### Added -- triage and numbered steps in a workstream
+
+- `/ace:scope-report-triage --ws {ws}`: remediates a workstream's current code review (report
+  mode), or the review of a pull request tied to its delivery (PR mode, `pr <number|URL>`),
+  inline, with no subagents. It requires `--ws`, resolves the workstream with the find-only
+  variant and takes one input per run. It verifies each finding against HEAD, reads the scope,
+  the decision log and the code review's held findings and Confirmed guards as settled, and
+  takes to the owner any change to the scope, a goal, a gate clause or an accepted decision, and
+  any setting aside of an unheld `[high]` Correction or Risk. Each actionable finding gets one
+  outcome from a closed list, with its pointer. Before each commit (after it, in a disposable
+  worktree, where the owner lets it proceed over a dirty checkout) it runs
+  `verification-checks.md`'s `cheap` tier and each applied finding's `Check:`; it pushes once,
+  never forced, and never amends, merges or commits workstream records. Report mode works on the
+  delivery branch, by scope-implement's base rules; PR mode on the pull request's head branch
+  (same repository, open), tied to the delivery by content as the code review ties its subject,
+  and then answers the review by running `/ace:pr-response` and reading the posts back, which
+  needs `gh`. Its artefact, the triage record, is a delivery record. It is user-invocable only
+  (`disable-model-invocation: true`), as `/ace:scope-implement` is; on Codex, where it stays
+  implicitly invocable, it confirms once, naming each effect, before its first commit, push or
+  GitHub post when not explicitly requested.
+- Numbered steps: each run of a scope skill in a workstream takes a step -- a folder
+  `workings/{nn}-{skill}/` holding its `state.md` and records, beside one root artefact
+  `{nn}-{skill}.md`, numbered from `01` in the order runs open their steps -- in place of
+  `report-{skill}.md` (`-2`, `-3`) and fixed folders such as `workings/implementation/`. A run
+  claims its number by creating the folder; only a run, at its step's open, writes a name of
+  that form. A run that stops at a read-only exit, before its open, takes no step and writes
+  nothing. A run that finds an earlier step of its own skill still open asks the owner whether
+  to proceed, wait or stop. Current, prior and delivered work are found from the numbers and the
+  artefacts' headers, each of which now carries `Date:`, its input line, `Mode:` where the skill
+  has modes, its status field and `Next:`, in one field order. Only scope-implement resumes a
+  step.
+- `index.md`, the workstream index: a derived view, regenerated whole from the step folders and
+  the artefacts' headers by each run that takes a step (ws-create writes the first), never a
+  record and never edited in part; where it disagrees with them, they win. A root `index.md`
+  not opening `# Workstream index` is the owner's, never overwritten, and while it stands no
+  run writes an index in that workstream.
+- `prompts/`: a new workstream's folder for owner- or agent-written prompts and briefs. No skill
+  writes, moves or deletes anything in it, it is never indexed, and a brief there is named as a
+  step's input (`prompts/brief.md`), never listed in `inputs.md`.
+- One hand-off loop, stated once in the conventions, from envelope through implementation,
+  closing review, code review, triage and the owner's pull request to merge: every next step a
+  Close or read-only exit prints is one of its edges, in one form, and none is run. A covering
+  `ready` code review no longer declares the work complete: the delivery is complete once its
+  content also reaches the default branch, and one merged by fast-forward or merge commit before
+  such a review cannot reach that terminal.
+- One vocabulary and citation form: run, step, artefact, report (envelope, scope review and code
+  review only), handoff, triage record and delivery record are each defined once. An id in
+  another file is cited `{file}#{id}`, `{file}` being the path from the workstream root for a
+  file inside it (`01-scope-envelope.md`, `prompts/brief.md`), else repo-relative. Handoffs and
+  triage records mint no report ids of their own, and are cited by path.
+- GitHub writes: a workstream still makes none but one -- in PR mode the triage's
+  `/ace:pr-response` run posts a summary comment and threaded replies on the pull request it
+  triaged, and the triage record keeps what was posted.
+- Proof: the owner ran the numbered layout and a report-mode triage on the Claude edition in a
+  scratch repository (envelope, implementation, code review, triage); the closing review rests
+  on reader traces. PR mode ships without a live run before this release; its first live run is
+  planned on this release's own pull request, once that has a review.
+- Codex edition: the triage runs inline and carries no orchestration sentence, so it takes the
+  generic conversion, with no generated-only file, outside the build's orchestration rewrite and
+  wording guard. The edition is validated as packaging only: it builds and passes its check.
+  Its runtime behaviour is unverified, and nothing claims it matches the Claude edition's.
+
+#### Old-layout workstreams
+
+A workstream begun before this release (`report-scope-{kind}.md`, `workings/implementation/`
+and the like) is read in place: nothing in it is renamed, rewritten or back-filled (the decision
+log aside: its entries are still appended, and its header may be replaced, below), and every
+citation of its names stays valid. Its first numbered step is `01`, and its index begins there.
+An unfinished old-layout run is never resumed: the next run reads its records as evidence and
+opens a numbered step, saying so at its open. Once a workstream holds a numbered step, run no
+earlier plugin version there: those versions write the old names, and no skill detects a breach.
+
+### Changed
+
+- `workstream-conventions.md` states the rules above, and `orchestration.md` names as its
+  consumers the four scope skills that run agents; the caller check requires neither
+  `index.md` nor `prompts/`.
+- `/ace:ws-create`: a new workstream also gets an empty `prompts/` and a first `index.md`; a
+  found one gains neither. An input inside a workstream matches it by location and is never
+  listed in `inputs.md`; the inputs template says so.
+- The decision template: its example cites numbered artefacts, its rules no longer say
+  "interview step", its opening addresses every run in the workstream and any other work done
+  there, and its `Seed:` is 0.9.0, `check-codex`'s pin updated to match. Where a workstream's
+  header differs from the template's and its `Seed:` is absent or lower, the next 0.9.0
+  `/ace:scope-implement` run there replaces it when its first decision entry is due, keeping a
+  copy of the replaced text in its step folder: the one rewrite of an existing workstream file.
+  The triage never replaces a header.
+- `/ace:scope-implement`'s handoff moves from its folder's `handoff.md`
+  (`workings/implementation/`, `workings/remediation/` and their `-2`, `-3`) to the workstream
+  root as its step artefact, `{nn}-scope-implement.md`, gaining `Date:`, `Mode:` and
+  `Workings:`; `state.md` and `gates.md` stay in its step folder, and the state record, no
+  longer the handoff, says whether the decision-log header was kept or replaced. Its base,
+  remediation and drift read the delivery-record set, triage records included.
+- `/ace:scope-code-review`: a `not ready` verdict routes to
+  `/ace:scope-report-triage --ws {ws}`, then the repeat review, where it named
+  `/ace:report-triage`, whose edits stayed uncommitted; a `ready` one covering the delivery
+  prints, where the report leaves something to triage, an optional triage, then the owner's
+  pull request and a PR-mode triage once that has a review (that the delivery is complete,
+  instead, where it has already reached the default branch). Its plan record moves to its step
+  folder, and its report gains `Next:` and names leads in its Scope, not on `Source:`.
+- `/ace:scope-envelope` and `/ace:scope-review` save their reports as step artefacts and print
+  their next steps from the loop; the report templates gain `Next:`.
+- README lists the triage, the new layout and three skills Claude cannot invoke implicitly;
+  `check-codex` expects 27 skills; the build's code-review reference names the step folder.
+- `/ace:report-triage`, the `/ace:pr-*` skills and `verification-checks.md` are unchanged.
+
 ## [0.8.0]
 
 ### Added -- code review in a workstream
