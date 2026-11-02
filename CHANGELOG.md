@@ -21,7 +21,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   records under `.ace/ws/` do not make it dirty) it runs `verification-checks.md`'s `cheap` tier
   and each applied finding's `Check:`; it commits its own files, named one by one and read
   literally, with `git commit --only`, so a change the owner staged stays out, pushes once, never
-  forced and always naming its destination branch, and never amends, merges or commits
+  forced and always naming its destination branch (a defect found after the push goes to the
+  record's `Open:`, not fixed forward), and never amends, merges or commits
   workstream records. Report mode works on the delivery branch, by scope-implement's base rules,
   and never checks out, fast-forwards or pushes the default branch: a new branch it starts from
   the default branch's remote tip has no upstream. PR mode works on the pull request's head
