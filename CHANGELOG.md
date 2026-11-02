@@ -33,7 +33,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   on a branch name it would put in a command that holds a character outside `A-Z a-z 0-9 . _ / -`
   or begins with `-`, and on a repository path it would put in one that holds `$`, a backtick, a
   double quote, a backslash or a control character, since quoting does not stop command
-  substitution. PR mode then answers the review by
+  substitution; PR mode, whose `/ace:pr-response` pastes the touched files unquoted, also stops,
+  before its first edit, on a path it would change that holds `;`, `&`, `|`, `<`, `>`, `(`, `)`,
+  `'`, `{`, `}` or a space. PR mode then answers the review by
   running `/ace:pr-response` and reading the posts back, which needs `gh`. Its artefact, the
   triage record, is a delivery record, rewritten after each commit,
   after the push, at its outcome table, before and after its posts and at its close, and it says
