@@ -76,6 +76,7 @@ orchestration.md applies, with these deltas:
 - Planned only when a gate clause needs a running system's observed behaviour as evidence, or the trailing text asks for a pass; a check that drives an interface without a running system is a check, not a live pass.
 - It waits until the implementation it observes is complete and the checks pass. The owner starts or authorises the running system; the run never starts or stops services on its own. With no instructions in the repository or trailing text, ask how to reach it; declined or unreachable, those claims stay unverified, owned by the owner, in the handoff.
 - A requested pass adds evidence and never replaces a check; its defects go back through fixes and a further checkpoint.
+- scope-report-triage follows this section for a `Check:` that needs a running system (its T11): an edit here changes that triage too.
 
 ## Git
 
@@ -83,7 +84,7 @@ orchestration.md applies, with these deltas:
   1. The branch carrying this ws's delivery (the delivery branch (the conventions' `## Hand-off loop`), or named by this ws's state records or by the review's `Delivered:`), while it carries content no default-branch commit carries (the conventions' default-branch test, `## Hand-off loop`).
   2. The checkout's non-default branch, when its tip is the default branch's tip and its name (some or all of the ws's slug words, abbreviated or not), upstream or the trailing text ties it to this ws. A tied branch whose tip is a proper ancestor of the default branch's tip is a question to the owner: fast-forward it (it is then this case), or start from the tip on a new branch (case 3). Any other tied branch whose content a default-branch commit already carries is left as it is.
   3. The default branch's tip.
-- If the brief relies on content its `Grounded at:` commit carries and the default branch lacks, ask the owner for the base. Check the base out from a clean tree before the pre-check, or with the owner's say-so. Never stash, discard or rewrite changes the run did not make.
+- If the brief relies on content its `Grounded at:` commit carries and the default branch lacks, ask the owner for the base. Check the base out from a clean tree (an uncommitted change under the workstream records, `.ace/ws/`, which no run commits, aside) before the pre-check, or with the owner's say-so. Never stash, discard or rewrite changes the run did not make.
 - Commits go on the base in cases 1 and 2; in case 3, a new branch is created at the first commit, named per the repository's conventions, else after the ws's slug, suffixed `-2`, `-3` where that name is taken. Commits never land on a branch carrying other work. Stage only run-owned paths, never bypass hooks, push each checkpoint. No force-push or merge, and no GitHub write (the conventions' `## Workstream`): follow-ups go to the handoff, and to a `Defer:` where direction-level.
 - Workstream records are never committed, even where `.ace/` is not ignored; product and repository documentation is part of the delivery.
 - scope-report-triage reads this section in place in report mode (its T5), with deltas matched by the phrases they quote: an edit here changes that triage too, so keep each quoted phrase or update its delta in the same change.
