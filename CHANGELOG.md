@@ -17,15 +17,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   takes to the owner any change to the scope, a goal, a gate clause or an accepted decision, and
   any setting aside of an unheld `[high]` Correction or Risk. Each actionable finding gets one
   outcome from a closed list, with its pointer. Before each commit (after it, in a disposable
-  worktree, where the owner lets it proceed over a dirty checkout) it runs
-  `verification-checks.md`'s `cheap` tier and each applied finding's `Check:`; it commits its
-  own paths with `git commit --only`, so a change the owner staged stays out, pushes once, never
-  forced, and never amends, merges or commits workstream records. Report mode works on the
-  delivery branch, by scope-implement's base rules, and never checks out, fast-forwards or pushes
-  the default branch; PR mode on the pull request's head branch (same repository, open), tied to
-  the delivery by content as the code review ties its subject. Either mode stops on a branch name
-  it would put in a command that holds a character outside `A-Z a-z 0-9 . _ / -` or begins with
-  `-`, since quoting does not stop command substitution. PR mode then answers the review by
+  worktree, where the owner lets it proceed over a dirty checkout; uncommitted workstream
+  records under `.ace/ws/` do not make it dirty) it runs `verification-checks.md`'s `cheap` tier
+  and each applied finding's `Check:`; it commits its own files, named one by one and read
+  literally, with `git commit --only`, so a change the owner staged stays out, pushes once, never
+  forced and always naming its destination branch, and never amends, merges or commits
+  workstream records. Report mode works on the delivery branch, by scope-implement's base rules,
+  and never checks out, fast-forwards or pushes the default branch: a new branch it starts from
+  the default branch's remote tip has no upstream. PR mode works on the pull request's head
+  branch (same repository, open), tied to the delivery by content as the code review ties its
+  subject. A local branch diverged from its remote gets a question -- stop, or work on a new
+  `-triage` branch pushed to the remote branch -- and later runs read the delivery branch as that
+  remote branch, pushed or not, asking before they commit over a diverged local. Either mode stops
+  on a branch name it would put in a command that holds a character outside `A-Z a-z 0-9 . _ / -`
+  or begins with `-`, and on a repository path it would put in one that holds `$`, a backtick, a
+  double quote, a backslash or a control character, since quoting does not stop command
+  substitution. PR mode then answers the review by
   running `/ace:pr-response` and reading the posts back, which needs `gh`. Its artefact, the
   triage record, is a delivery record, rewritten after each commit,
   after the push, at its outcome table, before and after its posts and at its close, and it says
@@ -49,8 +56,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `index.md`, the workstream index: a derived view, regenerated whole from the step folders and
   the artefacts' headers by each run that takes a step (ws-create writes the first), never a
   record and never edited in part; where it disagrees with them, they win. A non-empty root
-  `index.md` not opening `# Workstream index` is the owner's, never overwritten, and while it
-  stands no run writes an index in that workstream; an empty one is rebuilt.
+  `index.md` whose first non-blank line is not `# Workstream index` is the owner's, never
+  overwritten, and while it stands no run writes an index in that workstream; an empty one, or
+  one holding only blank lines, is rebuilt.
 - `prompts/`: a new workstream's folder for owner- or agent-written prompts and briefs. No skill
   writes, moves or deletes anything in it, it is never indexed, and a brief there is named as a
   step's input (`prompts/brief.md`), never listed in `inputs.md`.
@@ -107,7 +115,8 @@ earlier plugin version there: those versions write the old names, and no skill d
   root as its step artefact, `{nn}-scope-implement.md`, gaining `Date:`, `Mode:` and
   `Workings:`; `state.md` and `gates.md` stay in its step folder, and the state record, no
   longer the handoff, says whether the decision-log header was kept or replaced. Its base,
-  remediation and drift read the delivery-record set, triage records included. Its `Commits:`,
+  remediation and drift read the delivery-record set, triage records included, and its
+  clean-tree rule leaves uncommitted workstream records under `.ace/ws/` aside. Its `Commits:`,
   which the triage record shares, lists every commit the run made, electives included, by hash,
   oldest first, never as a range, or reads `none -- commits withheld` when they are withheld,
   and `none -- pending` before the first commit; `Checks:` reads `pending` before the first
@@ -122,7 +131,8 @@ earlier plugin version there: those versions write the old names, and no skill d
   template no longer calls a `[low]` Correction or Risk elective: it is remediated by default,
   like every Correction and Risk, and need not change before merge.
 - `/ace:scope-envelope` and `/ace:scope-review` save their reports as step artefacts and print
-  their next steps from the loop; the report templates gain `Next:`.
+  their next steps from the loop; the report templates gain `Next:`. `/ace:scope-review` names
+  the delivered branch as the conventions' delivery branch.
 - README lists the triage, the new layout and three skills Claude cannot invoke implicitly;
   `check-codex` expects 27 skills; the build's code-review reference names the step folder.
 - `/ace:pr-response` gains one line: it stops before its push-state gate fetches the head when
