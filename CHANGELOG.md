@@ -5,6 +5,166 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0]
+
+### Added -- a bounded code-review cycle and a review depth level
+
+- Rounds and a budget: the hand-off loop's `[report-mode triage, code review]*` cycle is
+  bounded by a round budget, then by the owner exit. Every code review whose subject was a
+  branch carrying the delivery is a round -- a targeted re-check included, at any level and with
+  any review set; a review of a named commit or folder is none, and so is a PR-mode triage,
+  though the code review its pushed content needs is one. Round k is the k-th such report in
+  step order after the baseline envelope's implementation handoff, derived from the step set at
+  each reading and never stored; a remediation does not reset it. The budget is two repeat code
+  reviews after the first, three rounds in all, by default. The owner sets another by stating it
+  in `/ace:scope-code-review`'s trailing text: the review appends it as an owner-answer entry,
+  keeps that trailing text verbatim in its state record, and the budget governs from that run
+  on. Each review records its round and the budget on its run record's `Round:` line.
+- Owner exit: a code review at round budget + 1 or later (round 3, by default) that still holds,
+  at its save, an unheld `[high]` Correction or Risk or an open `[blocking]` question asks the
+  owner in its interview: one `[blocking]` question per such finding -- fix it by the next
+  triage, defer it with a revisit trigger, or ratify it as accepted risk -- and each open
+  `[blocking]` question with its own options. Each owner exit question states that the budget is
+  spent and which rounds ran, each with its level and review set; the finding, its `Fix:` and
+  its `Check:`, saying whether that check is executed or needs judgement; that no adversarial
+  check reaches a fix closed on the triage's record, the triage's own declaration and hunk
+  attribution being its only judges; and that a fix applied with a deviation still gets the
+  targeted re-check, a counted round. A declined, cancelled or failed question changes nothing:
+  its findings still block, and the next triage and every later round ask it again. Only an
+  actual owner answer lets a delivery with a blocking item reach the terminal. Each answer
+  appends its own owner-answer entry; the Verdict line names them in an `(owner exit {D ids})`
+  clause, and the terminal's printed line, where the cover rests on an owner exit, reads
+  `the delivery is complete -- on the owner exit {D ids}`.
+- One Cover rule, in the conventions' `## Hand-off loop`, decides when a code review covers the
+  delivery, and every judge of cover and of the terminal reads it: the review's verdict is read
+  with the accepted entries appended after it, and each commit after its reviewed commit must
+  change no file or be a commit of a report-mode triage of it whose record carries each item
+  the commit touches. A record carries an item only where it claims carry-over and shows the
+  finding's `Fix:` applied without deviation -- defined once, beside the Cover rule, measured
+  from the finding -- its `Check:` met, no `applied with design note`, and no defect found after
+  the push recorded against it. Carry-over keeps the cover only of a review whose own Verdict
+  line reads `ready`, and, of one whose Verdict line reads `not ready`, only its owner exit's
+  fix answers; a triage's fix of any other finding of a `not ready` review sends the delivery
+  to a repeat review. Where the record carries all but named items, those items -- an
+  uncarried item, a hunk no finding prescribes, or an owner exit fix answer the record marks
+  already resolved -- go to a targeted re-check, and the cover returns once it is `ready`. Any
+  other content change -- the owner's own commits, a PR-mode triage's push, commits the owner
+  made for a triage that withheld them, a commit of a triage whose record claims no carry-over
+  or was written before that claim existed -- ends the cover until a repeat review.
+- Closure review: a repeat review is a closure review by default. Its floor is every hunk since
+  the prior's `Grounded at:`, read diff-first; every finding the prior left open, confirmed
+  closed by re-testing its claim and each claim its `Fix:` makes about what it covers, over its
+  whole Evidence chain, never by re-running the triage's `Check:` alone; every other prior id
+  re-anchored by script through the hunks since, and re-examined only where a hunk meets its
+  Evidence chain or an anchor cannot be mapped; the files those hunks and findings sit in; and
+  both sceptic families. A full review stays the owner's opt-in, `full review` in the trailing
+  text; it is full too where the prior's commit cannot be read. A targeted re-check is a run of
+  the skill that takes a step and counts as a round; its set, derived from the triage records,
+  is the items they do not carry, each unprescribed hunk, the hunks those items' commits
+  changed, their Evidence chains and every line their `Fix:` claims to cover. A prior id closed
+  on record cites the triage record and any owner-answer entry, and is not re-tested: in a
+  closure review, an owner exit's fix answer its triage's record carries, a `ready` prior's
+  carried fixes still being re-tested; in a targeted re-check, every item the triage records
+  carry.
+- Backlog from round 2: the first round is unchanged, every Correction and Risk remediated by
+  default. From the delivery's second round on, only `[high]` Corrections and Risks are
+  remediated by default; every `[low]` Correction and Risk, every Insight carrying `Fix:` and
+  every Opportunity goes under `Backlog:`, held by one rolled-up direction `Defer:` per review,
+  headed `Defer: {report file}, section Outside the remediation -- {short description}`, its
+  Decision listing each id and its Consequences each id's revisit trigger, none of which can
+  fire on this delivery's own commits or on its landing on the default branch. The owner takes
+  an id up through the triage's trailing text; taking one up supersedes the entry, the new
+  entry carrying the rest forward.
+- `/ace:scope-code-review --depth high|medium` sets the review depth level: default `high`, at
+  every run, a repeat review included; a missing or unknown value, `low` included, reports the
+  valid values and stops; `--depth` after the subject or in the trailing text, and `--effort`
+  anywhere, stop the run with the shape; trailing prose naming a level sets none. `high` moves
+  no depth lever: it reads as deeply as the review did before, over the review set and with the
+  obligations above. `medium` aims at a quicker, cheaper run on the same subject, with no saving
+  promised, and moves only depth levers within a floor: a multi-agent team with every selected
+  file owned, the sceptic on Tier-1's model and the revision reviewer; every Guarantee held;
+  both sceptic families; an adversarial outcome for every `[high]`, contested or sceptic-flagged
+  finding, by executed refutation for a `[high]`, its verifiers at their tier's baseline; and
+  `high`'s settings on a triage's fix of a prior `[high]`. The levers it may move are
+  promotions, per-agent effort (never the verifiers'), the calibration family's scope, `[low]`
+  depth, a prior `[low]`'s closure, confirmation by anchor and inspection of a re-anchored V or
+  prior `[low]` whose Evidence chain a hunk meets, the whole reads of the envelope, the closing
+  review, the prior and the delivery records (`decisions.md` is still read whole), and the
+  coverage family's timing. Each lever moved is disclosed: the report header's `Depth:` names
+  the level and the levers moved, the Verdict line's level part what the run left out, and the
+  run record's `Depth level:` each lever with why. The review set and its floors, the backlog
+  rule, selection, `--checks` and the test run are the same at either level, and `--model` beats
+  the level on the settings it names, disclosed. A `medium` verdict means to the loop what a
+  `high` one means: its `ready` covers, and it counts as a round. No next step a Close prints
+  names or offers a level. Where the route reports per-agent spend, the run record's Team lines
+  carry it as reported, never estimated, the orchestrator's own excluded.
+- Proof: when this entry was written, the stages' gates rested on reader traces --
+  fresh-context readers given the text and a constructed situation -- on content checks, and on
+  the build and its check; the changed skills had had no live run, and nothing in the suite
+  checks Verdict-line or flag grammar mechanically. Their first live run is planned as this
+  delivery's own code review, run on the delivered skills.
+- Codex edition: the changed skills take the existing conversions, the generated-only
+  `orchestration-codex.md` files are unchanged, and the folded `**Invocation input:**` line
+  carries `--depth`. The edition is validated as packaging only: it builds and passes its
+  check. Its runtime behaviour is unverified.
+
+#### Workstreams begun under 0.9.0
+
+A workstream begun under 0.9.0 is read as its records stand. Its earlier code reviews of the
+delivery count as rounds, so its budget may already be spent and its next review may ask the
+owner exit; an owner-set budget in `/ace:scope-code-review`'s trailing text replaces the
+default. A 0.9.0 triage record carries no cover: it was written before the carry-over claim
+existed, so its commits send the delivery to a repeat review. A Verdict line with no level
+part reads as `high`, one ending `repeat review since {hash}` as a full-review-set repeat
+review, and one with no review-set kind as `first`.
+
+### Changed
+
+- `workstream-conventions.md`'s `## Hand-off loop` gains the Round, Budget, Owner exit and
+  "applied without deviation" bullets above, rewrites its Cover bullet, and its edges read the
+  Cover rule in place of a `ready` verdict alone. A `ready` review's optional triage line now
+  says its prescribed fixes keep the cover where its record carries them, an uncarried item or
+  unprescribed hunk getting a targeted re-check, where 0.9.0's said a content change it commits
+  needs the repeat review. A `not ready` review whose every listed id an owner exit fix answer
+  sent to the triage, with no other Correction or Risk in its remediation, prints the triage and
+  no repeat review, and a `not ready` review comes to cover through owner answers alone where
+  its triage commits nothing but their fix answers -- where 0.9.0 routed every `not ready`
+  verdict to the triage, then the repeat review. The report-mode triage edge prints, by the
+  Cover rule, the `ready` lines, the targeted re-check, the repeat review, or the owner's
+  settling of what still holds the review `not ready`. The disclosed limit narrows: a delivery
+  that reaches the default branch by ancestry while no code review covers it can reach the
+  terminal only if accepted entries appended after its current code review bring that review to
+  cover; no later code review can. `## Reports over time` admits a prior id closed on a triage's
+  record as a disposition.
+- `/ace:scope-code-review`: K2 derives the round and the budget, K12 asks the owner exit in
+  place of the fix-or-decline question from round budget + 1, K13's Close and the merged tip
+  read the Cover rule, and `## Settled matters` admits the owner-set budget entry and the
+  rolled-up `Defer:`. `## Repeat reviews and prior` names the closure review and the targeted
+  re-check, retiring the repeat set of the files changed since the prior plus every file its
+  findings cite, and a new `## Depth level` states the level. Guarantee 8 binds the verdict to
+  the level too. Its template's Verdict line gains the owner exit clause, the level part and
+  the review set's kind (`first`, `closure`, `re-check` or `full`); the header gains `Depth:`,
+  the `## Scope` preamble states the first round's and the round-2-on obligations, `## Changes
+  from prior` replaces `Carried unchanged:` with `Re-anchored:` and gains `Closed on record:`,
+  and the run record gains `Round:`, `Depth level:` and a Team line's optional spend part.
+- `/ace:scope-report-triage`: each applied outcome of a report-mode record states
+  `fix: as prescribed` or `fix: deviated`, measured from the finding's `Fix:` and `Check:` as
+  written, and `check met (executed: {path})`, `check met (judged: {path})` or
+  `check unverified, owner {owner}`. In report mode `## Deviations` holds every hunk no applied
+  finding's `Fix:` prescribes, a release-note amendment no `Fix:` names among them, and in
+  either mode its last line states the record's claim: carry-over claimed, with its hunk
+  attribution covering the run's net diff, or none claimed, with why (PR mode, commits
+  withheld). It asks the code review's open owner exit questions before its first commit, and
+  applies an owner exit's fix answers, never deferring one on its own say: a prescribed fix
+  that fails its `Check:`, or that the run would reject, becomes an owner question, and a fix
+  applied with a deviation goes to the targeted re-check. A defect it finds after its push is
+  recorded against the ids or hunks it touches. It reads a rolled-up `Defer:`, and taking up
+  one of its ids carries the rest forward. Its Close reads the Cover rule against its own
+  record.
+- The Claude and Codex manifests and both version fields of `.claude-plugin/marketplace.json`
+  read 0.10.0. README's description of `/ace:scope-code-review` states the bounded cycle and
+  the owner exit. The decision template's header and `Seed:` are unchanged.
+
 ## [0.9.0]
 
 ### Added -- triage and numbered steps in a workstream
