@@ -92,9 +92,10 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
 - `/ace:scope-code-review` -- reviews a workstream's delivery at code level before its pull
   request, reading the scope and decision log as settled and the delivery records for what
   was delivered (requires `--ws`); advisory, ending in a merge verdict, a `not ready`
-  verdict routing to `/ace:scope-report-triage` and then a repeat review -- a closure review
-  of what changed and what the prior left open, or a targeted re-check of what a triage's
-  record does not carry -- unless owner answers settle every blocking item and the triage
+  verdict routing to `/ace:scope-report-triage` and then, as the Cover rule in the
+  conventions' `## Hand-off loop` decides, a repeat review -- a closure review of what
+  changed and what the prior left open -- or a targeted re-check of what a triage's record
+  does not carry, or no review where owner answers settle every blocking item and the triage
   commits nothing but its owner exit's fix answers, carried on its record; its cycle is
   bounded by a round budget, then by the owner exit: from the delivery's third round by
   default (the owner can set another budget), a review still holding an unheld `[high]`
