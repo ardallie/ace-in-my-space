@@ -95,12 +95,12 @@ leading `/` with `$`: `/ace:plan-start` becomes `$ace:plan-start`, `/ace:pr-read
   verdict routing to `/ace:scope-report-triage` and then a repeat review -- a closure review
   of what changed and what the prior left open, or a targeted re-check of what a triage's
   record does not carry -- unless owner answers settle every blocking item and the triage
-  commits nothing but their fix answers, carried on its record; its cycle is bounded by a
-  round budget, then by the owner exit: from the delivery's third round by default (the
-  owner can set another budget), a review still holding an unheld `[high]` Correction or
-  Risk asks the owner to fix, defer or ratify each one, and only an owner answer lets a
-  delivery with a blocking item complete; not the closing review; its trial on the Claude
-  edition measured about 4x current practice's cost (`/ace:branch review`, then
+  commits nothing but its owner exit's fix answers, carried on its record; its cycle is
+  bounded by a round budget, then by the owner exit: from the delivery's third round by
+  default (the owner can set another budget), a review still holding an unheld `[high]`
+  Correction or Risk asks the owner to fix, defer or ratify each one, and only an owner
+  answer lets a delivery with a blocking item complete; not the closing review; its trial on
+  the Claude edition measured about 4x current practice's cost (`/ace:branch review`, then
   `/ace:agent-code-review`) and about 4.5x its active time, on one delivery
 - `/ace:scope-report-triage` -- remediates a workstream's current code review, or a pull
   request's review tied to its delivery, in a scope-report-triage run in that workstream,
