@@ -43,14 +43,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   finding's `Fix:` applied without deviation -- defined once, beside the Cover rule, measured
   from the finding -- its `Check:` met, no `applied with design note`, and no defect found after
   the push recorded against it. Carry-over keeps the cover only of a review whose own Verdict
-  line reads `ready`, and, of one whose Verdict line reads `not ready`, only its owner exit's
+  line reads `ready`, and, of one whose own Verdict line reads `not ready`, only its owner exit's
   fix answers; a triage's fix of any other finding of a `not ready` review sends the delivery
   to a repeat review. Where the record carries all but named items, those items -- an
   uncarried item, a hunk no finding prescribes, or an owner exit fix answer the record marks
-  already resolved -- go to a targeted re-check, and the cover returns once it is `ready`. Any
-  other content change -- the owner's own commits, a PR-mode triage's push, commits the owner
-  made for a triage that withheld them, a commit of a triage whose record claims no carry-over
-  or was written before that claim existed -- ends the cover until a repeat review.
+  already resolved where no report-mode triage record of that review carries it -- go to a
+  targeted re-check, and the cover returns once it is `ready`. Any other content change -- the
+  owner's own commits, a PR-mode triage's push, commits the owner made for a triage that
+  withheld them, a commit of a triage whose record claims no carry-over or was written before
+  that claim existed -- ends the cover until a repeat review.
 - Closure review: a repeat review is a closure review by default. Its floor is every hunk since
   the prior's `Grounded at:`, read diff-first; every finding the prior left open, confirmed
   closed by re-testing its claim and each claim its `Fix:` makes about what it covers, over its
@@ -126,9 +127,9 @@ review, and one with no review-set kind as `first`.
   says its prescribed fixes keep the cover where its record carries them, an uncarried item or
   unprescribed hunk getting a targeted re-check, where 0.9.0's said a content change it commits
   needs the repeat review. A `not ready` review whose every listed id an owner exit fix answer
-  sent to the triage, with no other Correction or Risk in its remediation, prints the triage and
-  no repeat review, and a `not ready` review comes to cover through owner answers alone where
-  its triage commits nothing but their fix answers -- where 0.9.0 routed every `not ready`
+  sent to the triage, with no other finding in its remediation, prints the triage and no repeat
+  review, and a `not ready` review comes to cover through owner answers alone where its triage
+  commits nothing but its owner exit's fix answers -- where 0.9.0 routed every `not ready`
   verdict to the triage, then the repeat review. The report-mode triage edge prints, by the
   Cover rule, the `ready` lines, the targeted re-check, the repeat review, or the owner's
   settling of what still holds the review `not ready`. The disclosed limit narrows: a delivery
@@ -153,14 +154,17 @@ review, and one with no review-set kind as `first`.
   `check unverified, owner {owner}`. In report mode `## Deviations` holds every hunk no applied
   finding's `Fix:` prescribes, a release-note amendment no `Fix:` names among them, and in
   either mode its last line states the record's claim: carry-over claimed, with its hunk
-  attribution covering the run's net diff, or none claimed, with why (PR mode, commits
-  withheld). It asks the code review's open owner exit questions before its first commit, and
-  applies an owner exit's fix answers, never deferring one on its own say: a prescribed fix
-  that fails its `Check:`, or that the run would reject, becomes an owner question, and a fix
-  applied with a deviation goes to the targeted re-check. A defect it finds after its push is
-  recorded against the ids or hunks it touches. It reads a rolled-up `Defer:`, and taking up
-  one of its ids carries the rest forward. Its Close reads the Cover rule against its own
-  record.
+  attribution covering the run's net diff, or none claimed, naming the first case that applies.
+  A report-mode record whose commits were made always claims carry-over where the code
+  review's cover can rest on the record, attributing what it can; a record claims none only in
+  PR mode, where its commits were withheld, or where the review's cover cannot rest on it, and
+  one whose run made no commit has nothing to claim. It asks the code review's open owner exit
+  questions before its first commit, and applies an owner exit's fix answers, never deferring
+  one on its own say: a prescribed fix that fails its `Check:`, or that the run would reject,
+  becomes an owner question, and a fix applied with a deviation goes to the targeted re-check.
+  A defect it finds after its push is recorded against the ids or hunks it touches. It reads a
+  rolled-up `Defer:`, and taking up one of its ids carries the rest forward. Its Close reads
+  the Cover rule against its own record.
 - The Claude and Codex manifests and both version fields of `.claude-plugin/marketplace.json`
   read 0.10.0. README's description of `/ace:scope-code-review` states the bounded cycle and
   the owner exit. The decision template's header and `Seed:` are unchanged.
