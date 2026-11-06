@@ -1,6 +1,6 @@
 ---
 name: scope-implement
-description: "Delivers a workstream's current scope report -- implements its scope envelope, or remediates its closing review's stages -- carrying every stage through design, implementation, integration and verification as a multi-agent run that commits and pushes a feature branch and leaves a handoff beside the decision log. Requires --ws. Not for a plan published as a GitHub issue (/ace:plan-implement)."
+description: "Delivers a workstream's current scope report -- implements its scope envelope, or remediates its closing review's stages -- carrying every stage through design, implementation, integration and verification as a multi-agent run that commits and pushes a feature branch and leaves a handoff beside the decision log. Requires --ws."
 argument-hint: "--ws <path | name | slug> [--model <name or instruction>] [<consultation answers file> ...] [instructions]"
 disable-model-invocation: true
 ---

@@ -64,12 +64,10 @@ across settings scopes applies) caps whichever applies. Verified on Claude Code 
 `model` or `effort`; the subagent keeps its per-call model and effort. A different
 model or effort therefore needs a fresh spawn. Verified on Claude Code 2.1.312.
 
-Plugin definitions pinned to a tier (`${CLAUDE_PLUGIN_ROOT}/agents/*.md`) carry both the
-tier's `model:` and its baseline `effort:`; update them when this mapping changes. Their
-`effort:` applies only when no per-call effort is passed. A per-call model override
-changes a definition's model but not its effort: passing another tier's alias to a
-pinned definition runs that alias at the definition's effort unless an effort is passed
-per call too, as every tiered spawn does. A definition without
+A definition's `effort:` applies only when no per-call effort is passed. A per-call model
+override changes a definition's model but not its effort: passing a tier's alias to a
+definition that sets `effort:` runs that alias at the definition's effort unless an effort
+is passed per call too, as every tiered spawn does. A definition without
 `effort:`, including the built-in `general-purpose` type, runs at the session effort
 when none is passed per call. Documented for Claude Code 2.1.312, except the
 session-effort default for a definition without `effort:`, which is inferred: no source
@@ -118,7 +116,7 @@ parent's model and effort and rejects overrides. Verified on codex-cli 0.165.0.
 **Spawn surface.** `collaboration.spawn_agent` requires `task_name` and `message`;
 `fork_turns`, `model` and `reasoning_effort` are optional. It has no agent-type field.
 Verified on codex-cli 0.165.0. A hyphenated `task_name` was rejected and underscore names
-accepted, so separate words with underscores, as the plan pipeline's task names do.
+accepted, so separate words with underscores.
 Observed in a later review session's runtime; the full accepted character set is not
 documented.
 
@@ -134,13 +132,12 @@ and `ultra`. Each mapped model supports all six: `gpt-6-astra`, `gpt-6.1-sol` an
 `gpt-6.1-terra`. These are collaboration reasoning-effort settings, not API effort
 parameters. Verified on codex-cli 0.165.0.
 
-**Defaults and payloads.** For a `"none"` spawn, explicit settings override the
-corresponding `[agents]` defaults, which override the parent's settings. Selecting a
-model without a per-call or configured effort uses that model's default effort. The
-exposed spawn tool cannot select a custom-agent TOML definition. The suite's
-`../../agents/*.md` files are message payloads, with no model or effort frontmatter;
-read them into `message` and select settings through the consumer contract. Verified
-on codex-cli 0.165.0; defaults precedence per the official Subagents documentation.
+**Defaults.** For a `"none"` spawn, explicit settings override the corresponding
+`[agents]` defaults, which override the parent's settings. Selecting a model without a
+per-call or configured effort uses that model's default effort. The exposed spawn tool
+cannot select a custom-agent TOML definition, so select settings through the consumer
+contract. Verified on codex-cli 0.165.0; defaults precedence per the official Subagents
+documentation.
 
 **Reporting.** Record accepted model and effort overrides. When either is omitted,
 report default selection or inheritance as the consumer contract directs; do not

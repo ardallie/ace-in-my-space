@@ -16,8 +16,6 @@ editing this list only -- the surrounding prose never names skills beyond it.
 - `../agent-consultant/SKILL.md` -- consultant side, fully wired: accepts a
   request envelope (or any compatible question set), researches its own repository, and
   produces the response envelope.
-- `../agent-scope/SKILL.md` -- requester side, fully wired: its interview phase
-  opens with a routing gate that classifies open questions and emits the request envelope.
 - `../scope-envelope/SKILL.md` -- requester side, fully wired: its sibling
   routing step emits the request envelope; it states its own exchange-id minting and answers
   re-entry, which replace the defaults below.
@@ -77,8 +75,8 @@ Every message must be readable and actionable with zero counterpart context:
 
 ## Correlation and rounds
 
-- Every exchange carries an **exchange id** -- an 8-character hex in the pack's suffix
-  idiom -- on an `Exchange: {8hex}, round {k}` line in both envelopes. The requester mints
+- Every exchange carries an **exchange id** -- an 8-character hex -- on an
+  `Exchange: {8hex}, round {k}` line in both envelopes. The requester mints
   the id (a requester skill reuses its own run suffix at round 1, so the id also
   correlates with the source artefact's filename); the response echoes it verbatim. When a
   request arrives without one (a hand-written question list), the consultant mints the id
@@ -168,7 +166,7 @@ id as the suffix, keeping correlation at filename level on both sides.
 ## Answers re-entry
 
 The response re-enters the requester's flow as an ordinary input file to the next run
-there -- a re-scope, or the owning stage's pre-planner run -- passed beside the artefact
+there -- a re-scope, or the run that implements the scoped work -- passed beside the artefact
 that raised the questions. There is no fold-in machinery: the answers are grounding for
 that run, and the matching `Exchange:` ids in the two files are the audit link. A
 requester skill that marks routed questions in its saved artefact (e.g. `[Routed]`)

@@ -11,20 +11,16 @@ disable-model-invocation: false
 
 An optional argument names the run to retrospect (a command name, issue number, or task
 description). Without an argument, retrospect the most recently finished run in this session.
-Sequential invocations that form one piece of work (e.g. `/ace:plan-read` followed by
-`/ace:plan-implement`) count as a single run. If nothing has run in this session and no argument
+Sequential invocations that form one piece of work (e.g. `/ace:branch pr` followed by
+`/ace:pr-create`) count as a single run. If nothing has run in this session and no argument
 identifies a run, say so and stop -- do not reconstruct a retrospective from artefacts alone.
 
 ## Instructions
 
 Write the report to `.ace/retro/{yyyyMMdd}-{HHmm}-{run-slug}.md`, where the date and time
 come from local machine time (`date +%Y%m%d` and `date +%H%M`); slug derived from the command,
-skill, or task name, e.g. `plan-implement-883`. Never overwrite an existing report -- on a
-path collision, append `-2` (then `-3`, etc.) to the run slug. The timestamp idiom and
-collision-increment convention are canonical at `/ace:plan-start` Phase 4
-(`${CLAUDE_PLUGIN_ROOT}/skills/plan-start/SKILL.md`); this file's increment
-target -- the run slug -- is deliberately unaligned with the pack's other targets, and must
-not be synced to match them.
+skill, or task name, e.g. `pr-response-834`. Never overwrite an existing report -- on a
+path collision, append `-2` (then `-3`, etc.) to the run slug.
 
 Write for the maintainer who will revise the command or skill that ran. Be candid: an honest
 account of friction is worth more than a polished summary. Ground every point in the run
@@ -34,7 +30,7 @@ worth reporting, say so in one line rather than padding it.
 
 ## Report structure
 
-Open the report with an H1 naming the run (e.g. `# Run retrospective -- /ace:plan-implement 883`)
+Open the report with an H1 naming the run (e.g. `# Run retrospective -- /ace:pr-response 834`)
 and, where applicable, the exact invocation on the next line. Then these sections, in this
 order. The first four are mandatory; omit "Open questions" when there are none.
 

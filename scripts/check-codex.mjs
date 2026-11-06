@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const codexRoot = join(root, "codex");
@@ -21,30 +21,24 @@ const walkFiles = (directory) => {
   return files;
 };
 
-// The Codex edition holds skills and agent payloads only; any other top-level entry is a stray
-// the per-directory comparison below never sees. Checked before the walks, so a missing
-// directory is reported rather than thrown.
+// The Codex edition holds skills only; any other top-level entry is a stray the comparison
+// below never sees. Checked before the walks, so a missing directory is reported rather than
+// thrown.
 const codexEntries = readdirSync(codexRoot);
 for (const entry of codexEntries) {
-  if (!["skills", "agents"].includes(entry)) errors.push(`codex/${entry}: unexpected top-level entry`);
+  if (entry !== "skills") errors.push(`codex/${entry}: unexpected top-level entry`);
 }
-for (const required of ["skills", "agents"]) {
-  if (!codexEntries.includes(required)) errors.push(`codex/${required}: missing`);
-}
+if (!codexEntries.includes("skills")) errors.push("codex/skills: missing");
 if (errors.length > 0) {
   console.error(errors.map((error) => `ERROR: ${error}`).join("\n"));
   process.exit(1);
 }
 
 const sourceSkillFiles = walkFiles(join(root, "skills"));
-const codexSkillFiles = walkFiles(join(codexRoot, "skills"));
-const sourceAgentFiles = walkFiles(join(root, "agents"));
-const codexAgentFiles = walkFiles(join(codexRoot, "agents"));
-const codexFiles = [...codexSkillFiles, ...codexAgentFiles];
+const codexFiles = walkFiles(join(codexRoot, "skills"));
 // README documents both editions, so a `$ace:` mention is legitimate there and nowhere else
 // in the Claude source of truth.
-const sourceContractFiles = [...sourceSkillFiles, ...sourceAgentFiles];
-const sourceFiles = [...sourceContractFiles, join(root, "README.md")];
+const sourceFiles = [...sourceSkillFiles, join(root, "README.md")];
 
 // Every Codex file maps to a source file at the same relative path, except the generated-only
 // files the build writes from its own text; each of those exists in the Codex edition only.
@@ -55,18 +49,13 @@ for (const rel of generatedOnly) {
 }
 
 const relativePaths = (base, files) => new Set(files.map((path) => relative(base, path).split(sep).join("/")));
-for (const [label, files, convertedFiles] of [
-  ["skills", sourceSkillFiles, codexSkillFiles],
-  ["agent payloads", sourceAgentFiles, codexAgentFiles],
-]) {
-  const sourcePaths = relativePaths(root, files);
-  const codexPaths = relativePaths(codexRoot, convertedFiles);
-  for (const rel of sourcePaths) {
-    if (!codexPaths.has(rel)) errors.push(`${label}: ${rel} has no Codex counterpart`);
-  }
-  for (const rel of codexPaths) {
-    if (!sourcePaths.has(rel) && !generatedOnly.includes(rel)) errors.push(`${label}: codex/${rel} has no source counterpart`);
-  }
+const sourcePaths = relativePaths(root, sourceSkillFiles);
+const codexPaths = relativePaths(codexRoot, codexFiles);
+for (const rel of sourcePaths) {
+  if (!codexPaths.has(rel)) errors.push(`skills: ${rel} has no Codex counterpart`);
+}
+for (const rel of codexPaths) {
+  if (!sourcePaths.has(rel) && !generatedOnly.includes(rel)) errors.push(`skills: codex/${rel} has no source counterpart`);
 }
 
 // -- Inventories -------------------------------------------------------------------------
@@ -77,13 +66,11 @@ const skillDirectories = (skillsRoot) => readdirSync(skillsRoot)
   .sort();
 
 const sourceSkillNames = skillDirectories(join(root, "skills"));
-const sourceAgentNames = sourceAgentFiles.map((path) => path.split(sep).at(-1).replace(/\.md$/, "")).sort();
 
-if (sourceSkillNames.length !== 27) errors.push(`expected 27 Claude skills, found ${sourceSkillNames.length}`);
-if (sourceAgentNames.length !== 3) errors.push(`expected 3 Claude agents, found ${sourceAgentNames.length}`);
+if (sourceSkillNames.length !== 15) errors.push(`expected 15 Claude skills, found ${sourceSkillNames.length}`);
 
-const skillPaths = codexSkillFiles.filter((path) => path.endsWith(`${sep}SKILL.md`));
-if (skillPaths.length !== 27) errors.push(`expected 27 Codex skills, found ${skillPaths.length}`);
+const skillPaths = codexFiles.filter((path) => path.endsWith(`${sep}SKILL.md`));
+if (skillPaths.length !== 15) errors.push(`expected 15 Codex skills, found ${skillPaths.length}`);
 
 const skillNames = new Set();
 for (const skillPath of skillPaths) {
@@ -117,18 +104,10 @@ for (const name of sourceSkillNames) {
   if (declared !== name) errors.push(`skills/${name}/SKILL.md: frontmatter name ${declared} != ${name}`);
 }
 
-for (const path of sourceAgentFiles) {
-  const stem = path.split(sep).at(-1).replace(/\.md$/, "");
-  const declared = readFileSync(path, "utf8").match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/)?.[1].match(/^name:\s*(.+)$/m)?.[1]?.trim();
-  if (declared !== stem) errors.push(`${relative(root, path)}: frontmatter name ${declared} != ${stem}`);
-  if (stem.startsWith("ace-")) errors.push(`${relative(root, path)}: agent name ${stem} repeats the plugin namespace`);
-}
-
-// The prefixed form of every live skill and agent name: `ace-` plus the name. That is each
-// identifier the rename retired, and for a skill added since, such as `branch`, the prefixed form
-// it never shipped under. Matched as a whole word, so `workspace-branch` is no hit.
-// `plan-validate` names both a skill and an agent, so the set holds one entry fewer than skills plus agents.
-const retiredIdentifiers = [...new Set([...sourceSkillNames, ...sourceAgentNames])]
+// The prefixed form of every live skill name: `ace-` plus the name. The plugin namespace already
+// qualifies each name, so no file may carry its prefixed form. Matched as a whole word, so
+// `workspace-branch` is no hit.
+const retiredIdentifiers = sourceSkillNames
   .map((name) => `${NS}-${name}`)
   .sort()
   .map((identifier) => [identifier, new RegExp(String.raw`(?<![A-Za-z0-9_-])${identifier}(?![A-Za-z0-9_])`)]);
@@ -167,8 +146,8 @@ for (const path of codexFiles) {
   const commandPattern = /(?<![A-Za-z0-9_.${}-])\/ace-[a-z0-9]+(?:-[a-z0-9]+)*/g;
   if (commandPattern.test(text)) errors.push(`${relative(root, path)}: contains Claude slash invocation`);
 
-  // A Claude plugin-agent address has no counterpart in Codex; the payload spawn blocks must
-  // have been rewritten to a direct `collaboration.spawn_agent` call.
+  // A Claude plugin-agent address has no counterpart in Codex, and the suite defines no
+  // plugin agents, so any `ace:{name}` address dangles.
   for (const match of text.matchAll(/(?<![$A-Za-z0-9_/-])ace:([a-z0-9][a-z0-9*-]*)/g)) {
     errors.push(`${relative(root, path)}: contains Claude plugin-agent address ace:${match[1]}`);
   }
@@ -179,23 +158,9 @@ for (const path of codexFiles) {
   }
 }
 
-for (const payloadPath of codexAgentFiles) {
-  const text = readFileSync(payloadPath, "utf8");
-  const stem = payloadPath.split(sep).at(-1).replace(/\.md$/, "");
-  if (!sourceAgentNames.includes(stem)) errors.push(`${relative(root, payloadPath)}: unexpected payload name ${stem}`);
-  if (!text.startsWith("<!-- Supporting payload for collaboration.spawn_agent.message")) {
-    errors.push(`${relative(root, payloadPath)}: missing supporting-payload marker`);
-  }
-  if (text.startsWith("---\n")) errors.push(`${relative(root, payloadPath)}: retained Claude agent frontmatter`);
-}
-for (const name of sourceAgentNames) {
-  if (!existsSync(join(codexRoot, "agents", `${name}.md`))) errors.push(`Claude agent ${name} has no derived Codex payload`);
-}
-
-for (const path of [...codexSkillFiles, ...codexAgentFiles]) {
+for (const path of codexFiles) {
   const text = readFileSync(path, "utf8");
-  const rel = relative(codexRoot, path).split(sep);
-  const base = rel[0] === "skills" ? join(codexRoot, "skills", rel[1]) : dirname(path);
+  const base = join(codexRoot, "skills", relative(join(codexRoot, "skills"), path).split(sep)[0]);
   for (const match of text.matchAll(/`((?:\.\.\/)+(?:[A-Za-z0-9._-]+\/)*[A-Za-z0-9._*-]+)`/g)) {
     const reference = match[1];
     if (reference.includes("*") || reference.includes("{") || reference.includes("...")) continue;
@@ -219,7 +184,7 @@ for (const path of sourceFiles) {
   ]) {
     if (text.includes(token)) errors.push(`${relative(root, path)}: contains ${label}`);
   }
-  if (sourceContractFiles.includes(path) && text.includes("$ace:")) {
+  if (sourceSkillFiles.includes(path) && text.includes("$ace:")) {
     errors.push(`${relative(root, path)}: contains a Codex mention in the Claude source`);
   }
 
@@ -227,14 +192,14 @@ for (const path of sourceFiles) {
   if (barePattern.test(text)) errors.push(`${relative(root, path)}: contains unqualified /ace- invocation`);
 
   // Chain edges must be plugin-qualified and must resolve.
-  // A `*` marks a documentation wildcard such as `/ace:pr-*`, never a real chain edge.
+  // A `*` marks a documentation wildcard over skill names, never a real chain edge.
   for (const match of text.matchAll(/\/ace:([a-z0-9][a-z0-9*-]*)/g)) {
     if (match[1].includes("*")) continue;
     if (!sourceSkillNames.includes(match[1])) errors.push(`${relative(root, path)}: unknown skill target /ace:${match[1]}`);
   }
+  // The suite defines no plugin agents, so any `ace:{name}` agent address dangles.
   for (const match of text.matchAll(/(?<![$A-Za-z0-9_/-])ace:([a-z0-9][a-z0-9*-]*)/g)) {
-    if (match[1].includes("*")) continue;
-    if (!sourceAgentNames.includes(match[1])) errors.push(`${relative(root, path)}: unknown agent address ace:${match[1]}`);
+    errors.push(`${relative(root, path)}: unknown agent address ace:${match[1]}`);
   }
 
   // Suite-internal plugin-root paths must resolve against this checkout.
@@ -308,4 +273,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`OK: ${skillPaths.length} skills, ${codexAgentFiles.length} payloads, ${codexFiles.length} derived files`);
+console.log(`OK: ${skillPaths.length} skills, ${codexFiles.length} derived files`);

@@ -55,6 +55,6 @@ A PR carries comments on three API surfaces and no single `gh` call returns them
 ## Error handling
 
 - No PR token and none derivable from the conversation -> report usage and stop
-- A number or URL that does not resolve to a pull request (e.g. an issue number) -> report the error and stop; when the number resolves to an issue, name the issue and point at `$ace:plan-read <n>` as the issue-loading counterpart
+- A number or URL that does not resolve to a pull request (e.g. an issue number) -> report the error and stop; when the number resolves to an issue, name the issue
 - Unrecognised token or `--comments` value -> report it and stop
 - If there are permission issues with GitHub, report them
