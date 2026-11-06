@@ -212,8 +212,10 @@ runs in:
   never indexed, nothing in it written by a skill), and one artefact `{nn}-{skill}.md` per
   step (`{nn}` is the step number, at least two digits from `01`, in launch order); and
   under `workings/` one folder `workings/{nn}-{skill}/` per step, holding its `state.md`
-  and other records. A workstream holding old-layout records (`report-scope-{kind}.md`,
-  `workings/implementation/` and the like) is read in place, never renamed or back-filled.
+  and other records. A workstream holding old-layout records (an old-layout report
+  `report-scope-{kind}.md` or `report-scope-{kind}-{digits}.md`, an old-layout `handoff.md`,
+  or a `workings/` folder `implementation*/`, `remediation*/`, `scope-envelope/`,
+  `scope-code-review/` or `scope-review/`) is read in place, never renamed or back-filled.
   The rules are `skills/ws-shared/workstream-conventions.md`'s.
 
 Filenames outside `.ace/ws/` are `{yyyyMMdd}-{HHmm}-{kind}-{suffix}.md`. The `.ace/` root
