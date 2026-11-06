@@ -1,9 +1,10 @@
 # Report conventions
 
-Shared reporting conventions for the multi-agent skill suite: the standard header fields,
-the save procedure, and the publish phase. Consumers: the four suite skills; per-skill
-deltas (the `Type:` value, the `Stage:` field, the `--publish` default, extra publication
-notes) live in each SKILL.md.
+The standard header fields a report carries where its contract cites this file. Consumers:
+the response-envelope contract in
+`../agent-shared/sibling-exchange-protocol.md`, which
+`$ace:agent-consultant`'s answers report satisfies; per-skill deltas (the `Type:` value, the
+`Stage:` field) live in that skill's SKILL.md.
 
 ## Standard header fields
 
@@ -17,7 +18,7 @@ full stop and no references to other issues or sources (no "follow-on to #234", 
 stage/phase/track; omit the line otherwise. Each SKILL.md states its `Type:` value and any
 `Stage:` divergence.
 
-Three further fields are shared, and each template carries only its per-skill delta on top
+Two further fields are shared, and each template carries only its per-skill delta on top
 of the grammar below.
 
 `Source:` is an enumerated, comma-separated list of the exact inputs — each item a
@@ -31,47 +32,6 @@ tree state — e.g. `ff6df1d, clean tree` or `ff6df1d, dirty (3 modified files)`
 names the consumer that reads it, and a skill that pins its reviewed state through a
 different field states that divergence instead.
 
-`Prior:` is the path passed to `--prior`; omit the line entirely unless `--prior` was
-supplied. A skill with no `--prior` flag never emits it.
-
 **Path lists.** Any enumerated path list in a report — `Source:`, `## Context files`, and any
 other — carries one path per entry: no wildcards, no glob abbreviations, no comma-grouped
 multi-file rows, and no prose annotations on an item.
-
-## Save report
-
-Write the report to the skill's save path —
-`{directory}/{yyyyMMdd}-{HHmm}-{skill-slug}-{suffix}.md`, where `{yyyyMMdd}` and `{HHmm}`
-are local machine time (`date +%Y%m%d` and `date +%H%M`) and `{suffix}` is the run's hex
-suffix.
-
-The write mechanism governs every artefact a suite skill writes, not only reports: create
-the directory if it does not exist; if the write fails, retry once; if it still fails, output
-the artefact in full so the user can save it manually. Each site names its own fallback
-deliverable — the report in full, the updated report in full, the printed request-envelope
-copy.
-
-## Publish
-
-Runs in every path that saved a report — after the save phase when there is no interview,
-and after the interview phase regardless of the interview outcome (answered, declined,
-cancelled, or tool failure); the file on disk at this point (including any unresolved
-marker) is what gets published.
-
-- **`--publish no`** — do not create an issue. The final summary prints the saved report
-  path plus the ready-to-run line `$ace:report-publish {report path}`.
-- **`--publish yes`** — publish the saved report per the `## Producer publish phase`
-  section in `../report-publish/SKILL.md`.
-
-The report's `**Tip:**` next-step line stays in `## Summary` under both branches.
-
-The saved report is the deliverable; the publish phase is a mechanical post of that file,
-and the command ends after it.
-
-After issue creation the pipeline appends a `## Publication` block (`- Issue: <url>`) to
-the saved report file — the durable report -> issue linkage and the on-disk
-duplicate-publish signal.
-
-If the publish step's `gh issue create` call fails, report the error verbatim and print
-the ready-to-run `$ace:report-publish {report path}` line — the saved report stands
-regardless.

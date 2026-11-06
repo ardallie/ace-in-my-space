@@ -1,7 +1,7 @@
 # Mode: review
 
 Read at step 5 of the run in `../branch/SKILL.md`, which this file does not restate. Purpose:
-let a reviewer -- a person, or `$ace:agent-code-review commit <sha>` -- read only the changes that need judgement.
+let a reviewer -- a person, or `$ace:scope-code-review --ws <ws>` -- read only the changes that need judgement.
 
 ## Result
 

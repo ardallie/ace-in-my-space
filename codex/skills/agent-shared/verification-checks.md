@@ -2,33 +2,31 @@
 
 The `--checks` flag and the shared verification-battery tiers for the review skills that
 run a battery before spawning their team, for `$ace:branch` rebase mode's project-checks
-gate, and for `$ace:scope-implement`'s checkpoints. Consumers:
+gate, and for `$ace:scope-implement`'s and `$ace:scope-report-triage`'s checkpoints.
+Consumers:
 
-- `../agent-code-review/SKILL.md` -- Phase 3 shared verification
-- `../agent-arch-review/SKILL.md` -- Phase 2 shared verification
 - `../scope-review/SKILL.md` -- R3 state and battery
 - `../branch/references/rebase.md` -- rebase gate 4, with the
   flag in `branch`'s SKILL.md Usage. It uses Tiers and Degradation only: it spawns no
-  team, and opts out of the `--prior` and no-compile-surface clauses
+  team, and opts out of the no-compile-surface clause
 - `../scope-implement/SKILL.md` -- checkpoints and final
   integration. It uses Tiers and Degradation only and takes no flag: it spawns no review
-  team, runs `cheap` at each checkpoint and `full` at final integration, and opts out of
-  the `--prior` clauses
+  team, and runs `cheap` at each checkpoint and `full` at final integration
 - `../scope-code-review/SKILL.md` -- K6 battery and test
   run. It takes the flag (default `cheap`) and uses Tiers and Degradation: it runs
   the battery once, before the reviewers, on the pinned state -- each gate in the checkout
-  when the checkout is that state and the gate writes nothing, else in an isolated copy --
-  and opts out of the `--prior` clauses, since it takes no `--prior` flag
+  when the checkout is that state and the gate writes nothing, else in an isolated copy
+- `../scope-report-triage/SKILL.md` -- T11 checkpoints. It uses
+  Tiers and Degradation only and takes no flag: it runs inline with no team, and runs
+  `cheap` at each checkpoint and never `full`
 
-`--checks` is a per-skill flag in the `--prior`/`--reviewers` idiom, deliberately not a
-common flag in `input-conventions.md` -- that file's other consumers run no verification
-battery (`agent-pre-planner`, `agent-scope`, `plan-route`), and `agent-consultant` carries
-its own conditional cheap-gates step and no flag. Each consumer's SKILL.md states where its
-battery runs (at which repository state) and where the results are recorded, and a consumer
-with the flag restates its grammar in its Usage and Phase 1 flag bullets (the per-skill flag
-idiom); the tier definitions below are defined here only. A consumer's Usage bullet may
-carry a one-phrase gloss of a tier as a pointer to the definition, never a second
-definition of it.
+`--checks` is a per-skill flag, taken by `scope-review`, `scope-code-review` and `branch`
+rebase mode; `scope-implement` and `scope-report-triage` take none, and `agent-consultant`
+carries its own conditional cheap-gates step and no flag. Each consumer's SKILL.md states
+where its battery runs (at which repository state) and where the results are recorded, and
+a consumer with the flag restates its grammar in its Usage; the tier definitions below are
+defined here only. A consumer's Usage bullet may carry a one-phrase gloss of a tier as a
+pointer to the definition, never a second definition of it.
 
 ## Flag grammar
 
@@ -36,14 +34,10 @@ definition of it.
 for every consumer that takes the flag. If the value is missing or unknown, report the valid
 values and stop.
 
-**Naming, settled.** The flag name and value set were settled by owner interview against
-the alternatives `--gates` and `--verify` and the value-set variants `full|quick|off` and
-`all|fast|none`. It is named `--checks` rather than `--verify` to keep the review skills'
-gate-tier flag distinct from a differently-scoped `--verify` in the host's own command set
--- in this repository `/wpak-4-compose`'s `--verify auto|all|skip`, which selects a corpus
-subset rather than a gate tier; a replication into a host without such a flag keeps the name
-and loses only the collision. `full` and that flag's `all` are the same idea under different
-names, accepted because the two flags never appear on the same command.
+**Naming.** The flag is `--checks` and its values are `full`, `cheap` and `skip`, in every
+consumer that takes it and in every repository the pack is replicated into. The name keeps
+this gate-tier flag distinct from a `--verify` flag a host's own command set may define with
+a different scope, such as one selecting a corpus subset rather than a gate tier.
 
 ## Tiers
 
@@ -93,7 +87,7 @@ set executed nothing and is recorded as such, exactly as a `skip` run is.
 - **The record grammar.** Wherever a consumer records the shared battery -- a report line,
   a context package -- it records one value in this shape:
 
-  `{tier-or-mode}[ -- {executed commands | no-gate marker}][ (full: no gate resolved)][ (+ --prior pre-build)]`
+  `{tier-or-mode}[ -- {executed commands | no-gate marker}][ (full: no gate resolved)]`
 
   - `{tier-or-mode}` is `full`, `cheap`, or `skipped by flag`.
   - A tier that executed commands carries them: the executed command list, or a one-line
@@ -105,8 +99,6 @@ set executed nothing and is recorded as such, exactly as a `skip` run is.
   - The `(full: no gate resolved)` suffix is appended only by a consumer that runs
     `cheap`'s battery where `full` resolves no gate (`scope-implement`); the tier then
     reads `cheap`, so `cheap -- {commands} (full: no gate resolved)`.
-  - The `(+ --prior pre-build)` suffix is appended only by a consumer whose `--prior`
-    handling builds before spawning (see below).
 
   The mode always displaces a command list rather than sitting beside an empty one, so a
   reader never mistakes an unverified state for a passing one.
@@ -117,11 +109,3 @@ set executed nothing and is recorded as such, exactly as a `skip` run is.
   that no shared battery ran instead of implying verification happened.
 - Team members' own change-specific probes are independent of this flag: `--checks skip`
   disables the parent's shared battery, never a member's probe obligations.
-
-**`--prior` pre-builds sit outside the battery.** Where a consumer builds before spawning
-because `--prior` was supplied -- so members reuse the built state for probes instead of
-each rebuilding the same state -- that build is a probe-support step, not a shared-battery
-gate: it runs under every `--checks` tier, `skip` included, and is disclosed by the
-`(+ --prior pre-build)` suffix on the record, so a `skip` run never reads as having built
-nothing. Under `full` the battery's own build satisfies it -- build once, and append the
-suffix only where the pre-build ran outside the battery.

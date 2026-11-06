@@ -5,6 +5,76 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0]
+
+### Removed -- BREAKING: the planning skills and review outside a workstream
+
+The workstream is now the suite's only planning and review path: `/ace:scope-envelope`,
+`/ace:scope-implement` and `/ace:scope-review` scope, deliver and close the work, and
+`/ace:scope-code-review` and `/ace:scope-report-triage` review and remediate it, all in a
+workstream. The skills those paths supersede are removed outright:
+
+- Planning: `agent-scope`, `agent-arch-review`, `agent-pre-planner`, `plan-start`,
+  `plan-validate`, `plan-update`, `plan-read`, `plan-handoff`, `plan-implement` and
+  `plan-route`. No skill records plans or session progress in GitHub issues.
+- Code review and triage outside a workstream: `agent-code-review` and `report-triage`. A pull
+  request reviewed outside a workstream has no skill.
+- Shared files: `skills/plan-shared/` (`identifiers.md`, `pre-planner-detection.md` and
+  `resolution-markers.md`), and `skills/agent-shared/analysis-conventions.md`,
+  `input-conventions.md` and `team-mechanics.md`, whose only readers were the removed skills.
+- Agent payloads: `agents/plan-drafter.md`, `agents/plan-revisor.md` and
+  `agents/plan-validate.md`, with their `codex/agents/` twins. The plugin ships no `agents/`
+  directory.
+
+The suite is now fifteen skills and no agent payloads. No compatibility aliases are provided:
+a removed skill's invocation resolves to nothing, and no stub or redirect replaces it. Reports
+the removed skills wrote under `.ace/plans/`, `.ace/scope/`, `.ace/arch-review/` and
+`.ace/reports/`, and the issues they published, stay where they are: the surviving skills read
+them as plain files, and none migrates them.
+
+The 0.4.2 suite, these skills included, is preserved at tag
+[`v0.4.2-classic`](https://github.com/ardallie/ace-in-my-space/releases/tag/v0.4.2-classic) of
+this repository, and as the plugin `ace-classic` in the archived repository
+[`ardallie/ace-classic`](https://github.com/ardallie/ace-classic). It is a 0.4.2 snapshot,
+without the changes of 0.5.0 to 0.10.0.
+
+### Changed
+
+- Codex derivation: `scripts/build-codex.mjs` builds the edition from `skills/` alone and
+  writes no `codex/agents/`, and `scripts/check-codex.mjs` checks a tree without payloads,
+  expects fifteen skills, reports any top-level `codex/` entry other than `skills/` as a stray,
+  and rejects every `ace:{name}` agent address. Its OK line reads
+  `OK: 15 skills, {n} derived files`.
+- Accepted formats: the surviving skills no longer accept the formats of the removed skills.
+  `/ace:report-publish` drops its `pre-planner`, `arch-review`, `code-review` and `plan` type
+  arms and the skeleton-title guards of those formats; `/ace:agent-consultant` accepts a scope
+  envelope or a scope review as a pack report, and no other kind; `/ace:scope-code-review` and
+  `/ace:scope-report-triage` drop their clauses for old-layout `agent-code-review` files.
+  `/ace:report-publish` also drops the skill-optimisation skeleton-title guards and its
+  `skill-optimise-eval` type arm, formats no shipped skill produces.
+- Routes: `/ace:scope-code-review` states that a branch outside a workstream is not its
+  subject and names no other review for it, and `/ace:branch`'s review mode names
+  `/ace:scope-code-review --ws <ws>` on the rewritten branch as its next step.
+  `/ace:pr-create` no longer adds a `Closes #<n>` line for a plan issue named in the
+  conversation. `/ace:pr-create`, `/ace:pr-read`, `/ace:pr-response`, `/ace:run-retro`,
+  `/ace:detect-harness` and its `models.md`, and `/ace:scope-implement` state their rules
+  without the planning chain, plan issues or agent payloads.
+- Shared files keep their paths and are pruned to their current readers: `interview.md` drops
+  its report-update and save sections; `report-conventions.md` keeps its standard header
+  fields less `Prior:`, which no current skill takes; `verification-checks.md` drops its
+  `--prior` pre-build clauses, which no current skill takes; and the registries and consumer
+  statements of `verification-checks.md`, `interview.md` and `sibling-exchange-protocol.md`
+  name exactly the skills that cite them.
+- `workstream-conventions.md`'s old-layout section, `/ace:scope-code-review`'s rejected
+  invocation forms and `verification-checks.md`'s flag-naming paragraph state their rules
+  without their history. The old-layout section now recognises an old-layout workstream by
+  its contents -- an old-layout report or handoff, or an old-layout `workings/` folder --
+  rather than by when it began; the other rules are unchanged.
+- README lists the fifteen skills and states their Host requirements and Artefacts directories;
+  the manifests' descriptions and the Codex default prompts describe shipped skills. The
+  Claude and Codex manifests and both version fields of `.claude-plugin/marketplace.json` read
+  0.11.0. The decision template's header and `Seed:` are unchanged.
+
 ## [0.10.0]
 
 ### Added -- a bounded code-review cycle and a review depth level

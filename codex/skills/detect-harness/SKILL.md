@@ -178,8 +178,8 @@ supports when its assessment below calls for it.
   assignment: the level passed, since the orchestrator cannot see the harness overrides
   and caps that may change it. Where the effort departs from the baseline, add a
   one-line reason tied to the assignment; where an override or cap is known to have
-  changed the requested level, say so. A workflow without a settings surface, such as
-  the plan pipeline (plan-start, plan-validate, plan-update), records nothing.
+  changed the requested level, say so. A workflow without a settings surface records
+  nothing.
 
 ### Workflow `--model` arguments
 

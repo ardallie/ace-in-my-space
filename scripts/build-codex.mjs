@@ -82,7 +82,7 @@ const convertFrontmatter = (text) => {
 
 // Skill identities come from the directories that own a SKILL.md. Nothing in this generator
 // may assume a brand prefix on an inner name: the `ace` plugin namespace supplies uniqueness.
-const readSkillInventory = (skillsRoot) => {
+const assertSkillInventory = (skillsRoot) => {
   const names = readdirSync(skillsRoot)
     .filter((entry) => existsSync(join(skillsRoot, entry, "SKILL.md")))
     .sort();
@@ -91,10 +91,9 @@ const readSkillInventory = (skillsRoot) => {
   if (prefixed.length) {
     throw new Error(`Skill names must not repeat the plugin namespace: ${prefixed.join(", ")}`);
   }
-  return names;
 };
 
-const skillInventory = readSkillInventory(join(repositoryRoot, "skills"));
+assertSkillInventory(join(repositoryRoot, "skills"));
 
 const convertCommandsAndPaths = (text) => {
   // Claude invokes a plugin skill as `/ace:{skill}`; Codex mentions the same skill as
@@ -104,7 +103,6 @@ const convertCommandsAndPaths = (text) => {
 
   converted = converted
     .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", "../")
-    .replaceAll("${CLAUDE_PLUGIN_ROOT}/agents/", "../../agents/")
     .replaceAll("AskUserQuestion", "request_user_input")
     .replaceAll("`Agent` tool", "`collaboration.spawn_agent`")
     .replaceAll("`Agent`", "`collaboration.spawn_agent`")
@@ -220,27 +218,6 @@ const convertToolLanguage = (text) => text
 
 const convertText = (text) => convertToolLanguage(convertQuestions(convertCommandsAndPaths(text)));
 
-const convertPayload = (text) => {
-  const withoutFrontmatter = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
-  if (withoutFrontmatter === text) {
-    throw new Error("Agent payload has no Claude frontmatter to remove.");
-  }
-  let converted = convertText(withoutFrontmatter);
-
-  // A payload sits at codex/agents/*.md while skill packages sit at codex/skills/{name}/, so a
-  // payload's skill reference gains a `skills/` segment. Drive this from the discovered
-  // inventory (plus the two shared directories, which own no SKILL.md) rather than a blind
-  // `../{name}/` rule, so a directory the inventory does not own is never rewritten.
-  for (const name of [...skillInventory, "agent-shared", "plan-shared"]) {
-    converted = converted.replace(new RegExp(String.raw`(?<!\.\./)\.\./${name}/`, "g"), `../skills/${name}/`);
-  }
-
-  if (converted.includes("../../skills/")) {
-    throw new Error("Agent payload path rewrite corrupted a suite-relative reference.");
-  }
-  return converted;
-};
-
 const walkFiles = (directory) => {
   const files = [];
   for (const entry of readdirSync(directory)) {
@@ -256,17 +233,11 @@ if (existsSync(outputRoot)) rmSync(outputRoot, { recursive: true, force: true })
 mkdirSync(outputRoot, { recursive: true });
 
 cpSync(join(repositoryRoot, "skills"), join(outputRoot, "skills"), { recursive: true });
-cpSync(join(repositoryRoot, "agents"), join(outputRoot, "agents"), { recursive: true });
 
 for (const path of walkFiles(join(outputRoot, "skills"))) {
   let text = readFileSync(path, "utf8");
   if (path.endsWith(`${sep}SKILL.md`)) text = convertFrontmatter(text);
   text = convertText(text);
-  writeFileSync(path, text, "utf8");
-}
-
-for (const path of walkFiles(join(outputRoot, "agents"))) {
-  const text = convertPayload(readFileSync(path, "utf8"));
   writeFileSync(path, text, "utf8");
 }
 
@@ -369,36 +340,6 @@ sharedInterview = replaceRequired(
 );
 writeFileSync(sharedInterviewPath, sharedInterview, "utf8");
 
-const skillPackageReviewPath = join(outputRoot, "skills", "agent-code-review", "references", "skill-package-review.md");
-let skillPackageReview = readFileSync(skillPackageReviewPath, "utf8");
-skillPackageReview = replaceRequired(
-  skillPackageReview,
-  "Paths written `${CLAUDE_PLUGIN_ROOT}/...` are suite-internal and always\nresolve.",
-  "Paths written relative to the active skill (`../...` or `../../...`) are suite-internal and always\nresolve.",
-  "skill-package review suite-internal path form",
-);
-writeFileSync(skillPackageReviewPath, skillPackageReview, "utf8");
-
-const budgetOverflowPath = join(outputRoot, "skills", "agent-code-review", "references", "budget-overflow.md");
-let budgetOverflow = readFileSync(budgetOverflowPath, "utf8");
-budgetOverflow = replaceRequired(
-  budgetOverflow,
-  /## Options\n[\s\S]*?(?=\n## Outcomes)/,
-  `## Options\n\nUse \`request_user_input\` when it is available in Plan mode, otherwise ask the same concise\nplain-text questions. Present the line count in both paths. The structured surface permits at most\nthree options, so use two stages rather than dropping a behaviour:\n\n1. First ask how to handle the over-budget review:\n   - Narrow the scope and stop this run.\n   - Continue with full files over budget (keep current behaviour).\n   - Continue with a bounded review.\n2. Only after \"bounded review\", ask which bounded shape to use:\n   - Continue with diff only (the diff plus the commit log, skipping full file reads) --\n     diff-based sources only, and only when diff + commit-log lines fit within budget; the\n     \`commit\` and \`directory\` packages do not offer this option.\n   - Continue with the first 30,000 lines (truncated review).\n   - Return to full files over budget (keep current behaviour).\n\nPut exactly one \`(Recommended)\` option first in each presented list, chosen against the counted\noverage and source shape, per the option-list rules in \`../run-interview/SKILL.md\`. In the plain-text fallback, preserve\nthe same option order and marker and invite a free-form alternative.\n\nInclude source-specific advice: for directory sources, suggest narrowing the directory\npath; for commit sources, suggest reviewing a smaller commit; for diff sources, suggest\nisolating generated files in a separate commit or reviewing a single commit.\n`,
-  "budget-overflow options block",
-);
-writeFileSync(budgetOverflowPath, budgetOverflow, "utf8");
-
-const teamMechanicsPath = join(outputRoot, "skills", "agent-shared", "team-mechanics.md");
-let teamMechanics = readFileSync(teamMechanicsPath, "utf8");
-teamMechanics = replaceAllRequired(
-  teamMechanics,
-  "Spawn all members via the `collaboration.spawn_agent` (`agent_type: \"general-purpose\"`, per member its\ntier's `model` and a selected `effort`, but no `name`, since member names are report labels)\nin a single message so they run concurrently.",
-  "Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name` (the member's report label with hyphens replaced by underscores, since the runtime rejects hyphens), the member brief in `message`, `fork_turns: \"none\"`, and its tier's `model` and a selected `reasoning_effort`. Issue every call before waiting so the members run concurrently.",
-  "shared team spawn pattern",
-);
-writeFileSync(teamMechanicsPath, teamMechanics, "utf8");
-
 const consultantPath = join(outputRoot, "skills", "agent-consultant", "SKILL.md");
 let consultant = readFileSync(consultantPath, "utf8");
 consultant = replaceAllRequired(
@@ -420,79 +361,6 @@ consultant = replaceRequired(
   "consultant member-result delivery",
 );
 writeFileSync(consultantPath, consultant, "utf8");
-
-const planStartPath = join(outputRoot, "skills", "plan-start", "SKILL.md");
-let planStart = readFileSync(planStartPath, "utf8");
-for (const [before, after, label] of [
-  ["Runs outside Claude Code's plan mode.", "Runs in either Codex collaboration mode and does not depend on Plan mode.", "plan-start plan-mode note"],
-  ["The `plan-drafter` subagent receives Read, `rg --files`, `rg`, Bash, and Write — the set declared in its `tools:` frontmatter (Bash is constrained to read-only use by the agent prompt).", "The `plan-drafter` supporting payload uses `exec_command`, `rg --files`, `rg`, and `apply_patch`, and is passed through `collaboration.spawn_agent.message`.", "plan-start drafter tool set"],
-  ["Spawn a single subagent via `collaboration.spawn_agent`:\n- `agent_type`: `ace:plan-drafter`", "Read `../../agents/plan-drafter.md` in full, then spawn one subagent through `collaboration.spawn_agent`:\n- `task_name`: `ace_plan_drafter_{8hex}`\n- `fork_turns`: `\"none\"`\n- `message`: the complete payload file followed by the run-specific brief and target-path inputs", "plan-start drafter spawn block"],
-  ["Spawn a fresh subagent via `collaboration.spawn_agent` to validate the draft plan against the codebase:\n\n- `agent_type`: `ace:plan-validate`", "Read `../../agents/plan-validate.md` in full, then spawn a fresh validation subagent through `collaboration.spawn_agent`:\n\n- `task_name`: `ace_plan_validate_{8hex}`\n- `fork_turns`: `\"none\"`\n- `message`: the complete payload file followed by the draft path, report target path, and exploratory-read cap", "plan-start validator spawn block"],
-  ["- Otherwise, spawn the `plan-revisor` subagent via `collaboration.spawn_agent`:\n\n  - `agent_type`: `ace:plan-revisor`", "- Otherwise, read `../../agents/plan-revisor.md` in full and spawn the revisor through `collaboration.spawn_agent`:\n\n  - `task_name`: `ace_plan_revisor_{8hex}`\n  - `fork_turns`: `\"none\"`\n  - `message`: the complete payload file followed by the v1 path, report path, and parsed findings", "plan-start revisor spawn block"],
-  ["- `model` and `effort`: from the Phase 1 value (default `{Tier-2}`) — for a tier, its model and an effort selected under the consumer contract; for an explicit model, the contract's `--model` rules", "- `model` and `reasoning_effort`: from the Phase 1 value (default `{Tier-2}`) — for a tier, its model and a reasoning effort selected under the consumer contract; for an explicit model, preserve it and pass only a caller-requested effort, otherwise omit `reasoning_effort` under the contract's `--model` rules", "plan-start drafter model pair"],
-  ["- `model` and `effort`: **always** `{Tier-3}` — its model, and an effort selected under the consumer contract.", "- `model` and `reasoning_effort`: **always** the `{Tier-3}` model and a reasoning effort selected under the consumer contract.", "plan-start validator model pair"],
-  ["  - `model` and `effort`: `{Tier-3}` — its model, and an effort selected under the consumer contract", "  - `model` and `reasoning_effort`: the `{Tier-3}` model and a reasoning effort selected under the consumer contract", "plan-start revisor model pair"],
-  [/- Do not invoke `EnterPlanMode` or `ExitPlanMode`[^\n]*/, "- Do not require or attempt to change Codex collaboration mode. Run in the current mode and use the documented plain-text question fallback when `request_user_input` is unavailable.", "plan-start plan-mode tool ban"],
-]) {
-  planStart = replaceRequired(planStart, before, after, label);
-}
-// The phrase recurs (the revisor's description and its failure recovery); convert every copy.
-planStart = replaceAllRequired(planStart, "applies patch hunks", "applies `apply_patch` hunks", "plan-start patch-hunk phrasing");
-writeFileSync(planStartPath, planStart, "utf8");
-
-const planValidatePath = join(outputRoot, "skills", "plan-validate", "SKILL.md");
-let planValidate = readFileSync(planValidatePath, "utf8");
-planValidate = replaceRequired(
-  planValidate,
-  "Spawn the `plan-validate` subagent via `collaboration.spawn_agent` with `agent_type: ace:plan-validate`, `model: {Tier-3}` and an `effort` selected from Tier-3's baseline under the effort policy",
-  "Read `../../agents/plan-validate.md` in full, then spawn a validation subagent through `collaboration.spawn_agent` with a run-suffixed `task_name`, `fork_turns: \"none\"`, `message` set to the complete payload followed by the run inputs, the Tier-3 `model` and a `reasoning_effort` selected from its baseline under the effort policy",
-  "standalone validator spawn pattern",
-);
-planValidate = replaceRequired(
-  planValidate,
-  "the agent file's frontmatter `model:` and `effort:` are the fallback for direct invocation",
-  "the harness's default selection for both settings is the fallback when tier resolution is unavailable",
-  "plan-validate model fallback",
-);
-planValidate = replaceRequired(
-  planValidate,
-  "and Write the conversation-held plan text",
-  "and use `apply_patch` to write the conversation-held plan text",
-  "plan-validate conversation-held staging",
-);
-writeFileSync(planValidatePath, planValidate, "utf8");
-
-const planUpdatePath = join(outputRoot, "skills", "plan-update", "SKILL.md");
-let planUpdate = readFileSync(planUpdatePath, "utf8");
-planUpdate = replaceRequired(
-  planUpdate,
-  "Write the body directly through `exec_command` redirection",
-  "Write the body directly with `apply_patch`",
-  "plan-update direct body write",
-);
-planUpdate = replaceRequired(
-  planUpdate,
-  "and Write the revised plan",
-  "and use `apply_patch` to write the revised plan",
-  "plan-update revised-plan write",
-);
-writeFileSync(planUpdatePath, planUpdate, "utf8");
-
-const issueRoutePath = join(outputRoot, "skills", "plan-start", "references", "issue-route.md");
-let issueRoute = readFileSync(issueRoutePath, "utf8");
-issueRoute = replaceRequired(
-  issueRoute,
-  "Write the body field verbatim to",
-  "Use `apply_patch` to write the body field verbatim to",
-  "issue-route body write",
-);
-issueRoute = replaceRequired(
-  issueRoute,
-  ", POSIX path form for the redirection",
-  "",
-  "issue-route redirection path-form clause",
-);
-writeFileSync(issueRoutePath, issueRoute, "utf8");
 
 const detectPath = join(outputRoot, "skills", "detect-harness", "SKILL.md");
 let detect = readFileSync(detectPath, "utf8");
@@ -527,36 +395,6 @@ for (const [before, after, label] of [
   models = replaceRequired(models, before, after, label);
 }
 writeFileSync(modelsPath, models, "utf8");
-
-// Payload-only adaptations. Anything the shared convertText passes already handle belongs
-// there, not here: a duplicate anchor here can never fire and silently rots.
-const payloadAdaptations = [
-  ["read or globbed", "inspected or matched with `rg --files`"],
-];
-const payloadAdaptationHits = new Set();
-
-for (const payloadName of ["plan-drafter.md", "plan-revisor.md", "plan-validate.md"]) {
-  const path = join(outputRoot, "agents", payloadName);
-  let payload = readFileSync(path, "utf8");
-  payload = `<!-- Supporting payload for collaboration.spawn_agent.message; not a discoverable custom-agent definition. -->\n\n${payload}`;
-  for (const [before, after] of payloadAdaptations) {
-    if (!payload.includes(before)) continue;
-    payload = payload.replace(before, after);
-    payloadAdaptationHits.add(before);
-  }
-  writeFileSync(path, payload, "utf8");
-}
-
-// Each payload adaptation is optional per file but required across the payload set: a stale
-// anchor would otherwise degrade a payload silently, exactly as a missed replaceRequired would.
-const missedPayloadAdaptations = payloadAdaptations
-  .map(([before]) => before)
-  .filter((before) => !payloadAdaptationHits.has(before));
-if (missedPayloadAdaptations.length) {
-  throw new Error(
-    `Expected conversion sources were not found (agent payload adaptations):\n${missedPayloadAdaptations.map((before) => `  - ${before}`).join("\n")}`,
-  );
-}
 
 const generatedFiles = walkFiles(outputRoot).length;
 console.log(`Generated ${generatedFiles} Codex edition files under ${outputRoot}.`);
