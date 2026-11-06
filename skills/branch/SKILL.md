@@ -281,9 +281,9 @@ Next: <the mode's next step>
 - Next, review: `/ace:scope-code-review --ws <ws>` on the rewritten branch, `<ws>` naming the workstream the work
   belongs to (with `--base`, note that it reviews from the default branch's merge-base, so the parent branch's
   commits are reviewed too); outside a workstream, a person reviews the commit holding the in-scope files (the
-  second, or the only one when nothing was excluded). Only an empty in-scope group means nothing needs review. Add
-  that a pull request needs `/ace:branch pr` before `/ace:pr-create`: one described from the two review commits says
-  little. pr:
+  second, or the only one when nothing was excluded), named by its full SHA. Only an empty in-scope group means nothing
+  needs review. Add that a pull request needs `/ace:branch pr` before `/ace:pr-create`: one described from the two
+  review commits says little. pr:
   `/ace:pr-create`; with `--base`, note that it targets the default branch and builds the description from the commits
   and diff since it, so the parent branch's commits are included: edit the description and set the pull request's base
   by hand, or create it with `gh pr create --base <branch>` instead. rebase: `/ace:branch review`, `/ace:branch pr`, or

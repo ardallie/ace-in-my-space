@@ -54,7 +54,7 @@ if [ -z "$TITLE" ]; then
 fi
 if [ -n "$FROM_H1" ]; then
   case "$TITLE" in
-    'Scope envelope'|'Consultation answers'|'Consultation request'|'Scope review')
+    'Scope envelope'|'Consultation answers'|'Consultation request'|'Skill optimisation plan'|'Skill optimisation report'|'Skill optimiser run evaluation'|'Scope review')
       echo "File <path> has no Title: field and its H1 is the skeleton title '$TITLE' — add a Title: header (or use a headered artefact) before publishing." >&2
       exit 1 ;;
   esac
@@ -64,6 +64,7 @@ case "$TYPE" in
   scope)       PREFIX='[SCOPE] ' ;;
   scope-review) PREFIX='[SCOPE REVIEW] ' ;;
   consult)     PREFIX='[CONSULT] ' ;;
+  skill-optimise-eval) PREFIX='[SKILL EVAL] ' ;;
   *)           PREFIX='' ;;
 esac
 STAGE=$(head -n 25 <path> | grep -m1 '^Stage: ' | sed 's/^Stage: //')
@@ -84,7 +85,7 @@ echo "$URL"
 
 Title composition rules (this pipeline is the single definition — the producer publish phase (`## Producer publish phase` below) executes it by reading it from this file and running it unchanged, so there is no second copy to drift and titles can never diverge across paths):
 
-- The title body is the `Title:` field, falling back to the first `# ` H1 when the field is absent. The H1 fallback carries a degenerate-title guard: when the fallback resolves to a known skeleton H1 (the four strings enumerated in the pipeline's `case` block above) the run stops — those H1s are report-template constants, not titles, and a file whose `Title:` line is missing would otherwise mint an issue titled with the template constant, such as "Scope envelope". The scope, scope-review and consult skeletons always emit `Title:`, so their arms fire only on a hand-stripped header. The `Consultation request` arm guards the transport-only request envelope, which carries no header fields by design and is never published (`${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/sibling-exchange-protocol.md`).
+- The title body is the `Title:` field, falling back to the first `# ` H1 when the field is absent. The H1 fallback carries a degenerate-title guard: when the fallback resolves to a known skeleton H1 (the seven strings enumerated in the pipeline's `case` block above) the run stops — those H1s are report-template constants, not titles, and a file whose `Title:` line is missing would otherwise mint an issue titled with the template constant, such as "Scope envelope". The scope, scope-review and consult skeletons, and the three skill-optimisation skeletons (a host's skill-optimiser report formats, which this plugin does not produce), always emit `Title:`, so their arms fire only on a hand-stripped header. The `Consultation request` arm guards the transport-only request envelope, which carries no header fields by design and is never published (`${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/sibling-exchange-protocol.md`).
 - The `Type:` field maps to a bracketed content-type prefix; the `case` block above is the definition, including each prefix's trailing space and the no-prefix fallback for an unknown or absent `Type:`. Prefix, not suffix: GitHub truncates long titles from the right in list views, so a prefix stays visible, groups visually, and greps at line start.
 - A `Stage: {n}/{m}` field, when present, appends as ` ({n}/{m})`, per the `SUFFIX` computation in the pipeline above.
 - Example: `[SCOPE] Consolidate request validation and error mapping in the API layer`

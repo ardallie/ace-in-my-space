@@ -134,4 +134,5 @@ Kept, flagged:
 
 One line per excluded path, never collapsed into its directory, ordered by family and directory; empty lists read
 "none". Families: documentation, vendored, build output, generated, snapshot, translation, lockfile, media. The run's
-Next line names the in-scope commit by its full SHA.
+Next line names the in-scope commit a person reviews outside a workstream by its full SHA; that line's
+`/ace:scope-code-review --ws <ws>` step carries none.

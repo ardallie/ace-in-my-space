@@ -50,8 +50,6 @@ without the changes of 0.5.0 to 0.10.0.
   arms and the skeleton-title guards of those formats; `/ace:agent-consultant` accepts a scope
   envelope or a scope review as a pack report, and no other kind; `/ace:scope-code-review` and
   `/ace:scope-report-triage` drop their clauses for old-layout `agent-code-review` files.
-  `/ace:report-publish` also drops the skill-optimisation skeleton-title guards and its
-  `skill-optimise-eval` type arm, formats no shipped skill produces.
 - Routes: `/ace:scope-code-review` states that a branch outside a workstream is not its
   subject and names no other review for it, and `/ace:branch`'s review mode names
   `/ace:scope-code-review --ws <ws>` on the rewritten branch as its next step.
@@ -67,9 +65,19 @@ without the changes of 0.5.0 to 0.10.0.
   name exactly the skills that cite them.
 - `workstream-conventions.md`'s old-layout section, `/ace:scope-code-review`'s rejected
   invocation forms and `verification-checks.md`'s flag-naming paragraph state their rules
-  without their history. The old-layout section now recognises an old-layout workstream by
-  its contents -- an old-layout report or handoff, or an old-layout `workings/` folder --
-  rather than by when it began; the other rules are unchanged.
+  without their history. The old-layout section and the layout bullet now recognise an
+  old-layout workstream by its contents rather than by when it began: a workstream holding
+  old-layout records (an old-layout report `report-scope-{kind}.md` or
+  `report-scope-{kind}-{digits}.md`, an old-layout `handoff.md`, or a `workings/` folder
+  `implementation*/`, `remediation*/`, `scope-envelope/`, `scope-code-review/` or
+  `scope-review/`) is read in place. Its old-layout records are those reports, handoffs and
+  folders, and its other root files and `workings/` folders outside the numbered layout, so
+  its workstream index carries the pointer line to the section and the run that takes its
+  first numbered step gives the section's open message. In a workstream holding none of
+  those, no other root file or `workings/` folder, such as a `RESUME-PROMPT.md` or a
+  `workings/brief/` or `workings/trial/` folder, is an old-layout record. The section also
+  states that no run writes a new old-layout file in a workstream holding a numbered step,
+  where it named only runs of plugin versions before the numbered layout.
 - README lists the fifteen skills and states their Host requirements and Artefacts directories;
   the manifests' descriptions and the Codex default prompts describe shipped skills. The
   Claude and Codex manifests and both version fields of `.claude-plugin/marketplace.json` read
