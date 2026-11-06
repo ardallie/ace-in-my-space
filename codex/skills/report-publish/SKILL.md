@@ -42,10 +42,13 @@ if [ "$BYTES" -gt 65536 ]; then
   echo "File <path> is $BYTES bytes — over GitHub's 65,536-character issue-body limit. Trim or split the artefact before publishing." >&2
   exit 1
 fi
+CR=$(printf '\r')
 TITLE=$(head -n 25 <path> | grep -m1 '^Title: ' | sed 's/^Title: //')
+TITLE=${TITLE%"$CR"}
 FROM_H1=''
 if [ -z "$TITLE" ]; then
   TITLE=$(head -n 25 <path> | grep -m1 '^# ' | sed 's/^# //')
+  TITLE=${TITLE%"$CR"}
   FROM_H1=1
 fi
 if [ -z "$TITLE" ]; then
@@ -60,6 +63,7 @@ if [ -n "$FROM_H1" ]; then
   esac
 fi
 TYPE=$(head -n 25 <path> | grep -m1 '^Type: ' | sed 's/^Type: //')
+TYPE=${TYPE%"$CR"}
 case "$TYPE" in
   scope)       PREFIX='[SCOPE] ' ;;
   scope-review) PREFIX='[SCOPE REVIEW] ' ;;
@@ -68,6 +72,7 @@ case "$TYPE" in
   *)           PREFIX='' ;;
 esac
 STAGE=$(head -n 25 <path> | grep -m1 '^Stage: ' | sed 's/^Stage: //')
+STAGE=${STAGE%"$CR"}
 SUFFIX=''
 [ -n "$STAGE" ] && SUFFIX=" ($STAGE)"
 URL=$(gh issue create --title "${PREFIX}${TITLE}${SUFFIX}" --body-file <path>)
@@ -75,7 +80,7 @@ if [ -z "$URL" ]; then
   echo "gh issue create produced no URL — issue not created; <path> left unmodified." >&2
   exit 1
 fi
-if grep -q '^## Publication$' <path>; then
+if grep -q -e '^## Publication$' -e "^## Publication${CR}\$" <path>; then
   echo "- Issue: $URL" >> <path>
 else
   printf '\n## Publication\n\n- Issue: %s\n' "$URL" >> <path>
