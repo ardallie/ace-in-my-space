@@ -5,18 +5,18 @@ run a battery before spawning their team, for `/ace:branch` rebase mode's projec
 gate, and for `/ace:scope-implement`'s and `/ace:scope-report-triage`'s checkpoints.
 Consumers:
 
-- `${CLAUDE_PLUGIN_ROOT}/skills/scope-review/SKILL.md` -- R3 state and battery
+- `${CLAUDE_PLUGIN_ROOT}/skills/scope-review/SKILL.md` -- the battery on the reviewed state
 - `${CLAUDE_PLUGIN_ROOT}/skills/branch/references/rebase.md` -- rebase gate 4, with the
   flag in `branch`'s SKILL.md Usage. It uses Tiers and Degradation only: it spawns no
   team, and opts out of the no-compile-surface clause
 - `${CLAUDE_PLUGIN_ROOT}/skills/scope-implement/SKILL.md` -- checkpoints and final
   integration. It uses Tiers and Degradation only and takes no flag: it spawns no review
   team, and runs `cheap` at each checkpoint and `full` at final integration
-- `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/SKILL.md` -- K6 battery and test
+- `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/SKILL.md` -- the battery and the test
   run. It takes the flag (default `cheap`) and uses Tiers and Degradation: it runs
   the battery once, before the reviewers, on the pinned state -- each gate in the checkout
   when the checkout is that state and the gate writes nothing, else in an isolated copy
-- `${CLAUDE_PLUGIN_ROOT}/skills/scope-report-triage/SKILL.md` -- T11 checkpoints. It uses
+- `${CLAUDE_PLUGIN_ROOT}/skills/scope-report-triage/SKILL.md` -- checkpoints. It uses
   Tiers and Degradation only and takes no flag: it runs inline with no team, and runs
   `cheap` at each checkpoint and never `full`
 
