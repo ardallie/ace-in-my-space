@@ -77,7 +77,7 @@ Evidence classes, strongest first: `probe` (an executed command with its exact r
 
 ## Coverage
 Review set: {n} of {m} subject files selected, {k} set aside[; closure review: the files the hunks since {prior's Grounded at} and the prior's open findings sit in | ; targeted re-check of {{ids}[ and {n} unprescribed hunks] | {n} unprescribed hunks} from {triage record files} | ; full review, as asked | ; full review: the prior's commit {sha} cannot be read]
-Selection: classifier rules read in place; git {version}; attributes from {the pinned tree | none: {why}, no attributes resolved per path, attribute-based exclusions not applied[; every set-aside kept in, flagged: {trigger}]}; overrides: {owner additions and removals | none}[; added by adopted coverage challenge: {challenge id} -- {paths}[, ...]]; plan record: {workings path}
+Selection: classifier rules read whole from `references/classifier.md`; git {version}; attributes from {the pinned tree | none: {why}, no attributes resolved per path, attribute-based exclusions not applied[; every set-aside kept in, flagged: {trigger}]}; overrides: {owner additions and removals | none}[; added by adopted coverage challenge: {challenge id} -- {paths}[, ...]]; plan record: {workings path}
 Load: {total} lines across {n} slices against a per-slice limit of {limit} (diff-first; disclosed, not capped)
 - {slice} -- {owner role} -- {n} files, {lines} lines -- depth {diff first | whole: {why}}[ -- read in parts]
 Set aside:
