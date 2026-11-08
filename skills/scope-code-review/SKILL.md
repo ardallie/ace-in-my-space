@@ -20,7 +20,7 @@ Read first, after Usage's `--ws` check where Usage has one; this file states onl
 - `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/assets/report-template.md` -- it owns every report form; this file restates none.
 - `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/interview.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/verification-checks.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/branch/references/review.md`, section "Plan: classify by role, not extension" only, at selection (K4).
+- `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/references/classifier.md` -- read whole, at selection (K4).
 - `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/references/skill-text.md` -- only when detection finds any instruction file: seed, package, closure or residual (K4).
 
 ## Usage
@@ -86,12 +86,7 @@ What the conventions' `## Steps` leaves to this skill:
 
 ## Selection and load
 
-- **Classifier.** Read branch's section "Plan: classify by role, not extension" in place -- its gather, decision rules, closed lists and guards -- with these deltas and no others:
-  - every `HEAD` in its gathers is the pinned tip, and its base is the subject's (`## Subject`); a folder is listed as additions from the empty tree (`git hash-object -t tree /dev/null`, without `-w`) to the pinned commit, the folder as pathspec;
-  - attributes come from the subject's own tree, `check-attr --source={pinned tip}`, never `--cached` or the index; the guard for attributes the range changes keeps its separate `--source={base}` call; below git 2.40, which lacks `--source`, no attributes are resolved per path and no attribute-based exclusion applies; opt-outs cannot be resolved either, so where a tracked attribute file at the pinned tip (found with `git grep`) or a local attribute source mentions `linguist-` or `gitlab-generated`, every file the rules would set aside stays in, flagged; all disclosed in the plan record and `## Coverage`, saying no attributes were resolved per path;
-  - its git commands, whose attribute reads set their policy with a POSIX environment prefix (`GIT_ATTR_NOSYSTEM=1 git check-attr ...`), run in a POSIX shell; where none is available, in the active shell's per-command form where it has one, else by setting the variable, running the git command and removing the variable at once, so the policy reaches that one git command only;
-  - for a folder, "the range changes X" reads "X is in the folder", the guard for attributes the range changes does not apply, and the prose-majority count stays repository-wide at the pinned commit;
-  - never read: its Result, Rewrite and Report block sections and its "Nothing to rewrite" paragraph; its exclusion and flag line forms and families are kept, for the plan record.
+- **Classifier.** Apply `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/references/classifier.md`, read whole.
 - The orchestrator applies the rules over the gather -- the marker, regeneration and prose-as-product judgements included -- and records the evidence for each; doubt keeps a file in, flagged. No selection agent, no selection role, no pause to confirm the selection. A flagged file stays in, its reason passed to its owner. Every subject file gets a plan-record row, in or out with its reason line.
 - Owner overrides from the trailing text apply last and win, each recorded as the owner's; a path added from outside the subject's changes is reviewed whole, as owner-requested context. A repeat review's set is `## Repeat reviews and prior`'s; selection, load and team sizing apply to it.
 - Set-aside files stay readable as edge targets for the skill-text lens, never reviewed as files.
@@ -101,7 +96,7 @@ What the conventions' `## Steps` leaves to this skill:
 ## Skill text
 
 - Detection routes and never selects. Over the selected set:
-  - seed: a prose file whose opening `---` block carries `name:` and `description:` -- the classifier's grep hits on lines 1-10, the opener confirmed by reading those files' first lines at the pinned commit;
+  - seed: a prose file whose opening `---` block carries `name:` and `description:` -- the hits on lines 1-10 of the gather grep in `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/references/classifier.md`, the opener confirmed by reading those files' first lines at the pinned commit;
   - package: the seed's directory;
   - closure: files in the subject that the package cites, one hop;
   - residual: other instruction text -- rules, profiles, shared instruction files with no seed above them -- by orchestrator judgement, each disclosed in `## Coverage`.
