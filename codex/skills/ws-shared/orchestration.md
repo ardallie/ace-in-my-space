@@ -4,14 +4,14 @@ Consumed by the scope skills that run agents -- scope-envelope, scope-implement,
 
 ## Role
 
-- Add, re-task and follow up agents as the work reveals the need (verification, gap-filling, adversarial checks); caps count roles, not spawns. A follow-up continues an agent only while its effort suits the follow-up; otherwise spawn fresh, per detect-harness's effort policy.
+- Add, re-task and follow up agents as the work reveals the need (verification, gap-filling, adversarial checks); caps count roles, not spawns. A follow-up continues an agent only while its effort suits the follow-up; otherwise spawn fresh, as `../detect-harness/SKILL.md` directs.
 
 ## Route
 
 - The SKILL.md's orchestration sentence names the route: the orchestration facility it names, or direct subagents.
 - Facility agents run in the background; everything put to the user (the workstream conventions' `## Questions outside the interview`, and the interview) stays in the orchestrator's own loop.
 - Agents inherit no conversation history: give each everything it needs, a unique id prefix, the template forms its record feeds and the `## Ground rules` below verbatim included; pass long records and sources by path, naming the parts each agent needs, not inline; a return that restates a record is paid for twice.
-- Before the ws is resolved, confirm that agents can be spawned: resolve tiers with detect-harness, then spawn one Tier-3 support agent through the route the run will use, with a minimal read-only task the run can use -- list each ws under `.ace/ws/` with what the offer in `../ws-shared/workstream-conventions.md` (`## Resolving a ws`) shows -- and continue only once its result comes back. This agent gets only that task and its model and effort (not the ground rules), writes nothing, and is not a role on `Team:`. If the orchestration facility cannot spawn it, retry with direct subagents and use that route for the run (a rejected tier value is not such a failure: follow detect-harness's stale-mapping rule); if no agent can be spawned at all, say the skill's multi-agent guarantees cannot be met and stop; never run solo.
+- Before the ws is resolved, confirm that agents can be spawned: resolve tiers with detect-harness, then spawn one Tier-3 support agent through the route the run will use, with a minimal read-only task the run can use -- list each ws under `.ace/ws/` with what the offer in `../ws-shared/workstream-conventions.md` (`## Resolving a ws`) shows -- and continue only once its result comes back. This agent gets only that task and its model and effort (not the ground rules), writes nothing, and is not a role on `Team:`. If the orchestration facility cannot spawn it, retry with direct subagents and use that route for the run (a rejected tier value is not such a failure: handle it as `../detect-harness/SKILL.md` directs); if no agent can be spawned at all, say the skill's multi-agent guarantees cannot be met and stop; never run solo.
 
 ## Guarantees
 
@@ -32,12 +32,12 @@ Outcomes to secure, not agents to launch:
 - Revision reviewer: Tier-2 by default; it may run at settings that count toward the Tier-1 ceiling instead of a promoted analyst, taking that analyst's place.
 - Tier-1 ceiling: three roles per run, sceptic and reviewer included. It counts roles by their settings, not their tier label: a role counts when any of its agents runs Tier-1's model at Tier-1's baseline effort or higher, whatever tier it was assigned, because tiers can share a model and effort varies per assignment, so a label alone does not bound cost. Without tier resolution, count the roles assigned Tier-1. Compare efforts in the order `models.md` lists the model's levels, lowest first; a role whose effort is `inherited` or `default` counts at its tier's baseline. Soft cap about 7-9 analysts for large scopes (excludes sceptic, support, reviewer); smaller scopes get smaller teams.
 - Resolve tiers with `../detect-harness/SKILL.md`; its cache lives only in the orchestrator, so pass resolved values to agents and scripts explicitly.
-- Apply each role's tier model, and an effort selected for each assignment under detect-harness's effort policy from that tier's baseline (reading that policy before the first tiered spawn if it is not already in context), through every per-agent control the active route offers (`../detect-harness/models.md` records each route's controls). Precedence: an explicit instruction or `--model` beats the Tier-1 ceiling (see Override), and the ceiling caps the effort policy's raises -- where a raise would make a fourth role count toward the Tier-1 ceiling, keep that role at its tier's baseline, or record the breach in the allocation record as an override. Record effort as `inherited` where no control exists; where the consumer contract omits an effort, record it as that contract's `--model` rules direct. Add no tier-pinned agent definitions.
+- Apply each role's tier model, and an effort selected for each assignment from that tier's baseline as `../detect-harness/SKILL.md` directs (reading that file whole before the first tiered spawn if it is not already in context), through every per-agent control the active route offers (`../detect-harness/models.md` records each route's controls). Precedence: an explicit instruction or `--model` beats the Tier-1 ceiling (see Override), and the ceiling caps any raise the run selects above a tier's baseline -- where a raise would make a fourth role count toward the Tier-1 ceiling, keep that role at its tier's baseline, or record the breach in the allocation record as an override. Record effort as `inherited` where no control exists; where `../detect-harness/SKILL.md` omits an effort, record it as that file directs. Add no tier-pinned agent definitions.
 
 ## Override
 
 - `--model <name or instruction>` (or the same instruction in trailing text): a model name, a tier name, or prose (tiers per role, a mix, effort). It beats every default, the Tier-1 ceiling included.
-- Explicit model names follow detect-harness's rules for explicit `--model` arguments.
+- An explicit model name is used as `../detect-harness/SKILL.md` directs.
 
 ## Allocation record
 

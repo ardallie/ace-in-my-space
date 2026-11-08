@@ -15,7 +15,7 @@ description: "Publishes any report markdown file (scope envelope, scope review, 
 
 Generic publisher for report artefacts: scope envelopes, scope reviews, scope code reviews, and consultation answers. The issue body is the file content verbatim. The issue title is composed from the standard header fields (`Title:`, `Type:`, `Stage:`) that the producing commands write within the first 25 lines of the file, with the first `# ` H1 as the title fallback for files without a `Title:` field.
 
-This is a mechanical "post a file to GitHub" operation. Never read the artefact in full and never echo its content into the conversation: header-field access is `grep -m1` over the first 25 lines only, plus two content-free probes — a tail-scoped `- Issue:` pre-publish probe for a prior publication and a `grep -q` probe for an existing `## Publication` header when persisting the linkage — and the body ships via `gh issue create --body-file <path>` — the content never passes through the model. This `--body-file` use sits outside the pack's `--body-file` alignment set (canonical `../pr-create/SKILL.md` step 6): its warrant is the no-read rule stated here, not the shell-quoting hazard of an inline generated body. No subagents; run inline.
+This is a mechanical "post a file to GitHub" operation. Never read the artefact in full and never echo its content into the conversation: header-field access is `grep -m1` over the first 25 lines only, plus two content-free probes — a tail-scoped `- Issue:` pre-publish probe for a prior publication and a `grep -q` probe for an existing `## Publication` header when persisting the linkage — and the body ships via `gh issue create --body-file <path>` — the content never passes through the model. This `--body-file` use sits outside the pack's `--body-file` alignment set (canonical copy in `../pr-create/SKILL.md`): its warrant is the no-read rule stated here, not the shell-quoting hazard of an inline generated body. No subagents; run inline.
 
 After issue creation the pipeline records the created URL back into the artefact (the linkage-persistence block in the Task pipeline below). This is the single definition of local -> issue linkage; every producer that runs the pipeline verbatim inherits it.
 
@@ -110,7 +110,7 @@ Capture `$URL` and report it.
 ## Producer publish phase
 
 - Covers the `--publish yes` arm only. Each producer's `--publish no` arm, its `--publish` default marker, and its own `Tip:` line stay local to that command.
-- One producer references this section: `agent-consultant` Phase 9.
+- One producer publishes this way: `agent-consultant`.
 - Execute this file's bash pipeline verbatim against the saved report path: read the pipeline from this file's `## Task` section and run it unchanged.
 - The title composes from the report's `Title:`/`Type:`/`Stage:` header fields; the body ships via `gh issue create --body-file`.
 - On publish failure each producer continues rather than stopping — the saved report stands regardless.

@@ -16,9 +16,9 @@ editing this list only -- the surrounding prose never names skills beyond it.
 - `../agent-consultant/SKILL.md` -- consultant side, fully wired: accepts a
   request envelope (or any compatible question set), researches its own repository, and
   produces the response envelope.
-- `../scope-envelope/SKILL.md` -- requester side, fully wired: its sibling
-  routing step emits the request envelope; it states its own exchange-id minting and answers
-  re-entry, which replace the defaults below.
+- `../scope-envelope/SKILL.md` -- requester side, fully wired: it emits
+  the request envelope when it routes questions to a sibling; it states its own exchange-id
+  minting and answers re-entry, which replace the defaults below.
 - `../report-publish/SKILL.md` -- guard-only: its degenerate-title guard is the
   mechanism that enforces the transport-only rule below, refusing the request envelope's H1
   so a request can never be published as an issue. It participates in no round.

@@ -5,18 +5,18 @@ run a battery before spawning their team, for `$ace:branch` rebase mode's projec
 gate, and for `$ace:scope-implement`'s and `$ace:scope-report-triage`'s checkpoints.
 Consumers:
 
-- `../scope-review/SKILL.md` -- R3 state and battery
+- `../scope-review/SKILL.md` -- the battery on the reviewed state
 - `../branch/references/rebase.md` -- rebase gate 4, with the
   flag in `branch`'s SKILL.md Usage. It uses Tiers and Degradation only: it spawns no
   team, and opts out of the no-compile-surface clause
 - `../scope-implement/SKILL.md` -- checkpoints and final
   integration. It uses Tiers and Degradation only and takes no flag: it spawns no review
   team, and runs `cheap` at each checkpoint and `full` at final integration
-- `../scope-code-review/SKILL.md` -- K6 battery and test
+- `../scope-code-review/SKILL.md` -- the battery and the test
   run. It takes the flag (default `cheap`) and uses Tiers and Degradation: it runs
   the battery once, before the reviewers, on the pinned state -- each gate in the checkout
   when the checkout is that state and the gate writes nothing, else in an isolated copy
-- `../scope-report-triage/SKILL.md` -- T11 checkpoints. It uses
+- `../scope-report-triage/SKILL.md` -- checkpoints. It uses
   Tiers and Degradation only and takes no flag: it runs inline with no team, and runs
   `cheap` at each checkpoint and never `full`
 
