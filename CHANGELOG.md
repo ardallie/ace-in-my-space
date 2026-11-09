@@ -5,6 +5,69 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0]
+
+### Removed -- BREAKING: review mode, and `/ace:branch` renamed to `/ace:git-branch`
+
+`/ace:branch` and `$ace:branch` no longer resolve. The skill is now `/ace:git-branch`
+(`$ace:git-branch` on Codex), at `skills/git-branch/`, with two modes, `pr` and `rebase`, and
+the same flags. Review mode is removed, with `skills/branch/references/review.md` and every
+rule that existed only for it, `pr`'s `Absorbed:` and `Excluded from review:` handling
+included: `/ace:git-branch review` is an unknown mode, which prints the usage and stops. No
+alias, stub or redirect replaces the old name or the removed mode.
+
+The skill's backups, in-progress marker and saved patches keep their names
+(`branch-backup/<b>/...`, `<common>/branch-rewrite-in-progress/<b>` and
+`<common>/branch-rewrite-saved-<timestamp>.patch`), so the leftover backups and markers of
+earlier runs are still recognised: an interrupted earlier run still stops a new one, and the
+recovery it prints restores a marker any earlier run left, review mode's included.
+
+The suite with review mode and `/ace:branch` is preserved at commit
+[c79e4bc](https://github.com/ardallie/ace-in-my-space/tree/c79e4bc923f14f17f16e13ce1c35ab4da7c1959b)
+of this repository.
+
+### Changed
+
+- Code-review file selection: `/ace:scope-code-review` has its own classifier,
+  `skills/scope-code-review/references/classifier.md`, read whole and written once for its
+  subject -- the pinned tip, the subject's base, and attributes from the subject's tree with the
+  base-side call -- where it read the classifier in branch's review reference in place, with
+  five deltas and a never-read list. The gather states its grep alternation as required, since
+  skill-text seed detection reads it. Selection is unchanged.
+- Cross-skill locators: no skill or shared file locates a part of another skill's file by a
+  heading, the word section, an in-place read, or a step, phase, gate or lead-in label; another
+  skill's file is cited whole, `scripts/build-codex.mjs`'s generator strings included. The scope
+  rules several skills shared move into the workstream conventions, each a defined test or form
+  that binds only where a skill cites it: the delivery tie test, the owner-exit entry forms, and
+  the diverged-branch route with its state-record line. `/ace:scope-report-triage` states its
+  report-mode base, its live check and its settled matters itself, and the four "an edit here
+  changes that triage too" notes are gone. Each rule keeps its effect.
+- Cover rule: `workstream-conventions.md`'s Cover rule states what a rewrite of the delivery
+  branch after a covering code review does to the cover, and judges it by tree. Where the
+  reviewed commit is not on the delivery tip, or the last commit the records name after the
+  review is not on it while the tip has that commit's tree, the delivery keeps the cover's state
+  at that commit while the tip keeps its tree: covered, or pending the same targeted re-check.
+  Any other tree ends the cover until a repeat review, and so does a compared commit the clone
+  cannot read; elsewhere the commit-by-commit clause reads as before. The rule names no tool,
+  mode or ref namespace. `/ace:scope-code-review` makes the repeat review full where a commit
+  the Cover rule compares against can no longer be read.
+- `/ace:git-branch`: in a workstream, rebase runs before the code review and pr after the last
+  report-mode triage, just before the pull request; the skill states what its push does to the
+  cover, and asks that every backup made since the code review be kept until a run of the
+  workstream prints the delivery complete. rebase's plan lists convergent edits, and it asks on
+  a release-metadata conflict; inside a conflicted file it resolves only the conflicted hunks,
+  and every other line it would change is a `Follow-ups:` entry in its report. pr prints its
+  plan before the backup, groups a generator whose sources span concerns on its own, gives a
+  path several concerns touch to the latest of them, naming the change it carries, carries a
+  closed list of credit trailers, cites no old SHA or review ID in a message, keeps a version
+  claim only where the commit holds a version file, and reports an `Old -> new` map. The push
+  outcome check reads every porcelain flag, and the collision stop states its reference
+  command, under which a leading directory HEAD tracks is not flagged.
+- Codex edition: `codex/` is regenerated; `codex/skills/git-branch/` replaces
+  `codex/skills/branch/`, and `codex/skills/scope-code-review/references/classifier.md` is new.
+  The Claude and Codex manifests and both version fields of `.claude-plugin/marketplace.json`
+  read 0.12.0.
+
 ## [0.11.0]
 
 ### Removed -- BREAKING: the planning skills and review outside a workstream
