@@ -11,7 +11,7 @@ disable-model-invocation: false
 
 An optional argument names the run to retrospect (a command name, issue number, or task
 description). Without an argument, retrospect the most recently finished run in this session.
-Sequential invocations that form one piece of work (e.g. `/ace:branch pr` followed by
+Sequential invocations that form one piece of work (e.g. `/ace:git-branch pr` followed by
 `/ace:pr-create`) count as a single run. If nothing has run in this session and no argument
 identifies a run, say so and stop -- do not reconstruct a retrospective from artefacts alone.
 

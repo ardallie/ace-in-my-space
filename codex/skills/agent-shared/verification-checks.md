@@ -1,14 +1,16 @@
 # Verification checks
 
 The `--checks` flag and the shared verification-battery tiers for the review skills that
-run a battery before spawning their team, for `$ace:branch` rebase mode's project-checks
-gate, and for `$ace:scope-implement`'s and `$ace:scope-report-triage`'s checkpoints.
+run a battery before spawning their team, for the project checks `$ace:git-branch` runs
+before a rebase pushes, and for `$ace:scope-implement`'s and `$ace:scope-report-triage`'s
+checkpoints.
 Consumers:
 
 - `../scope-review/SKILL.md` -- the battery on the reviewed state
-- `../branch/references/rebase.md` -- rebase gate 4, with the
-  flag in `branch`'s SKILL.md Usage. It uses Tiers and Degradation only: it spawns no
-  team, and opts out of the no-compile-surface clause
+- `../git-branch/references/rebase.md` -- the project checks a
+  rebase runs before it pushes, at the tier of the `--checks` flag that
+  `../git-branch/SKILL.md` takes. It uses Tiers and Degradation
+  only: it spawns no team, and opts out of the no-compile-surface clause
 - `../scope-implement/SKILL.md` -- checkpoints and final
   integration. It uses Tiers and Degradation only and takes no flag: it spawns no review
   team, and runs `cheap` at each checkpoint and `full` at final integration
@@ -20,13 +22,13 @@ Consumers:
   Tiers and Degradation only and takes no flag: it runs inline with no team, and runs
   `cheap` at each checkpoint and never `full`
 
-`--checks` is a per-skill flag, taken by `scope-review`, `scope-code-review` and `branch`
-rebase mode; `scope-implement` and `scope-report-triage` take none, and `agent-consultant`
-carries its own conditional cheap-gates step and no flag. Each consumer's SKILL.md states
-where its battery runs (at which repository state) and where the results are recorded, and
-a consumer with the flag restates its grammar in its Usage; the tier definitions below are
-defined here only. A consumer's Usage bullet may carry a one-phrase gloss of a tier as a
-pointer to the definition, never a second definition of it.
+`--checks` is a per-skill flag, taken by `scope-review`, `scope-code-review` and
+`git-branch` rebase mode; `scope-implement` and `scope-report-triage` take none, and
+`agent-consultant` carries its own conditional cheap-gates step and no flag. Each
+consumer's SKILL.md states where its battery runs (at which repository state) and where the
+results are recorded, and a consumer with the flag restates its grammar in its Usage; the
+tier definitions below are defined here only. A consumer's Usage bullet may carry a
+one-phrase gloss of a tier as a pointer to the definition, never a second definition of it.
 
 ## Flag grammar
 
