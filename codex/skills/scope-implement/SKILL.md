@@ -18,6 +18,8 @@ Read first, after Usage's `--ws` check where Usage has one; this file states onl
 - `../ws-shared/orchestration.md`
 - `../detect-harness/SKILL.md`
 
+Copies this file shares with `../scope-report-triage/SKILL.md`, kept aligned and edited together, this file's copies canonical, each worded for its own skill: the three cases that settle the base -- the delivery branch while it carries content no default-branch commit carries, a tied non-default branch at the default branch's tip with the owner question where it is behind, and the default branch's tip; and how a check that needs a running system's observed behaviour waits for what it observes and the other checks, who starts or authorises that system, and what stays unverified.
+
 ## Usage
 
 - `--ws` is required; without it, say so and stop. `--model` per orchestration.md. Input files are consultation answers.
