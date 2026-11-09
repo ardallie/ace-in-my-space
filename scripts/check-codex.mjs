@@ -106,7 +106,7 @@ for (const name of sourceSkillNames) {
 
 // The prefixed form of every live skill name: `ace-` plus the name. The plugin namespace already
 // qualifies each name, so no file may carry its prefixed form. Matched as a whole word, so
-// `workspace-branch` is no hit.
+// `workspace-git-branch` is no hit.
 const retiredIdentifiers = sourceSkillNames
   .map((name) => `${NS}-${name}`)
   .sort()

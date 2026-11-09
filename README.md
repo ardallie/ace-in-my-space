@@ -95,7 +95,7 @@ editions.
 
 ### Pull requests
 
-- `/ace:branch` -- rewrites the current branch for review, a pull request, or a rebase onto the
+- `/ace:git-branch` -- rewrites the current branch for a pull request or a rebase onto the
   default branch, then force-pushes it under a pinned lease, keeping a local backup
 - `/ace:pr-create` -- creates a pull request from the branch's commits
 - `/ace:pr-read` -- reads pull requests and all three of their comment surfaces into the
@@ -172,9 +172,9 @@ the source edit explains.
 - Claude frontmatter carries `argument-hint` and `disable-model-invocation`. Codex folds
   the hint into the skill body and relies on the default
   `policy.allow_implicit_invocation: true`, so no `agents/openai.yaml` is emitted. For
-  `branch`, `scope-implement` and `scope-report-triage`, the three skills Claude cannot
+  `git-branch`, `scope-implement` and `scope-report-triage`, the three skills Claude cannot
   invoke implicitly, this differs: all three stay implicitly invocable on Codex.
-  `$ace:branch` is held back by its description and its Consent rule, which confirms before
+  `$ace:git-branch` is held back by its description and its Consent rule, which confirms before
   changing any branch when the skill was not explicitly requested; `$ace:scope-implement` by
   its description, its required `--ws`, and a consent rule that confirms before the first
   commit when the skill was not explicitly requested; `$ace:scope-report-triage` by its
@@ -196,7 +196,7 @@ The suite assumes the host session provides:
 
 These are hard requirements, not optional integrations: `/ace:report-publish` and every
 `/ace:pr-*` skill stop without them; `/ace:scope-report-triage` needs `gh` in PR mode.
-`/ace:branch` also needs git 2.25.1 or later; for it `gh` is optional.
+`/ace:git-branch` also needs git 2.25.1 or later; for it `gh` is optional.
 
 ## Artefacts
 

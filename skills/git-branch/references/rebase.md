@@ -1,14 +1,19 @@
 # Mode: rebase
 
-Read at step 5 of the run in `${CLAUDE_PLUGIN_ROOT}/skills/branch/SKILL.md`, which this file does not restate. Purpose:
-replay the current branch, from where it stands, onto `<base-tip>` -- the freshly fetched default branch, or the
-`--base` branch -- with conflicts resolved. The default branch is never checked out, and the original authors and
+Read at step 5 of the run in `${CLAUDE_PLUGIN_ROOT}/skills/git-branch/SKILL.md`, which this file does not restate.
+Purpose: replay the current branch, from where it stands, onto `<base-tip>` -- the freshly fetched default branch, or
+the `--base` branch -- with conflicts resolved. The default branch is never checked out, and the original authors and
 messages are kept.
 
 ## Plan
 
 - The commits to replay: `<base>..HEAD` without merges, oldest first, onto the pinned `<base-tip>` SHA. Commits whose
   change is already upstream will be dropped (`git cherry <base-tip> HEAD <base>` marks them `-`); list them.
+- **Convergent edits:** per path, the lines both sides add identically -- the `+` lines shared by
+  `git diff-tree -r -p -U0 --no-textconv --no-ext-diff <base> <base-tip>` and the same diff from `<base>` to HEAD,
+  version strings and counts especially, leaving out lines that only commits `git cherry` marks `-` add. List them as
+  "merges cleanly; verify meaning"; each one the combined tree needs changed -- a version or count both sides bumped
+  -- is a `Follow-ups:` entry.
 - With `--dry-run`, add predicted conflicts from `git merge-tree --write-tree --name-only <base-tip> HEAD` (exit 1
   means conflicts), labelled a prediction: it merges the net change, so a commit-by-commit replay can differ. Before
   git 2.38, print "conflicts not predicted".
@@ -39,6 +44,9 @@ GIT_EDITOR=true git -c rebase.updateRefs=false -c rebase.rebaseMerges=false -c r
   --diff-filter=U` lists, plus any file you regenerated, with `git --literal-pathspecs add --pathspec-from-file=-
   --pathspec-file-nul` -- never `git add -A` or `.` -- after checking that no conflict marker remains in them; then
   continue.
+- **Inside a conflicted file, resolve only its conflicted hunks.** Every other line the resolution would change -- a
+  count or version the combined tree needs, a convergent edit's fallout -- stays as the pick left it and becomes a
+  `Follow-ups:` entry. A file regenerated under the next rule is regenerated whole.
 - **Generated files and lockfiles:** regenerate them with the command the repository documents, after resolving their
   sources. When no command is known, ask: take the upstream version
   (`git --literal-pathspecs checkout --ours -- <path>`: during a rebase "ours" is upstream), with the report telling
@@ -51,11 +59,13 @@ GIT_EDITOR=true git -c rebase.updateRefs=false -c rebase.rebaseMerges=false -c r
   resolution, an alternative where one exists, and "abort and restore". Any outcome other than completing the rebase
   aborts it: restore per the run's Failure section and report `Plan: failed at step 8: aborted at <commit>` with
   `Push: not attempted`.
+- **Release metadata:** a conflict where both sides bump a version field or add a release heading is always ambiguous
+  intent. Ask as above, offering an unreleased section with the version left for a follow-up commit, one release
+  folding both, or abort and restore, and name the evidence that a version is already released: the tags
+  (`git tag --merged <db-tip>`) and the version in the manifest at `<db-tip>`.
 - **rerere:** where the repository already records resolutions, report each one rerere reused and verify it like your
   own. Never enable rerere: that would create `rr-cache` and switch it on for the repository.
-- **The same path conflicting in three or more commits:** ask whether to continue or to abort and restore. Abort
-  suggests `/ace:branch review` first, which collapses the branch to two commits, then `/ace:branch rebase`, then
-  `/ace:branch pr`, each with the same `--base`.
+- **The same path conflicting in three or more commits:** ask whether to continue, or to abort and restore.
 
 ## Gate
 
@@ -76,10 +86,11 @@ suffix) that is not an ancestor of HEAD, else none. `<old base>` is the merge-ba
 3. **Commits and messages,** when this run replayed: pair each replayed commit with its original as range-diff pairs
    them. When a resolution changes a patch too much for range-diff to match, it prints the original as a `<` line and
    the replay as a `>` line; pair such leftovers by subject, then by replay order, leaving out the originals
-   `git cherry` marked as upstream. Each replayed commit keeps every line of its original's message, in order, compared after
-   `git stripspace`; lines a prepare-commit-msg hook added are reported, not failed. An original left unpaired is
-   dropped: expected when `git cherry` marked it; otherwise it became empty during resolution -- name it, and ask
-   whether to accept the drop or abort and restore.
+   `git cherry` marked as upstream. Each replayed commit keeps every line of its original's message, in order,
+   compared after `git stripspace`; lines a prepare-commit-msg hook added are reported, not failed. A kept message
+   that does not describe its replayed patch is a `Follow-ups:` entry. An original left unpaired is dropped: expected
+   when `git cherry` marked it; otherwise it became empty during resolution -- name it, and ask whether to accept the
+   drop or abort and restore.
 4. **Project checks** at the `--checks` tier, default `cheap`. The tiers and the record grammar are those of
    `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/verification-checks.md` (Tiers; Degradation); its team, spawn and
    no-compile-surface clauses do not apply here. Discover the checks yourself: read the CI definitions and the
@@ -89,7 +100,8 @@ suffix) that is not an ancestor of HEAD, else none. `<old base>` is the merge-ba
    counts as failing. Nothing discovered is recorded as `<tier> -- no gate resolved` with a warning that the rebase is
    unverified -- never as a pass -- and the push goes ahead. `skip` is recorded as `skipped by flag`.
 5. **What the rebase changed** in the branch's own patches, when `<pre>` exists: `git --no-pager range-diff
-   --no-color <old base>..<pre> <base-tip>..HEAD`, printed in the report unparsed, so every conflict resolution can be
+   --no-color <old base>..<pre> <base-tip>..HEAD`, printed in the report unparsed -- git prints each `=` pair and each
+   unmatched commit as one header line, and every `!` pair with its body -- so every conflict resolution can be
    reviewed. A `<` line alone does not mean a drop; gate 3 decides which originals were dropped.
 
 ## Gate failures
@@ -105,10 +117,9 @@ user's starting point for a fix. Delete the run's marker. The report shows `Push
 command, the backup, and the local restore line, and tells the user to commit or discard any change a check made before
 rerunning, and not to `git pull`, which would merge the pre-rebase commits back. From there:
 
-- fix, commit, and rerun `/ace:branch rebase` with the same `--base`: nothing is left to rewrite, gates 1, 4 and 5 run
-  again, and the push goes out under a lease pinned to the remote's pre-rebase tip, which the branch's reflog still
-  reaches
-- or rerun with `--checks skip` and the same `--base` to push without the project checks; gate 1 still runs
+- fix, commit, and rerun `/ace:git-branch rebase`: nothing is left to rewrite, gates 1, 4 and 5 run again, and the
+  push goes out under a lease pinned to the remote's pre-rebase tip, which the branch's reflog still reaches
+- or rerun with `--checks skip` to push without the project checks; gate 1 still runs
 
 Anything else -- a hook, the backup check, a rejected lease -- also follows the run's Failure section.
 
@@ -120,6 +131,7 @@ Before the rebase: git reset --keep refs/heads/<pre backup>      (when <pre> is 
 Conflicts: <path -- how resolved, or none>; rerere reused: <list or none>
 Gate: markers <clean | found: ...>; content <clean | outside upstream's changes: ...>;
   messages <unchanged | changed: ...>; checks <record>
+Follow-ups: <each change the rebase left for a commit of its own, or none>
 Range-diff:
-  <git range-diff output>
+  <git range-diff output, unparsed>
 ```

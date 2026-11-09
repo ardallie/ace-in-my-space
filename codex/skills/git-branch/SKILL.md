@@ -1,29 +1,28 @@
 ---
-name: branch
-description: "Rewrites the current feature branch for one purpose -- review (material a reviewer can skip, then the code under review), pr (logical commits), or rebase (onto the latest default branch) -- then force-pushes it under a pinned lease, keeping a local backup. Runs only on an explicit request to rewrite the current branch."
+name: git-branch
+description: "Rewrites the current feature branch for one purpose -- pr (logical commits) or rebase (onto the latest default branch) -- then force-pushes it under a pinned lease, keeping a local backup. Runs only on an explicit request to rewrite the current branch."
 ---
 # Reshape the current branch
 
-**Invocation input:** `<review|pr|rebase> [--dry-run] [--push-backup] [--base <remote>/<branch>] [--checks full|cheap|skip]`
+**Invocation input:** `<pr|rebase> [--dry-run] [--push-backup] [--base <remote>/<branch>] [--checks full|cheap|skip]`
 
 Rewrites the current feature branch's history for one purpose, then force-pushes it. Rewriting a pushed branch is the
 riskiest operation in the suite: wherever safety conflicts with speed or elegance, choose safety.
 
 ## Usage
 
-| Invocation | Result | Next step |
-|---|---|---|
-| `$ace:branch review` | On the base: material a code reviewer can skip, then the code under review (one commit when either is empty) | `$ace:scope-code-review --ws <ws>` on the rewritten branch |
-| `$ace:branch pr` | Logical commits a pull-request reviewer can read one by one | `$ace:pr-create` |
-| `$ace:branch rebase` | The branch replayed onto the latest default branch, conflicts resolved | `$ace:branch review`, `$ace:branch pr` (with the same `--base`), or carry on working |
+| Invocation | Result |
+|---|---|
+| `$ace:git-branch pr` | Logical commits a pull-request reviewer can read one by one |
+| `$ace:git-branch rebase` | The branch replayed onto the latest default branch, conflicts resolved |
 
 - `--dry-run` -- run steps 1-5, print the plan, stop.
 - `--push-backup` -- also push the backup as a new remote branch; by default it stays local.
 - `--base <remote>/<branch>` -- base on that branch instead of the default branch (a stacked branch, or a fork whose
   upstream is another remote). Split the value at the longest prefix naming a configured remote; with none, or with
   nothing after it, print the usage and stop. It replaces only the base side; the default branch is still resolved,
-  fetched, and guarded. No later run remembers it, so every `$ace:branch` command the skill prints, and every rerun it
-  tells the user to do, repeats the run's `--base <remote>/<branch>` when one was given ("the same `--base`").
+  fetched, and guarded. No later run remembers it, so every `$ace:git-branch` command the skill prints, and every
+  rerun it tells the user to do, repeats the run's `--base <remote>/<branch>` when one was given.
 - `--checks full|cheap|skip` -- rebase mode only: the tier of project checks its gate runs, default `cheap`.
 
 Parse the arguments first: an unknown mode, flag, or value, or `--checks` outside rebase mode, prints this usage and
@@ -33,21 +32,42 @@ Ask with `request_user_input`; where it is unavailable, ask in plain text and wa
 a routing choice: no keep-current option, at most three options, longer lists in the question text -- this supersedes
 run-interview's keep-current rule for them.
 
+## In a workstream
+
+In a workstream, rebase runs before the code review, and pr runs after the last report-mode triage, just before the
+pull request. What a rewrite does to the latest code review of the delivery follows the tree the push leaves on the
+remote, compared with the tree of the last commit recorded for that review: the reviewed commit, or the last commit a
+report-mode triage of it made. A dry run, or a run that restores the branch, changes nothing.
+
+- A push that leaves the remote tip with that commit's tree, and that commit no longer on it, leaves the cover as it
+  stood at that commit, whatever pushes since that commit did to it, at no round, while the reviewed commit, that
+  commit and those between them can still be read: a delivery covered at that commit is covered, and a targeted
+  re-check due at that commit is the same re-check.
+  Commits a push only adds above that commit count one by one, as any push does. pr leaves the cover so whenever the
+  branch it rewrites has the remote tip's tree, since its gate keeps the tree.
+- A push that leaves any other tree ends the cover, so the workstream's repeat review runs before the merge. A rebase
+  onto a default branch that has moved usually leaves another tree.
+- A report-mode triage that commits after a pushed pr costs a repeat review, which is why pr runs last.
+- A later code review compares against the reviewed commit, the last commit recorded for it and those between them;
+  once one of them can no longer be read the cover ends and that review is full, so keep every backup made since the
+  code review -- its `-remote` partner included, whatever the report's offer to delete older backups lists -- until a
+  run of the workstream prints that the delivery is complete.
+
 ## Consent
 
-An explicit request for this rewrite -- invoking `$ace:branch`, or asking in so many words for this skill to rewrite
-the current branch -- is consent to rewrite and force-push the current branch; do not ask again. Consent comes only
-from such an explicit request: when the skill was chosen by inference from a looser request (for example "tidy my
-branch") -- possible only where the harness allows implicit invocation -- confirm before changing any branch.
+An explicit request for this rewrite -- invoking `$ace:git-branch`, or asking in so many words for this skill to
+rewrite the current branch -- is consent to rewrite and force-push the current branch; do not ask again. Consent comes
+only from such an explicit request: when the skill was chosen by inference from a looser request (for example "tidy
+my branch") -- possible only where the harness allows implicit invocation -- confirm before changing any branch.
 Otherwise ask only where a step below says so.
 
 ## Invariants
 
 - **One writer.** Only you touch the index, refs, and remote; spawn no subagents.
-- **Content comes from objects.** In review and pr modes never write the working tree or add working-tree files (the
-  Failure restore, after its patch is saved, is the one exception): move the branch and index with a mixed reset and
-  stage each path from the base or backup tree. Never commit untracked files. Rebase writes the working tree by
-  nature; its conflict resolution is the one deliberate exception.
+- **Content comes from objects.** In pr mode never write the working tree or add working-tree files (the Failure
+  restore, after its patch is saved, is the one exception): move the branch and index with a mixed reset and stage
+  each path from the base or backup tree. Never commit untracked files. Rebase writes the working tree by nature; its
+  conflict resolution is the one deliberate exception.
 - **Literal pathspecs from the top level.** Run path-taking commands from the top level as `git --literal-pathspecs`;
   address the whole tree as `.`, never `:/`. Pass path lists on stdin (`--pathspec-from-file=- --pathspec-file-nul`)
   where accepted, otherwise in chunks well under the Windows command-line limit -- never an empty list.
@@ -75,10 +95,11 @@ A stop prints the stop report (step 11).
 `<b>` is the current branch (`git symbolic-ref -q HEAD` without `refs/heads/`; during a rebase in progress, its
 `head-name` under `git rev-parse --git-path rebase-merge`) and `<orig>` its tip's SHA, recorded literally now.
 `<common>` is the absolute path of the shared git directory, `"$(cd "$(git rev-parse --git-common-dir)" && pwd)"`,
-recorded literally now (`--git-common-dir` alone can print the relative `.git`). `<marker>` is
+recorded literally now (`--git-common-dir` alone can print the relative `.git`). `<top>` is the absolute top level,
+derived the same way, `"$(cd "./$(git rev-parse --show-cdup)" && pwd)"`, and recorded literally too. `<marker>` is
 `<common>/branch-rewrite-in-progress/<b>`, shared by every worktree. Check all of these; stop, naming each that holds:
 
-- git is older than 2.25.1
+- git is older than 2.25.1 (`--pathspec-from-file` for `restore`, and its 2.25.1 fix)
 - `<marker>` exists as a file: an earlier run on `<b>` was interrupted. Print its contents and the Interruption
   recovery for the user to run; do not run it
 - `<marker>` exists as a directory: a run on a branch named `<b>/...` was interrupted. Name the marker files under it;
@@ -151,7 +172,7 @@ With the lease absent, skip the integration test and that question.
 
 Report; never ask, except for a reviewed pull request (below):
 
-- review and pr: commits by more than one author -- the user becomes author of every new commit
+- pr: commits by more than one author -- the user becomes author of every new commit
 - merge commits, which the rewrite flattens; rebase drops them, with any change made only in a merge (its gate stops
   the run if that loses content)
 - an open pull request on `<dst>` with reviews, which the push makes outdated:
@@ -166,12 +187,12 @@ Report; never ask, except for a reviewed pull request (below):
 
 ### 5. Plan
 
-- **Message convention** (review and pr): a commit-msg hook (`git rev-parse --git-path hooks`) or commit-lint
-  configuration, then `commit.template`, then recent non-merge subjects on `<db-tip>`. Inferred now so the plan shows
-  final subjects. Never copy a host-appended suffix such as `(#12)`.
+- **Message convention** (pr): a commit-msg hook (`git rev-parse --git-path hooks`) or commit-lint configuration, then
+  `commit.template`, then recent non-merge subjects on `<db-tip>`. Inferred now so the plan shows final subjects.
+  Never copy a host-appended suffix such as `(#12)`.
 - **The mode's plan:** read only the chosen mode's reference and follow it --
-  `../branch/references/review.md`, `../branch/references/pr.md`,
-  or `../branch/references/rebase.md`.
+  `../git-branch/references/pr.md` or
+  `../git-branch/references/rebase.md`.
 - **Nothing to do:** nothing to rewrite (the mode defines it), and the counterpart equals HEAD. Report it and stop, with
   no backup.
 - **Nothing to rewrite:** skip step 8 only; every forced push still gets a backup.
@@ -179,8 +200,16 @@ Report; never ask, except for a reviewed pull request (below):
   track exists on disk as an untracked or ignored file, link, or directory -- or one of its leading directories that
   HEAD does not track exists as a file or link. Git treats ignored files as expendable, so name the paths and stop.
   Compute with `--no-renames`, so rename sources count:
-  - review and pr: paths tracked at the base (pr: the regroup base) and absent from HEAD
+  - pr: paths tracked at the regroup base and absent from HEAD
   - rebase: paths tracked at `<base-tip>`, or touched by any commit in `<base>..HEAD`, and absent from HEAD
+
+  The test, from the top level once the candidate list is built: a candidate collides when
+  `[ -e <path> ] || [ -L <path> ]`. A leading directory `<d>` of a candidate is untracked when
+  `git --literal-pathspecs ls-tree -d HEAD -- <d>` prints nothing, and then collides when
+  `[ -L <d> ] || { [ -e <d> ] && [ ! -d <d> ]; }`. Several directories may share one call, in chunks, none of them a
+  leading directory of another in the same call, with `-z --name-only` listing the tracked ones; or test against one
+  `git ls-tree -r -d -z --name-only HEAD` listing, which names every directory HEAD tracks by its full path.
+- **Shown plan:** without `--dry-run`, print the plan here, before the backup, as output with nothing to answer.
 
 ### 6. Dry run
 
@@ -213,18 +242,17 @@ Per the mode's reference. For every commit:
 
 - Hooks run normally: never `--no-verify` or `-n`, never `-S` or `--no-gpg-sign`.
 - No message line starts with the comment character (`commit.cleanup=strip` drops it); carry no hook-generated
-  per-commit identifiers from the originals. Layout: the body, then (review) the `Absorbed:` paragraph, then issue
-  references, then the trailer block last, so `git interpret-trailers --parse` reads every trailer.
-- Review and pr: one `Co-authored-by: <name> <email>` trailer per other author (matched by mailmapped email) whose
-  replaced commits touched a path in this commit, deduplicated with trailers carried from the originals.
-- Review and pr, immediately after the commit, before the next one: `git diff-tree -r --no-renames --name-only` shows
-  HEAD differing from the base (pr: the regroup base) in exactly the paths planned so far, and from `<orig>` in exactly
-  the rest; and the stored message still carries its planned references and trailers. Otherwise stop rewriting:
-  Failure.
+  per-commit identifiers from the originals. Layout: the body, then issue references, then the trailer block last, so
+  `git interpret-trailers --parse` reads every trailer.
+- pr: one `Co-authored-by: <name> <email>` trailer per other author (matched by mailmapped email) whose replaced
+  commits touched a path in this commit, deduplicated with trailers carried from the originals.
+- pr, immediately after the commit, before the next one: `git diff-tree -r --no-renames --name-only` shows HEAD
+  differing from the regroup base in exactly the paths planned so far, and from `<orig>` in exactly the rest; and the
+  stored message still carries its planned references and trailers. Otherwise stop rewriting: Failure.
 
 ### 9. Gate
 
-Review and pr -- both must hold:
+pr -- both must hold:
 
 1. `HEAD^{tree}` equals `<orig>^{tree}`. A hook that rewrites content trips this: report it, never bypass it.
 2. The tracked working tree is clean.
@@ -245,26 +273,28 @@ git push --porcelain --no-follow-tags --force-with-lease=refs/heads/<dst>:<lease
   for `$ace:pr-create`; when that replaces an existing upstream, the report says so.
 - Never `+`, `--force`, or `--mirror`; never fall back to them. A bare `--force-with-lease` passes once a background
   fetch moves the tracking ref; the pinned SHA does not.
-- Read the exit status and the porcelain line for `refs/heads/<dst>` (`=` is up to date; `!` -- a stale lease or a
-  server-side rejection -- is Failure, with its reason reported; a non-zero exit with no porcelain line, as a declining
-  local pre-push hook gives, is also Failure). If the outcome is unclear after the push exits, check
-  `git ls-remote <r> refs/heads/<dst>` (exact ref): the new HEAD -- it landed; the lease SHA, or nothing when the
-  lease was absent -- it did not (Failure); anything else or an error -- neither restore nor push again: keep the
-  branch, backup, and marker, and report `Push: outcome unknown` with both SHAs, both restore lines, and the marker's
-  delete command.
+- Read the exit status and the flag of the porcelain line for `refs/heads/<dst>`. Exit 0 with ` ` (a fast-forward),
+  `+` (a forced update) or `*` (a new ref): it landed. `=`: up to date. `!` with the summary `rejected` or
+  `remote rejected` -- a stale lease or a server-side rejection -- is Failure, with its reason reported; a non-zero
+  exit with no porcelain line, as a declining local pre-push hook gives, is also Failure. `!` with the summary
+  `remote failure`, any other flag (`-`, a deletion this push never asks for, included) or any other combination
+  leaves the outcome unclear: check `git ls-remote <r> refs/heads/<dst>` (exact ref): the new
+  HEAD -- it landed; the lease SHA, or nothing when the lease was absent -- it did not (Failure); anything else or an
+  error -- neither restore nor push again: keep the branch, backup, and marker, and report `Push: outcome unknown`
+  with both SHAs, both restore lines, and the marker's delete command.
 - Once it lands, delete the marker, and any directories it leaves empty under `branch-rewrite-in-progress`.
 
 ### 11. Report
 
 ```
-$ace:branch <mode>: <b> -> <r>/<dst>
+$ace:git-branch <mode>: <b> -> <r>/<dst>
 Base: <short sha> (merge-base with <remote>/<branch> at <short tip>, before the rewrite)
 Plan: <rewritten | nothing to rewrite | failed at step <n>: <reason>>
 Commits:
   <short sha> <subject> (<n> paths)
 <the mode's report block>
 Warnings: <each, or none>
-Push: <forced update | new branch, upstream set | up to date | rejected: <reason> | blocked: <reason> | stopped: <reason> | not attempted | outcome unknown>
+Push: <forced update | fast-forward | new branch, upstream set | up to date | rejected: <reason> | blocked: <reason> | stopped: <reason> | not attempted | outcome unknown>
 Backup: <names> (<k> backups of <b>; delete older: <git branch -D <names> | none>)
 Restore (local): git reset --keep refs/heads/<backup>
 Restore (remote): git push --force-with-lease=refs/heads/<dst>:<new sha> <r> <lease sha>:refs/heads/<dst>
@@ -272,25 +302,20 @@ Next: <the mode's next step>
 ```
 
 - Path counts use `--no-renames`, so a rename counts twice. Empty lists read "none".
+- `Push:` names a landed push by its flag: `+` a forced update, ` ` a fast-forward, `*` a new branch, upstream set.
 - Backups of `<b>` are the refs named `branch-backup/<b>/<timestamp>` with an optional `-remote`, `-rebased`, or
   `-interrupted` suffix, so a branch whose name extends `<b>` is not counted. The delete list never includes a backup
   holding the lease SHA, one that served as rebase mode's pre-rebase reference, or a `-rebased` or `-interrupted` one.
 - `Restore (local)` runs on `<b>` and refuses rather than overwrite local edits. `Restore (remote)` returns the remote
   to its pre-run tip and appears only when a push landed; after a first push it is a leased delete,
   `git push --force-with-lease=refs/heads/<dst>:<new sha> <r> :refs/heads/<dst>`.
-- Next, review: `$ace:scope-code-review --ws <ws>` on the rewritten branch, `<ws>` naming the workstream the work
-  belongs to (with `--base`, note that it reviews from the default branch's merge-base, so the parent branch's
-  commits are reviewed too); outside a workstream, a person reviews the commit holding the in-scope files (the
-  second, or the only one when nothing was excluded), named by its full SHA. Only an empty in-scope group means nothing
-  needs review. Add that a pull request needs `$ace:branch pr` before `$ace:pr-create`: one described from the two
-  review commits says little. pr:
-  `$ace:pr-create`; with `--base`, note that it targets the default branch and builds the description from the commits
-  and diff since it, so the parent branch's commits are included: edit the description and set the pull request's base
-  by hand, or create it with `gh pr create --base <branch>` instead. rebase: `$ace:branch review`, `$ace:branch pr`, or
-  carry on. Every `$ace:branch` command here carries the same `--base` (Usage).
-- A stop before the backup reports only `$ace:branch <mode>: <b> -- stopped at step <n>: <reasons>`, what moved (at most
-  remote-tracking refs), and what the user can do. A dry run reports the header, `Base:`, the plan, `Warnings:`,
-  and "nothing changed". A failure after the backup uses the full template.
+- Next, pr: `$ace:pr-create`; with `--base`, note that it targets the default branch and builds the description from
+  the commits and diff since it, so the parent branch's commits are included: edit the description and set the pull
+  request's base by hand, or create it with `gh pr create --base <branch>` instead. rebase: `$ace:git-branch pr` once
+  the branch is ready for its pull request, or carry on working.
+- A stop before the backup reports only `$ace:git-branch <mode>: <b> -- stopped at step <n>: <reasons>`, what moved
+  (at most remote-tracking refs), and what the user can do. A dry run reports the header, `Base:`, the plan,
+  `Warnings:`, and "nothing changed". A failure after the backup uses the full template.
 
 ## Failure and interruption
 
@@ -298,9 +323,9 @@ Next: <the mode's next step>
 First check HEAD is `refs/heads/<b>`, or detached by this run's own rebase in progress; if it is neither, the user
 moved it: reset nothing, keep the marker, and report.
 
-- Review and pr: `git reset -q <orig>` (mixed; writes no files). Then `git update-index -q --refresh` and list
-  `git diff-files --name-only -z`: these differ from the original -- hook edits, or the user's own. When the list is
-  not empty, first save them with plumbing, which no diff setting alters, under `set -C` so nothing is overwritten:
+- Any mode other than rebase: `git reset -q <orig>` (mixed; writes no files). Then `git update-index -q --refresh` and
+  list `git diff-files --name-only -z`: these differ from the original -- hook edits, or the user's own. When the list
+  is not empty, first save them with plumbing, which no diff setting alters, under `set -C` so nothing is overwritten:
   `git diff-files -p --binary > "<common>/branch-rewrite-saved-<backup timestamp>.patch"`.
   Check it with `git apply --check -R <file>`; if the check fails, stop and keep the marker. Add `saved=<file>` to the
   marker and name the file in the report, then restore those paths with
@@ -317,8 +342,8 @@ moved it: reset nothing, keep the marker, and report.
 
 **Interruption** -- the session ends mid-run or while a question waits. The marker remains, so the next run stops at
 step 1 and prints this recovery as literal commands, with the marker's values filled in (no `orig`: the newest
-`branch-backup/<b>/<timestamp>` without a suffix), for the user to run in order. They start with
-`cd <absolute top level>` (`git rev-parse --show-toplevel`), since the user may be in a subdirectory:
+`branch-backup/<b>/<timestamp>` without a suffix), for the user to run in order. They start with `cd <top>`, since the
+user may be in a subdirectory:
 
 1. If a git process may still be running, wait; a lock file left by the killed run (`index.lock`, a ref's `.lock`)
    may be removed once none is. A `saved=` line names a patch holding edits a restore set aside: keep it.
@@ -332,10 +357,7 @@ step 1 and prints this recovery as literal commands, with the marker's values fi
    touching local branches); if it fails, stop and keep the marker. If `FETCH_HEAD` is `new` or descends from it
    (`git merge-base --is-ancestor <new> FETCH_HEAD`), the push landed: only delete the marker.
 5. If HEAD is not `<orig>`, keep it -- `git branch <backup>-interrupted HEAD`, unless that ref exists -- and list
-   `git log --format='%H %s' <orig>..HEAD`. Then restore as under Failure: review or pr -- mixed reset, saved and
-   checked patch, restore; rebase -- `git reset --keep <orig>`, with the same fallback. List any file `git status`
+   `git log --format='%H %s' <orig>..HEAD`. Then restore as under Failure: `mode=rebase` -- `git reset --keep <orig>`,
+   with the same fallback; any other mode -- mixed reset, saved and checked patch, restore. List any file `git status`
    shows that `<orig>` does not track; never delete it.
 6. Delete the marker, `rm <marker>`, and any directories it leaves empty under `branch-rewrite-in-progress`.
-
-Git 2.25.1 or later (`--pathspec-from-file` for `restore`, and its 2.25.1 fix). Newer features are optional, each with
-its fallback where used: `git merge-tree --write-tree` and `git grep -m` (2.38), `git check-attr --source` (2.40).
