@@ -79,7 +79,8 @@ editions.
   conventions' `## Hand-off loop` decides, a repeat review -- a closure review of what
   changed and what the prior left open -- or a targeted re-check of what a triage's record
   does not carry, or no review where owner answers settle every blocking item and the triage
-  commits nothing but its owner exit's fix answers, carried on its record; its cycle is
+  commits nothing but its owner exit's fix answers, carried on its record and kept on the
+  delivery tip; its cycle is
   bounded by a round budget, then by the owner exit: from the delivery's third round by
   default (the owner can set another budget), a review still holding an unheld `[high]`
   Correction or Risk asks the owner to fix, defer or ratify each one, and only an owner

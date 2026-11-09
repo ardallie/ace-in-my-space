@@ -41,7 +41,9 @@ of this repository.
   that binds only where a skill cites it: the delivery tie test, the owner-exit entry forms, and
   the diverged-branch route with its state-record line. `/ace:scope-report-triage` states its
   report-mode base, its live check and its settled matters itself, and the four "an edit here
-  changes that triage too" notes are gone. Each rule keeps its effect.
+  changes that triage too" notes are gone. Each rule keeps its effect. A file holding a restated
+  cross-skill copy, or the `-triage` branch name, carries a short note near its top naming the
+  other file and the rule, so the two copies are edited together.
 - Cover rule: `workstream-conventions.md`'s Cover rule states what a rewrite of the delivery
   branch after a covering code review does to the cover, and judges it by tree. Where the
   reviewed commit is not on the delivery tip, or the last commit the records name after the
@@ -50,7 +52,12 @@ of this repository.
   Any other tree ends the cover until a repeat review, and so does a compared commit the clone
   cannot read; elsewhere the commit-by-commit clause reads as before. The rule names no tool,
   mode or ref namespace. `/ace:scope-code-review` makes the repeat review full where a commit
-  the Cover rule compares against can no longer be read.
+  the Cover rule compares against can no longer be read. After an owner exit, a fix answer
+  counts as closed only while a report-mode triage record carries it and the delivery tip has
+  either, in its history, the triage commit that holds the fix or, where the tip is compared
+  against the last commit the records name, that commit's tree; a fix whose push was withheld
+  counts as closed only once it is pushed. The repeat-review sets of `/ace:scope-code-review`
+  and the nothing-to-triage test of `/ace:scope-report-triage` read that closure the same way.
 - `/ace:git-branch`: in a workstream, rebase runs before the code review and pr after the last
   report-mode triage, just before the pull request; the skill states what its push does to the
   cover, and asks that every backup made since the code review be kept until a run of the
