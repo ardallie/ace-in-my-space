@@ -1,6 +1,6 @@
 # Orchestration
 
-Consumed by the scope skills that run agents -- scope-envelope, scope-implement, scope-review and scope-code-review; scope-report-triage reads only the sections its read-first list names. Method stays with the orchestrator and each skill.
+Consumed by the scope skills that run agents -- scope-envelope, scope-implement, scope-review and scope-code-review; scope-report-triage and scope-consultant read only the sections their read-first lists name, and scope-consultant copies `## Ground rules` into each consultant agent's assignment. Method stays with the orchestrator and each skill.
 
 ## Role
 

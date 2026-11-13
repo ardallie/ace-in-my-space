@@ -4,6 +4,18 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 const repositoryRoot = resolve(import.meta.dirname, "..");
 const outputRoot = resolve(repositoryRoot, "codex");
 
+// Files held equal to their sources in the Codex edition; check-codex.mjs keeps the same lists.
+// - verbatimFiles: the start references and the start runner name a harness's own commands and
+//   variables, so the build copies them without conversion, and check-codex holds them equal to
+//   their sources and exempts only them from its forbidden-form scan.
+// - invariantFiles and invariantSections: the consultant-side reference, the assignment and
+//   request templates whose fixed text the consultant reads, and orchestration.md's ground rules,
+//   which a consultation round copies into its assignment, are converted like every file and must
+//   come out unchanged.
+const verbatimFiles = ["skills/scope-consultant/references/start-claude.md", "skills/scope-consultant/references/start-codex.md", "skills/scope-consultant/scripts/start-consultant.mjs"];
+const invariantFiles = ["skills/scope-consultant/references/consultant.md", "skills/scope-consultant/assets/assignment-template.md", "skills/scope-consultant/assets/request-template.md"];
+const invariantSections = [["skills/ws-shared/orchestration.md", "## Ground rules"]];
+
 const assertInsideRepository = (candidate) => {
   const rel = relative(repositoryRoot, candidate);
   if (!rel || rel.startsWith(`..${sep}`) || rel === "..") {
@@ -235,6 +247,9 @@ mkdirSync(outputRoot, { recursive: true });
 cpSync(join(repositoryRoot, "skills"), join(outputRoot, "skills"), { recursive: true });
 
 for (const path of walkFiles(join(outputRoot, "skills"))) {
+  const rel = relative(outputRoot, path).split(sep).join("/");
+  // Already copied byte for byte above.
+  if (verbatimFiles.includes(rel)) continue;
   let text = readFileSync(path, "utf8");
   if (path.endsWith(`${sep}SKILL.md`)) text = convertFrontmatter(text);
   text = convertText(text);
@@ -288,7 +303,7 @@ const codeReviewReference = [
 const codeReviewDir = join(outputRoot, "skills", "scope-code-review");
 writeFileSync(join(codeReviewDir, "SKILL.md"), replaceRequired(readFileSync(join(codeReviewDir, "SKILL.md"), "utf8"), orchestrationSentence, codeReviewOrchestration, "scope-code-review orchestration-tool sentence"), "utf8");
 writeFileSync(join(codeReviewDir, "orchestration-codex.md"), codeReviewReference, "utf8");
-for (const dir of ["scope-code-review", "scope-envelope", "scope-implement", "scope-review", "ws-create", "ws-shared"]) {
+for (const dir of ["scope-code-review", "scope-consultant", "scope-envelope", "scope-implement", "scope-review", "ws-create", "ws-shared"]) {
   for (const path of walkFiles(join(outputRoot, "skills", dir))) {
     if (/workflow/i.test(readFileSync(path, "utf8"))) {
       throw new Error(`Orchestration-tool wording survived conversion: ${relative(repositoryRoot, path)}`);
@@ -395,6 +410,30 @@ for (const [before, after, label] of [
   models = replaceRequired(models, before, after, label);
 }
 writeFileSync(modelsPath, models, "utf8");
+
+// Every file held equal must reach the edition equal to its source. Line endings aside: the
+// conversion normalises CRLF, so on an LF checkout this is byte equality.
+const sameText = (a, b) => a.replace(/\r\n/g, "\n") === b.replace(/\r\n/g, "\n");
+// The lines after the one line equal to `heading`, up to the next line starting `## `.
+const sectionOf = (text, heading) => {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const starts = lines.flatMap((line, index) => (line === heading ? [index] : []));
+  if (starts.length !== 1) throw new Error(`Expected exactly one ${heading} heading, found ${starts.length}.`);
+  const rest = lines.slice(starts[0] + 1);
+  const end = rest.findIndex((line) => line.startsWith("## "));
+  return (end < 0 ? rest : rest.slice(0, end)).join("\n");
+};
+const heldDiffers = (label) => new Error(`Codex edition differs from its source in a file held equal to it: ${label}`);
+for (const rel of [...verbatimFiles, ...invariantFiles]) {
+  const source = join(repositoryRoot, ...rel.split("/"));
+  if (!existsSync(source)) throw new Error(`Held-equal source missing: ${rel}`);
+  if (!sameText(readFileSync(source, "utf8"), readFileSync(join(outputRoot, ...rel.split("/")), "utf8"))) throw heldDiffers(rel);
+}
+for (const [rel, heading] of invariantSections) {
+  const source = readFileSync(join(repositoryRoot, ...rel.split("/")), "utf8");
+  const edition = readFileSync(join(outputRoot, ...rel.split("/")), "utf8");
+  if (sectionOf(source, heading) !== sectionOf(edition, heading)) throw heldDiffers(`${rel} ${heading}`);
+}
 
 const generatedFiles = walkFiles(outputRoot).length;
 console.log(`Generated ${generatedFiles} Codex edition files under ${outputRoot}.`);
