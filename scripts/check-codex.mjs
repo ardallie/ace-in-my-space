@@ -58,6 +58,47 @@ for (const rel of codexPaths) {
   if (!sourcePaths.has(rel) && !generatedOnly.includes(rel)) errors.push(`skills: codex/${rel} has no source counterpart`);
 }
 
+// Files held equal to their sources; build-codex.mjs keeps the same lists. The verbatim start
+// references and start runner name a harness's own commands: the build copies them unconverted,
+// and they alone are exempt from the forbidden-form scan below, and only while they equal their
+// sources. The invariant files and sections are converted like every file and must come out
+// unchanged. A list drift fails loudly: a verbatim file this check does not exempt trips the
+// forbidden scan, and every held-equal file is compared.
+const verbatimFiles = ["skills/scope-consultant/references/start-claude.md", "skills/scope-consultant/references/start-codex.md", "skills/scope-consultant/scripts/start-consultant.mjs"];
+const invariantFiles = ["skills/scope-consultant/references/consultant.md", "skills/scope-consultant/assets/assignment-template.md", "skills/scope-consultant/assets/request-template.md"];
+const invariantSections = [["skills/ws-shared/orchestration.md", "## Ground rules"]];
+// Line endings aside: the conversion normalises CRLF, so on an LF checkout this is byte equality.
+const sameText = (a, b) => a.replace(/\r\n/g, "\n") === b.replace(/\r\n/g, "\n");
+// The lines after the one line equal to `heading`, up to the next line starting `## `.
+const sectionOf = (text, heading) => {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const starts = lines.flatMap((line, index) => (line === heading ? [index] : []));
+  if (starts.length !== 1) throw new Error(`expected exactly one ${heading} heading, found ${starts.length}`);
+  const rest = lines.slice(starts[0] + 1);
+  const end = rest.findIndex((line) => line.startsWith("## "));
+  return (end < 0 ? rest : rest.slice(0, end)).join("\n");
+};
+const sourceOf = (rel) => join(root, ...rel.split("/"));
+const editionOf = (rel) => join(codexRoot, ...rel.split("/"));
+const heldEqual = (rel) => existsSync(sourceOf(rel)) && existsSync(editionOf(rel))
+  && sameText(readFileSync(sourceOf(rel), "utf8"), readFileSync(editionOf(rel), "utf8"));
+for (const rel of [...verbatimFiles, ...invariantFiles]) {
+  // A source with no Codex copy is reported by the counterpart check above.
+  if (!existsSync(sourceOf(rel))) errors.push(`held-equal file missing: ${rel}`);
+  else if (existsSync(editionOf(rel)) && !heldEqual(rel)) errors.push(`codex/${rel} differs from its source`);
+}
+for (const [rel, heading] of invariantSections) {
+  if (!existsSync(sourceOf(rel)) || !existsSync(editionOf(rel))) continue;
+  try {
+    if (sectionOf(readFileSync(sourceOf(rel), "utf8"), heading) !== sectionOf(readFileSync(editionOf(rel), "utf8"), heading)) {
+      errors.push(`codex/${rel} ${heading} differs from its source`);
+    }
+  } catch (error) {
+    errors.push(`${rel}: ${error.message}`);
+  }
+}
+const exemptFromForbidden = new Set(verbatimFiles.filter(heldEqual));
+
 // -- Inventories -------------------------------------------------------------------------
 // The `ace` plugin namespace supplies uniqueness, so an inner name must never repeat it.
 
@@ -67,10 +108,10 @@ const skillDirectories = (skillsRoot) => readdirSync(skillsRoot)
 
 const sourceSkillNames = skillDirectories(join(root, "skills"));
 
-if (sourceSkillNames.length !== 15) errors.push(`expected 15 Claude skills, found ${sourceSkillNames.length}`);
+if (sourceSkillNames.length !== 16) errors.push(`expected 16 Claude skills, found ${sourceSkillNames.length}`);
 
 const skillPaths = codexFiles.filter((path) => path.endsWith(`${sep}SKILL.md`));
-if (skillPaths.length !== 15) errors.push(`expected 15 Codex skills, found ${skillPaths.length}`);
+if (skillPaths.length !== 16) errors.push(`expected 16 Codex skills, found ${skillPaths.length}`);
 
 const skillNames = new Set();
 for (const skillPath of skillPaths) {
@@ -136,8 +177,11 @@ const forbidden = [
 
 for (const path of codexFiles) {
   const text = readFileSync(path, "utf8");
-  for (const [label, token] of forbidden) {
-    if (text.includes(token)) errors.push(`${relative(root, path)}: contains ${label}`);
+  // Every other scan in this loop runs on every file, the exempt ones included.
+  if (!exemptFromForbidden.has(relative(codexRoot, path).split(sep).join("/"))) {
+    for (const [label, token] of forbidden) {
+      if (text.includes(token)) errors.push(`${relative(root, path)}: contains ${label}`);
+    }
   }
   for (const [identifier, pattern] of retiredIdentifiers) {
     if (pattern.test(text)) errors.push(`${relative(root, path)}: contains retired identifier ${identifier}`);
@@ -240,7 +284,7 @@ if (claudeEntry?.version !== claudeManifest.version) {
 // would silently keep stale headers. The pin holds the seed and a hash of the header as
 // scope-implement compares it (above `## Decisions`, `Seed:` and blank lines and line endings
 // aside). A header change sets `Seed:` to the releasing version and updates both pin values.
-const DECISIONS_SEED = { seed: "0.9.0", sha256: "390cb8593d420e85ec2b8e82f91e57a13e8f8876452688e281ef277056aef006" };
+const DECISIONS_SEED = { seed: "0.13.0", sha256: "29b3cd903ca0807ef88d958d418e1e2cdb234777d59da2fd578899724854e24c" };
 const templateLines = readFileSync(join(root, "skills", "ws-shared", "decisions-template.md"), "utf8").split(/\r?\n/);
 const decisionsHeading = templateLines.indexOf("## Decisions");
 const seedLines = templateLines.filter((line) => line.startsWith("Seed:"));

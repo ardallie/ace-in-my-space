@@ -4,15 +4,14 @@ Title: {concise; no trailing full stop; no issue, package or stage numbers; no r
 Type: scope
 Date: {yyyy-MM-dd}
 Workstream: .ace/ws/{name}
-Source: {each given input, comma-separated: inputs.md key form where one exists, else the literal ref (branch, commit range, ws report file) | given only --ws: the prior file, else the ws's inputs.md keys, else none}
+Source: {{each given input, comma-separated: inputs.md key form where one exists, else the literal ref (branch, commit range, ws report file) | given only --ws: the prior file, else the ws's inputs.md keys, else none}; then each consultation record read, by its ws-relative file}
 Prior: {file | none (declined: {file})}
 Grounded at: {short hash}, {clean tree | dirty ({n} modified files)}[; HEAD moved to {hash} during the run]
-Exchange: {8hex} -- {counterpart repository} -- round {k}; request {path}[; answers {path}]
 Decisions: {D ids this run added | none | pending}
 Next: {the next step(s) Close printed, as printed, in print order | pending}
 Grounding: {specification file read | none}
 
-[Bracketed paragraphs like this one are guidance: follow them, then delete them. Inside a line form, `[...]` marks an optional part, except tags: where a form shows `[blocking|deferrable]` or `[high|low]`, write exactly one of the two (`[blocking]`, ...); `[Resolved]` and `[Routed]` are written as shown. Unbracketed prose, such as the Stages paragraph, is kept verbatim. H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Source:` names this kind's own input, as the workstream conventions' `## Steps` has each input line do; an input-less envelope's `Source:` names what supplies its ambition: its prior where one exists, else the ws's `inputs.md` keys (E2). `Exchange:` (envelope only): one line per counterpart, written when this run routes or consumes a round and carried forward while that exchange stays open, omitted otherwise. `Decisions: pending` only between save and append, never in the final report; `Next: pending` until Close (the workstream conventions' `## Steps`). `Decisions:` carries ids only.]
+[Bracketed paragraphs like this one are guidance: follow them, then delete them. Inside a line form, `[...]` marks an optional part, except tags: where a form shows `[blocking|deferrable]` or `[high|low]`, write exactly one of the two (`[blocking]`, ...); `[Resolved]` is written as shown. Unbracketed prose, such as the Stages paragraph, is kept verbatim. H1 is the first line; no line in the first 25 starts with `Stage`. One bare `Field: value` per line at column 0, no bullets or bold. Omit `Prior:` when no earlier report of this kind exists. `Source:` names this kind's own input, as the workstream conventions' `## Steps` has each input line do; an input-less envelope's `Source:` names what supplies its ambition: its prior where one exists, else the ws's `inputs.md` keys (E2). The consultation records read with the prior and the reports consumed follow the inputs on `Source:`, as they ground this run (E2). `Decisions: pending` only between save and append, never in the final report; `Next: pending` until Close (the workstream conventions' `## Steps`). `Decisions:` carries ids only.]
 
 ## Summary
 [The ambition; the direction in one sentence; the shape of the stages; every blocking question and load-bearing (unverified) claim. States nothing the body does not; cites D, never restates. Ends: "When delivered, /ace:scope-review in this workstream closes it."]
@@ -56,13 +55,11 @@ Open assumptions: {A ids | none} (owners in Assumption inventory)
 ### Open questions
 
 Q{n} [blocking|deferrable] -- {question, with the context needed to answer it, every sub-question kept; any options, the recommended one marked with why} Owner: {owner}.
-Q{n} [blocking|deferrable] [Routed] -- {question} Owner: sibling ({role}).
 Q{n} [blocking|deferrable] [Resolved] -> D{m}
 Q{n} [blocking|deferrable] [Resolved] -- {question} -> D{m} (moot)
-Routed: {8hex}, round {k}; {N} questions await consultant answers.
 Interview: {declined | cancelled | failed}; {N} questions unresolved.
 
-[One physical line per question, blocking first; nothing else in the block. A saved line never moves: routing changes only its marker and ending; an answer reduces it to its pointer; a moot line keeps only its question and pointer. Owners: `user`, `S{k}` (that stage's Owns lists it), `sibling ({role})`, `third party ({role})`, `closing review` (envelope only); never "later", "the implementer", "a probe" or "backlog". `[blocking]`: the work cannot be planned credibly without it; `[deferrable]`: its owner settles it during the work. `[Routed]` lines and `Routed:` (envelope only): one `Routed:` per exchange, only while its `[Routed]` lines remain; a scope review writes a sibling-owned question in the plain form with `Owner: sibling ({role})`. `Interview:` only after a declined, cancelled or failed interview. With no Q line at all, the H3 is omitted and `None.` stands in its place (an envelope keeps its `Open assumptions:` line above it).]
+[One physical line per question, blocking first; nothing else in the block. A saved line never moves: routing changes only its owner; an answer reduces it to its pointer; a moot line keeps only its question and pointer. Owners: `user`, `S{k}` (that stage's Owns lists it), `sibling ({role})`, `third party ({role})`, `closing review` (envelope only); never "later", "the implementer", "a probe" or "backlog". `[blocking]`: the work cannot be planned credibly without it; `[deferrable]`: its owner settles it during the work. A sibling-owned question is written in the plain form with `Owner: sibling ({role})`; while one stays open, the Close prints the consultation round, which reads it from this report. `Interview:` only after a declined, cancelled or failed interview. With no Q line at all, the H3 is omitted and `None.` stands in its place (an envelope keeps its `Open assumptions:` line above it).]
 
 ## Premise challenge
 

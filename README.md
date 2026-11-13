@@ -5,7 +5,7 @@ pull-request work, cross-repository consultation, report publication, and harnes
 detection. It ships as a single plugin named `ace`, distributed from the
 `ace-in-my-space` marketplace (this repository).
 
-Fifteen skills. The skills invoke one another by name, so they are packaged and versioned
+Sixteen skills. The skills invoke one another by name, so they are packaged and versioned
 together rather than split per workflow.
 
 ## Installation
@@ -91,6 +91,10 @@ editions.
   branch or the pull request's head, and in PR mode answers the review through
   `/ace:pr-response` (requires `--ws`; explicit-only on Claude); not for a review outside
   a workstream
+- `/ace:scope-consultant` -- puts a workstream's questions to a sibling repository: starts
+  one confined consultant agent in the target, waits for it and saves its answers as a step
+  of the workstream, with no file carried by hand; the target comes from `--target` or
+  `.profile/stack.profile.md`
 - `/ace:agent-consultant` -- answers a cross-repository consultation request as the
   consultant side of the sibling-exchange protocol
 
@@ -144,10 +148,20 @@ the Codex mechanics that skill points to -- collecting results into its records,
 and fresh spawns, yielded commands, asynchronous questions and isolated writing probes;
 `check-codex` allow-lists both.
 
+`scope-consultant`'s two start references and its start runner,
+`skills/scope-consultant/scripts/start-consultant.mjs`, reach the edition unconverted, since
+each names a harness's own commands. Its consultant-side reference, its assignment and
+request templates, and `skills/ws-shared/orchestration.md`'s `## Ground rules`, all of whose
+text reaches a round's consultant agent, are converted like every file and must come out
+unchanged. The build and `check-codex` fail when any of them differs from its source, and
+`check-codex` exempts only those three files, while they equal their sources, from its
+forbidden-form scan.
+
 `check-codex` checks the edition's structure and forbidden forms, and the Claude source's
 retired identifiers, `/ace:` targets and plugin-root paths -- not the edition's content
-against a fresh build: a direct edit under `codex/` that keeps its structure and adds no
-forbidden form passes it, and the next build silently reverts it.
+against a fresh build, except for the files it holds equal to their sources: a direct edit
+under `codex/` that keeps its structure and adds no forbidden form passes it, and the next
+build silently reverts it.
 Freshness is checked by rebuilding: `git status --porcelain codex` then shows only the changes
 the source edit explains.
 
