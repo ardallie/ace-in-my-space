@@ -6,7 +6,9 @@ before a rebase pushes, and for `$ace:scope-implement`'s and `$ace:scope-report-
 checkpoints.
 Consumers:
 
-- `../scope-review/SKILL.md` -- the battery on the reviewed state
+- `../scope-review/SKILL.md` -- the battery on the reviewed state;
+  its report template, `../scope-review/assets/report-template.md`,
+  records the result in the record grammar
 - `../git-branch/references/rebase.md` -- the project checks a
   rebase runs before it pushes, at the tier of the `--checks` flag that
   `../git-branch/SKILL.md` takes. It uses Tiers and Degradation
@@ -17,7 +19,9 @@ Consumers:
 - `../scope-code-review/SKILL.md` -- the battery and the test
   run. It takes the flag (default `cheap`) and uses Tiers and Degradation: it runs
   the battery once, before the reviewers, on the pinned state -- each gate in the checkout
-  when the checkout is that state and the gate writes nothing, else in an isolated copy
+  when the checkout is that state and the gate writes nothing, else in an isolated copy;
+  its report template, `../scope-code-review/assets/report-template.md`,
+  records the result in the record grammar
 - `../scope-report-triage/SKILL.md` -- checkpoints. It uses
   Tiers and Degradation only and takes no flag: it runs inline with no team, and runs
   `cheap` at each checkpoint and never `full`

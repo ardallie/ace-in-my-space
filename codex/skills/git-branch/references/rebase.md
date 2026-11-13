@@ -92,7 +92,7 @@ suffix) that is not an ancestor of HEAD, else none. `<old base>` is the merge-ba
    when `git cherry` marked it; otherwise it became empty during resolution -- name it, and ask whether to accept the
    drop or abort and restore.
 4. **Project checks** at the `--checks` tier, default `cheap`. The tiers and the record grammar are those of
-   `../agent-shared/verification-checks.md` (Tiers; Degradation); its team, spawn and
+   `../shared/verification-checks.md` (Tiers; Degradation); its team, spawn and
    no-compile-surface clauses do not apply here. Discover the checks yourself: read the CI definitions and the
    scripts or targets the repository defines; for `cheap`, keep compile or typecheck and fast consistency scripts,
    preferring the project-wide typecheck, since upstream changes can break callers outside the branch's own diff.

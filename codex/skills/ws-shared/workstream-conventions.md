@@ -228,7 +228,7 @@ Old-layout records are the old-layout reports and handoffs named below, the `wor
 
 ## Interview in a ws
 
-- Run `../agent-shared/interview.md`; its `## Run the interview tool`, `## Collect answers` and `## Unresolved marker` apply, and the rules below update and save the report.
+- Run `../ws-shared/interview.md`; its `## Run the interview tool`, `## Collect answers` and `## Unresolved marker` apply, and the rules below update and save the report.
 - Present only `user`-owned open questions, blocking and deferrable; fold a question that depends on another into it while the combined options stay within the per-question limit, else ask it in a later call once that answer is known, so the per-call limits drop nothing.
 - A question made moot by another answer is resolved without asking: its line ends `-> D{m} (moot)`, pointing to the entry that mooted it; it gets no entry of its own.
 - Only actual answers become entries; declined, cancelled and failed questions stay open. The `Interview:` marker counts unresolved presented questions only.
