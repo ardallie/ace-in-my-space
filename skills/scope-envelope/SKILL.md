@@ -18,7 +18,7 @@ Read first, after Usage's `--ws` check where Usage has one; this file states onl
 - `${CLAUDE_PLUGIN_ROOT}/skills/ws-shared/orchestration.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/scope-envelope/assets/report-template.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/interview.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/ws-shared/interview.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/sibling-exchange-protocol.md` -- only when routing.
 
 A copy this file shares with `${CLAUDE_PLUGIN_ROOT}/skills/ws-shared/workstream-conventions.md`, kept aligned and edited together, this file's copy canonical: the condition under which this skill's Close prints the implementing run with the answers path instead of the re-run -- every routed question `[deferrable]`, and a fallback recorded for each -- which that file's envelope edge repeats.

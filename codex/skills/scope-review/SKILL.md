@@ -18,8 +18,8 @@ Read first, after Usage's `--ws` check where Usage has one; this file states onl
 - `../ws-shared/orchestration.md`
 - `../detect-harness/SKILL.md`
 - `../scope-review/assets/report-template.md`
-- `../agent-shared/interview.md`
-- `../agent-shared/verification-checks.md`
+- `../ws-shared/interview.md`
+- `../shared/verification-checks.md`
 
 ## Usage
 

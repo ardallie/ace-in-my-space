@@ -14,7 +14,7 @@ Read first, after Usage's `--ws` check where Usage has one; this file states onl
 - The ws's `index.md`, once the ws is resolved, for orientation only (the conventions' `## Workstream index`).
 - The ws's `decisions.md`, once the ws is resolved, read as the conventions' `## Decision log` says.
 - `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md` -- for the harness on the `Run:` line only.
-- `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/verification-checks.md`, before the first checkpoint (T11).
+- `${CLAUDE_PLUGIN_ROOT}/skills/shared/verification-checks.md`, before the first checkpoint (T11).
 - `${CLAUDE_PLUGIN_ROOT}/skills/ws-shared/orchestration.md`, section `## Probes and external state` only, where the run makes scratch or touches shared external state (`## Record`).
 - PR mode: `${CLAUDE_PLUGIN_ROOT}/skills/pr-read/SKILL.md` and `${CLAUDE_PLUGIN_ROOT}/skills/pr-response/SKILL.md`, each run by reference (T4, T13).
 

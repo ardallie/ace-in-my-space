@@ -18,8 +18,8 @@ Read first, after Usage's `--ws` check where Usage has one; this file states onl
 - `${CLAUDE_PLUGIN_ROOT}/skills/ws-shared/orchestration.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/detect-harness/SKILL.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/assets/report-template.md` -- it owns every report form; this file restates none.
-- `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/interview.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/agent-shared/verification-checks.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/ws-shared/interview.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/shared/verification-checks.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/references/classifier.md` -- read whole, at selection (K4).
 - `${CLAUDE_PLUGIN_ROOT}/skills/scope-code-review/references/skill-text.md` -- only when detection finds any instruction file: seed, package, closure or residual (K4).
 

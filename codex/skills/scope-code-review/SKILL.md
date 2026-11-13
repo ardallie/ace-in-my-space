@@ -18,8 +18,8 @@ Read first, after Usage's `--ws` check where Usage has one; this file states onl
 - `../ws-shared/orchestration.md`
 - `../detect-harness/SKILL.md`
 - `../scope-code-review/assets/report-template.md` -- it owns every report form; this file restates none.
-- `../agent-shared/interview.md`
-- `../agent-shared/verification-checks.md`
+- `../ws-shared/interview.md`
+- `../shared/verification-checks.md`
 - `../scope-code-review/references/classifier.md` -- read whole, at selection (K4).
 - `../scope-code-review/references/skill-text.md` -- only when detection finds any instruction file: seed, package, closure or residual (K4).
 

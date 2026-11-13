@@ -318,7 +318,7 @@ interviewSkill = replaceRequired(
 );
 writeFileSync(interviewSkillPath, interviewSkill, "utf8");
 
-const sharedInterviewPath = join(outputRoot, "skills", "agent-shared", "interview.md");
+const sharedInterviewPath = join(outputRoot, "skills", "ws-shared", "interview.md");
 let sharedInterview = readFileSync(sharedInterviewPath, "utf8");
 sharedInterview = replaceRequired(
   sharedInterview,
