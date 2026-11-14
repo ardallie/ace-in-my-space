@@ -11,7 +11,8 @@
 //   node start-consultant.mjs keep <spec.json>             the keeper itself, started by "start"
 //
 // spec.json, written by the requester:
-//   launcher          absolute path of the program to start
+//   launcher          absolute path of the program to start; on Windows, a POSIX shell's "/c/..." form of it,
+//                     of cwd, outDir, marker or a whole args element is taken as "C:/..." (nativePath)
 //   args              its arguments, one string per element, never shell-quoted
 //   cwd               the target: the consultant's working directory
 //   outDir            the step's raw/ folder; it must not hold pid.json or meta.json yet
@@ -63,6 +64,17 @@ function fail(message) {
 const isDir = (p) => { try { return statSync(p).isDirectory(); } catch { return false; } };
 const ms = (iso) => Date.parse(iso);
 const norm = (s) => String(s || "").replace(/\\/g, "/").toLowerCase();
+// A path's spellings to look for in a command line, normalised: as given, and, for a drive path, its POSIX
+// shell form too ("c:/a" and "/c/a"), since a process started from Git Bash may carry either.
+export const spellings = (s) => { const n = norm(s); const m = /^([a-z]):\/(.*)$/s.exec(n); return m ? [n, "/" + m[1] + "/" + m[2]] : [n]; };
+// On Windows, a POSIX shell's drive path ("/c/Users/...", as Git Bash's which prints it), which a
+// Windows program cannot open, in the drive form it can ("C:/Users/..."); any other value unchanged. Only a
+// whole value with a slash after the letter converts, so "//c/..." rule strings and "/T" switches stay.
+export const nativePath = (p, win = WIN) => {
+  if (!win || typeof p !== "string") return p;
+  const m = /^\/([a-zA-Z])\/(.*)$/s.exec(p);
+  return m ? m[1].toUpperCase() + ":/" + m[2] : p;
+};
 const brief = (p) => ({ pid: p.pid, ppid: p.ppid, name: p.name, created: p.created, cmd: String(p.cmd || "").slice(0, 400) });
 // The process now holding p's parent id, where it was created no later than p (a later one reuses the id).
 const liveParent = (p, byPid) => { const l = byPid.get(p.ppid); return l && ms(l.created) <= ms(p.created) ? l : null; };
@@ -74,6 +86,11 @@ function writeJson(file, value) {
 function readSpec(file) {
   let spec;
   try { spec = JSON.parse(readFileSync(file, "utf8")); } catch (e) { fail("cannot read the spec " + file + ": " + e.message); }
+  // Paths a POSIX shell wrote in its drive form are converted once, here, and each conversion recorded.
+  spec.converted = [];
+  const conv = (v, at) => { const n = nativePath(v); if (n !== v) spec.converted.push({ at, from: v, to: n }); return n; };
+  for (const k of ["launcher", "cwd", "outDir", "marker"]) spec[k] = conv(spec[k], k);
+  if (Array.isArray(spec.args)) spec.args = spec.args.map((a, i) => conv(a, "args[" + i + "]"));
   const bad = [];
   if (typeof spec.launcher !== "string" || !spec.launcher) bad.push("launcher");
   if (!Array.isArray(spec.args) || !spec.args.every((a) => typeof a === "string")) bad.push("args");
@@ -174,12 +191,12 @@ export function sandboxUsersOf(ownersSeen, prefix, selfUser) {
 // start, and how many orphans it does neither with (untied).
 export function decideSweep({ fresh, all, marker, owners, sandboxUsers, prefix, parentWasInTree = () => false }) {
   const byPid = new Map(all.map((p) => [p.pid, p]));
-  const mark = norm(marker);
+  const marks = spellings(marker);
   const pre = prefix ? prefix.toLowerCase() : "";
   const ownerOf = (p) => owners[String(p.pid)] || "";
   const entry = (p, why) => { const o = ownerOf(p); return Object.assign(brief(p), { why }, o ? { owner: o } : {}); };
   const orphans = fresh.filter((p) => !liveParent(p, byPid));
-  const holds = (p) => norm(p.cmd).includes(mark);
+  const holds = (p) => { const c = norm(p.cmd); return marks.some((m) => c.includes(m)); };
   const sandboxOwned = (p) => !!ownerOf(p) && sandboxUsers.includes(ownerKey(ownerOf(p)));
   const sandboxWhy = (p) => "owned by " + ownerOf(p) + ", a sandbox user of the round's tree";
   const tail = (p) => parentWasInTree(p) ? ", parent was in the tree" : ", parent gone";
@@ -297,6 +314,8 @@ function stopOne(pid) {
 
 function probe(launcher, script) {
   if (!launcher) fail("usage: probe <launcher> [<script>]");
+  launcher = nativePath(launcher);
+  script = nativePath(script);
   const r = spawnSync(launcher, script ? [script, "--version"] : ["--version"], { encoding: "utf8", windowsHide: true, timeout: 60000, env: cleanEnv([]).env, stdio: ["ignore", "pipe", "pipe"] });
   if (r.error) fail("cannot run " + launcher + ": " + r.error.message);
   process.stdout.write((r.stdout || "") + (r.stderr || "") + "exit " + r.status + "\n");
@@ -311,7 +330,7 @@ function keep(specFile) {
   const started = new Date();
   const t0 = started.getTime();
   writeJson(out("command.json"), {
-    launcher: spec.launcher, args: spec.args, cwd: spec.cwd, removedEnv: removed, keepEnv: spec.keepEnv || [], stdin: "closed",
+    launcher: spec.launcher, args: spec.args, cwd: spec.cwd, pathsConverted: spec.converted, removedEnv: removed, keepEnv: spec.keepEnv || [], stdin: "closed",
     deadlineSec: spec.deadlineSec, marker: spec.marker, sandboxUserPrefix: spec.sandboxUserPrefix || null,
     keeperPid: process.pid, started: started.toISOString(), node: process.version, platform: process.platform,
   });
@@ -413,10 +432,10 @@ function keep(specFile) {
     const survivors = treeOf(all).filter((p) => p.pid !== process.pid);
     meta.survivors = survivors.map((p) => Object.assign(brief(p), { result: stopOne(p.pid) }));
     const done = new Set(survivors.map((p) => p.pid));
-    const self = norm(SELF);
+    const selves = spellings(SELF);
     // Candidates: created since the start, and none of the keeper, its parent, its helpers or a runner call.
     const fresh = all.filter((p) => ms(p.created) >= t0 && !done.has(p.pid) && p.pid !== process.pid && p.pid !== process.ppid
-      && p.ppid !== process.pid && !norm(p.cmd).includes(self));
+      && p.ppid !== process.pid && !selves.some((s) => norm(p.cmd).includes(s)));
     // Only a process whose parent is gone, or a descendant of one, can be tied, so only those are asked about:
     // every orphan, marker holders included, and each fresh process whose chain of live parents within fresh
     // reaches an orphan.
@@ -553,7 +572,8 @@ function waitOnly(specFile) {
 // Only as the entry script, so an import runs nothing; a path reached through a link or junction still matches.
 const isEntry = () => { try { return !!process.argv[1] && norm(realpathSync(process.argv[1])) === norm(realpathSync(SELF)); } catch { return false; } };
 if (isEntry()) {
-  const [command, a, b] = process.argv.slice(2);
+  const [command, a0, b] = process.argv.slice(2);
+  const a = command === "probe" ? a0 : nativePath(a0);
   if (command === "probe") probe(a, b);
   else if (command === "start" && a) start(a);
   else if (command === "stop" && a) stop(a);
