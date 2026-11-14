@@ -69,7 +69,8 @@ The requester writes the runner's spec into `{step}/raw/` and launches nothing i
      "outDir": "{step}/raw",
      "deadlineSec": 1800,
      "marker": "{step}",
-     "sweepOwnerPrefix": "CodexSandbox"
+     "keepEnv": ["OPENAI_API_KEY"],
+     "sandboxUserPrefix": "CodexSandbox"
    }
    ```
 
@@ -77,10 +78,10 @@ The requester writes the runner's spec into `{step}/raw/` and launches nothing i
    - The `skills.config` value holds every entry of item 1, comma-separated, inside the one pair of brackets.
    - `{prompt}` is the round's one-line prompt naming `{step}/assignment.md`. The closing sentence ran in every proven start.
    - `deadlineSec` is the hard deadline in seconds after the start; 1800 stands for it here.
-   - `marker` is `{step}`, and `sweepOwnerPrefix` the sandbox user's name prefix: they tie a process left behind to the round (`## Waiting and stopping`).
+   - `marker` is `{step}`. `sandboxUserPrefix` picks the round's sandbox users: an owner of a process seen in the consultant's tree whose user name begins so, other than the requester's own user. Both tie a process left behind to the round (`## Waiting and stopping`).
    - Where the values block's `Session:` reads `default`, drop the `-m` pair and the `model_reasoning_effort` pair (`## Model and effort`).
 
-3. The environment the runner gives the consultant: the requester's minus the variables a Claude Code requester's session passes to its children -- `CLAUDECODE`, every name beginning `CLAUDE_CODE_` (including `CLAUDE_CODE_MESSAGING_SOCKET`, `CLAUDE_CODE_MESSAGING_TOKEN` and `CLAUDE_CODE_SESSION_ID`), `CLAUDE_EFFORT` and `CLAUDE_PID` -- and, from a Codex requester, every name beginning `CODEX_` but `CODEX_HOME`, which locates the configuration and the sign-in the start still uses. That half was not exercised.
+3. The environment the runner gives the consultant: the requester's minus the variables a Claude Code requester's session passes to its children -- `CLAUDECODE`, every name beginning `CLAUDE_CODE_` (including `CLAUDE_CODE_MESSAGING_SOCKET`, `CLAUDE_CODE_MESSAGING_TOKEN` and `CLAUDE_CODE_SESSION_ID`), `CLAUDE_EFFORT` and `CLAUDE_PID` -- and, from a Codex requester, every name beginning `CODEX_` but `CODEX_HOME`, which locates the configuration and the sign-in the start still uses. That half was not exercised. The runner also removes every other name holding `TOKEN`, `KEY`, `SECRET` or `PASSWORD`, matched ignoring case, but `OPENAI_API_KEY`, which the spec's `keepEnv` names for this launcher's sign-in.
    - Without the cleaning, the consultant's shell saw the requester's message token, and also the owner's own secrets held in the environment.
    - `shell_environment_policy.ignore_default_excludes=false`, above, drops names holding `TOKEN`, `KEY` or `SECRET` from the consultant's commands. It leaves the other session variables in place, which is why the cleaning is also needed.
    - The runner records the names it removed, never their values, in `{step}/raw/command.json`. A spec may name further variables to remove in a `removeEnv` list. The runner closes stdin and writes stdout to `{step}/raw/stream.jsonl` and stderr to `{step}/raw/stderr.txt`.
@@ -112,7 +113,8 @@ The model is told that it may edit its working directory. That text is wrong: wr
 - **Writable**: `{sub}`, plus `{scratch}` in a round granted one.
   - The edit tool writes there by absolute path, and shell commands write there as the sandbox user.
   - A write into the target, one level above `{sub}`, or into a directory the target's own configuration names writable was denied, for the session and for its agents alike.
-- **Readable**: everything the sandbox user can read.
+  - No per-path rule refuses a name inside `{sub}`: an instruction file or an agent-configuration folder written there is caught only by the requester's listing check after the round (the skill's N13).
+- **Readable**: everything the sandbox user can read, by each folder's access list: the start grants no read. The proving rounds' requester workstreams sat under `%TEMP%`, readable through an inherited `CodexSandboxUsers` entry; reflex-api carried an explicit `CodexSandboxUsers:(OI)(CI)(M)` entry from the owner's own sessions; a folder under the user profile with neither, `AppData\Roaming\nvm`, was unreadable. A requester repository the owner never opened with this harness may be unreadable to the consultant: the round then fails at its first read, a stop after the open. The requester reads the root's access list first (the skill's N5).
 - **Shell**: commands run in PowerShell as the sandbox user (`CodexSandboxOffline` on the proving machine). They see `GIT_OPTIONAL_LOCKS=0`, the session's and each agent's alike.
 - **Excluded**:
   - `--ignore-user-config` drops the user's configuration file. That removes its automatic reviewer, its notify program, its tool servers, its enabled plugins, its hook trust and its project trust entries.
@@ -176,7 +178,7 @@ The model is told that it may edit its working directory. That text is wrong: wr
 - **The session records**:
   - `~/.codex/sessions/{yyyy}/{MM}/{dd}/rollout-{time}-{thread_id}.jsonl`, under `CODEX_HOME` where that is set, is the harness's own record of the session.
   - Each agent the session spawned has its own record file, whose first line (`session_meta`) carries `parent_thread_id` equal to the session's `thread_id`.
-  - After the end, the requester copies the session's record and its agents' into `{step}/raw/rollouts/`.
+  - After the end, the requester copies the session's record and its agents' into `{step}/raw/rollouts/`. It finds them by reading only the first line (`session_meta`) of the record files in the day folders the round's start and end fall in, modified at or after the start: the session's is the file whose name carries its `thread_id`; an agent's is one whose `parent_thread_id` is the session's `thread_id` or that of an agent already found, followed until no new one is found. It records the names of the files it read, and reads no other file of the owner's sessions.
   - The `--json` stream holds no agent's transcript and no edit-tool call, so these records are the complete account.
 - **Denials**. Exit status was 0 in every run that carried denials, so read the records, never the exit status alone.
   - A shell write refusal reads "Access to the path '...' is denied" (an `UnauthorizedAccessException`, exit 1), in the command's output, in both the stream and the session record.
@@ -202,21 +204,22 @@ The runner, `{runner}`, is the only way the requester starts, waits on and stops
 - **The tree**: the `node` launcher, then `codex.exe`, then its code-mode host and one command runner per running command, owned by the sandbox user, then each command's shell. The agents run inside `codex.exe`, and their commands are its children too. `exec` used no shared server: the desktop app's server processes were in no session's tree.
 - **Start**: `node "{runner}" start "{step}/raw/start.json"`, through the requester's shell tool.
   - From a Claude Code requester, run it with the shell tool's background option: the harness notifies the requester at the end, and the requester never waits on a long `sleep`.
-  - From a Codex requester, run it as an escalated command (`## Requester permission`). Waiting past that harness's command yield was not shown: a yielded wait is neither a pass nor a failure, and the requester reads `pid.json` and `meta.json`.
+  - From a Codex requester, run it as an escalated command (`## Requester permission`). Waiting past that harness's command yield was not shown: a yielded wait is neither a pass nor a failure, and the requester waits again with `wait`, then reads `pid.json` and `meta.json`.
   - `start` refuses a spec missing a value, and a `raw/` that already holds `pid.json` or `meta.json`: a round starts once.
 - **What the runner does**:
   1. It starts a keeper detached from the requester, prints `{step}/raw/pid.json` once the keeper writes it, and returns once the keeper has written `{step}/raw/meta.json`, printing its summary. So the requester's wait ends with the round, and a lost requester leaves the keeper, and the deadline, in place.
-  2. The keeper starts `{node}` as its own child, from the argument list, with the cleaned environment (`## Start command`), `{target}` as working directory, stdin closed and its output in `raw/`. It writes `command.json`, then `pid.json`: the keeper's process id, the launcher's, and the start time. Every 10 seconds it records the launcher's process tree in `ptree.jsonl`.
+  2. The keeper starts `{node}` as its own child, from the argument list, with the cleaned environment (`## Start command`), `{target}` as working directory, stdin closed and its output in `raw/`. It writes `command.json`, then `pid.json`: the keeper's process id, the launcher's, and the start time. Every 10 seconds it records the launcher's process tree in `ptree.jsonl`. Where the spec names `sandboxUserPrefix`, each snapshot also looks up the owner of each process new to the tree, at most 16 per snapshot, bounded at 15 s, so the deadline stop can come up to 75 s late in the worst case: a stalled listing and a stalled lookup in one snapshot.
   3. At `deadlineSec` it runs `taskkill /PID {pid of the node launcher} /T /F`. That stopped the launcher, the session, its agents' commands and their consoles, with none left.
-  4. After the end or the stop, it stops every process of the tree that still runs: each one seen in it, compared by process id and creation time, and each descendant of one. It then sweeps the processes created since the start whose command line holds `{step}` or whose owner's name begins `CodexSandbox`: it stops each one whose parent no longer runs, and its descendants, and records any other without stopping it, since another session of the owner's may own it. It looks up owners only for processes whose parent no longer runs, and counts the lookups that failed. Each process is stopped by its own process id and listed in `meta.json`. Last, it confirms that no process it stopped still runs. Every process query and stop it makes has a time limit, so a stalled query cannot hold off the deadline.
-  5. It writes `meta.json`: the exit, the times, `stoppedBy` (`the hard deadline`, `a stop request`, or none), the processes seen in the tree, and those it stopped (`survivors`, `swept`), did not stop (`notStopped`) or found still running (`left`).
+  4. After the end or the stop, it stops every process of the tree that still runs: each one seen in it, compared by process id and creation time, and each descendant of one. It then sweeps the processes created since the keeper started whose parent no longer runs. It stops each one whose command line holds `{step}`, or whose owner is exactly a sandbox user of the round -- one seen owning a process of the consultant's tree, `Domain\User`, compared ignoring case -- and their descendants; a name-prefix match alone never stops one. It lists without stopping each other process created since the start that holds `{step}`, and each other one whose parent no longer runs and whose owner's name begins `CodexSandbox`, since another session of the owner's may own it. It looks up owners only for processes whose parent no longer runs, and counts the lookups that failed. Just before stopping them, it lists the processes again and stops only those whose process id and creation time still match. Each process is stopped by its own process id and listed in `meta.json`. Last, it confirms that no process it stopped still runs. Every process query and stop it makes has a time limit, so a stalled query cannot hold off the deadline.
+  5. It writes `meta.json`: the exit, the times, `stoppedBy` (`the hard deadline`, `a stop request`, or none), the processes seen in the tree, and those it stopped (`survivors`, `swept`), did not stop (`notStopped`), found gone before their stop (`goneBeforeStop`) or found still running (`left`), the sandbox users it tied processes to (`sandboxUsers`), and the failed owner lookups (`ownerLookupsFailed`, `treeOwnerLookupsFailed`).
 - **Why a keeper and a sweep**:
   - A plain, non-detached child of a Node process dies with that process. That is a loss, not a bound.
   - A consultant started detached outlives a requester that is killed, and runs to its own end, bounded by nothing else. A keeper started detached, holding the deadline itself, bounds it; that shape was shown with the other harness only.
   - A command can detach a grandchild and exit. The grandchild is then outside the launcher's tree, and the session's own end does not stop it: a nested start left three processes running after the session ended. A `taskkill` from inside the sandbox got "Access denied". Only the requester's sweep, by owner and creation time, reached them.
-  - The owner's own Codex sessions may run commands as the same sandbox user. One of their processes created during the round whose parent is gone cannot be told from the round's, and the sweep stops it too.
+  - The owner's own Codex sessions may run commands as the same sandbox user. One of their processes created during the round whose parent is gone cannot be told from the round's, and the sweep stops it too: the round's start line says so, and the Close and the consultation record list every process stopped after the end and every one left running.
 - **Stopping early**: `node "{runner}" stop "{step}/raw/start.json"` asks the keeper to stop the consultant now, exactly as at the deadline, and returns once `meta.json` is written.
-- **Confirming the stop**: `meta.json`'s `left` is empty, and every process in `notStopped` is recorded with its command line on the step's record.
+- **Waiting again**: `node "{runner}" wait "{step}/raw/start.json"` waits on the same keeper after a wait that yielded or timed out, and returns once `meta.json` is written. It starts and stops nothing.
+- **Confirming the stop**: `meta.json`'s `left` is empty; every process in `survivors`, `swept` and `notStopped` is recorded with its command line and why on the step's record, and the Close shows them.
 - The runner's stop and sweep use Windows process tools, and were shown on Windows. On another system, the runner starts the consultant as its own process group and signals the group; that path was not run.
 
 ## Requester permission
@@ -246,7 +249,7 @@ For the consultant agent.
   - `task_name`: lowercase letters, digits and underscores only. An upper-case name was rejected.
   - `message`: a self-contained brief, the agent's whole assignment, with long material by path;
   - `fork_turns: "none"`;
-  - `model` and `reasoning_effort`, the values from `Tiers:` and `Roles:`, with `Model instruction:` overriding them where it is not `none`. The assignment's values are the explicit instruction these overrides need. Where they read `default`, omit both and record the agent's model as inherited.
+  - `model` and `reasoning_effort`, the values from `Tiers:` and `Roles:`, with `Model instruction:` overriding them where it is not `none`. The assignment's values are the explicit instruction these overrides need. Where they read `default`, omit both and record the agent's model and effort as `default`.
 
   A spawn with `fork_turns` omitted or `"all"` inherits your model and effort and refuses the overrides.
 - **No agent type**: the spawn tool takes no type field, and the target's agent roles are not loaded. Every agent is a default agent under your permissions.

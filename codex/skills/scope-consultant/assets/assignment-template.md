@@ -6,7 +6,8 @@ Request: {absolute path}/request.md
 Workstream: {absolute path of the requesting workstream} -- yours to read; nothing in it is yours to change but the subfolder
 Subfolder: {absolute path}/consultant/ -- writable: your record, your agents' records and the response record
 Response record: {absolute path}/consultant/response.md
-Scratch root: {absolute path} -- writable, for an export of the target and the checks run in it | none
+Scratch root: {absolute path, no trailing separator} -- writable, for an export of the target and the checks run in it | none
+Checks allowed: {each command, in backticks, comma-separated, exactly as allowed | none}
 Target: {absolute path} -- {profile name | unlisted}; instruction file {CLAUDE.md | AGENTS.md}[ (missing)]
 Target role: {the role this round addresses | unstated}
 Owner's text: {the requester's trailing text, verbatim | none}

@@ -6,6 +6,8 @@
 //                                                          written, and returns once meta.json is written
 //   node start-consultant.mjs stop <spec.json>             asks the keeper to stop the consultant now, and returns
 //                                                          once meta.json is written
+//   node start-consultant.mjs wait <spec.json>             waits again on the keeper, after a yielded wait, and
+//                                                          returns once meta.json is written; starts and stops nothing
 //   node start-consultant.mjs keep <spec.json>             the keeper itself, started by "start"
 //
 // spec.json, written by the requester:
@@ -16,7 +18,10 @@
 //   deadlineSec       the hard deadline, in seconds after the start
 //   marker            the step folder's path: a process created since the start whose command line
 //                     holds it belongs to the round
-//   sweepOwnerPrefix  optional; for a Codex consultant "CodexSandbox", the sandbox user's name prefix
+//   sandboxUserPrefix optional; for a Codex consultant "CodexSandbox": an owner of a process seen in the
+//                     consultant's tree whose user name begins so, other than the keeper's own user, is a
+//                     sandbox user of the round
+//   keepEnv           optional; secret-named variables the launcher signs in with, kept
 //   removeEnv         optional; names to remove from the environment beyond the fixed list below
 //   snapEverySec      optional; seconds between process-tree snapshots, 10 by default
 //
@@ -27,17 +32,20 @@
 //
 // Stopping is safe by construction. At the deadline or on a stop request, the consultant's process
 // tree goes. After the end, only these go, each by process id and listed in meta.json: processes seen
-// in that tree (compared by process id and creation time), processes created since the start that
-// hold the marker or belong to the sandbox user and whose parent is gone, and their descendants. Any
-// other match is recorded in meta.json, never stopped.
+// in that tree (compared by process id and creation time); processes created since the keeper started
+// whose parent is gone and that hold the marker, or whose owner is exactly a sandbox user of the round,
+// never a name-prefix match; and their descendants. Each swept process is checked again by process id
+// and creation time just before its stop. Any other process created since the start that holds the
+// marker, or whose owner's name begins with the prefix, is recorded in meta.json as not stopped.
 //
 // The Windows path (taskkill, the CIM process list, the owner query) was shown on Windows. The
 // POSIX path (the consultant leads its own process group; the group is signalled; ps lists
 // processes) is written but was not run.
 
 import { spawn, spawnSync, execFileSync } from "node:child_process";
-import { appendFileSync, closeSync, existsSync, openSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { appendFileSync, closeSync, existsSync, openSync, readFileSync, realpathSync, renameSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 
 const SELF = fileURLToPath(import.meta.url);
@@ -50,6 +58,9 @@ function fail(message) {
 const isDir = (p) => { try { return statSync(p).isDirectory(); } catch { return false; } };
 const ms = (iso) => Date.parse(iso);
 const norm = (s) => String(s || "").replace(/\\/g, "/").toLowerCase();
+const brief = (p) => ({ pid: p.pid, ppid: p.ppid, name: p.name, created: p.created, cmd: String(p.cmd || "").slice(0, 400) });
+// The process now holding p's parent id, where it was created no later than p (a later one reuses the id).
+const liveParent = (p, byPid) => { const l = byPid.get(p.ppid); return l && ms(l.created) <= ms(p.created) ? l : null; };
 function writeJson(file, value) {
   writeFileSync(file + ".tmp", JSON.stringify(value, null, 2) + "\n");
   renameSync(file + ".tmp", file);
@@ -66,22 +77,30 @@ function readSpec(file) {
   if (!(Number.isFinite(spec.deadlineSec) && spec.deadlineSec > 0)) bad.push("deadlineSec");
   if (typeof spec.marker !== "string" || spec.marker.length < 8) bad.push("marker");
   if (spec.removeEnv !== undefined && !(Array.isArray(spec.removeEnv) && spec.removeEnv.every((a) => typeof a === "string"))) bad.push("removeEnv");
-  if (spec.sweepOwnerPrefix !== undefined && typeof spec.sweepOwnerPrefix !== "string") bad.push("sweepOwnerPrefix");
+  if (spec.keepEnv !== undefined && !(Array.isArray(spec.keepEnv) && spec.keepEnv.every((a) => typeof a === "string"))) bad.push("keepEnv");
+  if (spec.sandboxUserPrefix !== undefined && typeof spec.sandboxUserPrefix !== "string") bad.push("sandboxUserPrefix");
+  if (spec.sweepOwnerPrefix !== undefined) bad.push("sweepOwnerPrefix (now sandboxUserPrefix)");
   if (bad.length) fail("the spec " + file + " has a missing or invalid " + bad.join(", "));
   spec.out = (name) => path.join(spec.outDir, name);
   return spec;
 }
 
+// A secret-named variable, by its upper-cased name u, that the kept set does not hold.
+export const secretName = (u, keep) => /TOKEN|KEY|SECRET|PASSWORD/.test(u) && !keep.has(u);
+
 // The requester's session variables never reach the consultant: they carry its identity, a message
 // channel back to it and its effort. CODEX_HOME stays: it locates the Codex configuration and sign-in.
-function cleanEnv(extra) {
+// Names holding TOKEN, KEY, SECRET or PASSWORD go too, but the ones the spec's keepEnv names for its
+// own launcher's sign-in, so the owner's secrets never reach the consultant's commands.
+function cleanEnv(extra, keepEnv = []) {
   const env = Object.assign({}, process.env);
   const removed = [];
   const more = new Set(extra.map((n) => n.toUpperCase()));
+  const keep = new Set(keepEnv.map((n) => n.toUpperCase()));
   for (const name of Object.keys(env)) {
     const u = name.toUpperCase();
     if (u === "CLAUDECODE" || u.startsWith("CLAUDE_CODE_") || u === "CLAUDE_EFFORT" || u === "CLAUDE_PID"
-      || (u.startsWith("CODEX_") && u !== "CODEX_HOME") || more.has(u)) {
+      || (u.startsWith("CODEX_") && u !== "CODEX_HOME") || more.has(u) || secretName(u, keep)) {
       removed.push(name);
       delete env[name];
     }
@@ -91,6 +110,8 @@ function cleanEnv(extra) {
 
 // Every external call is bounded, so a stalled process query can never hold off the deadline.
 const LIST_MS = 60000, OWNER_MS = 180000, KILL_MS = 30000;
+// A snapshot's owner lookup is bounded tighter and asks about few processes, since it can delay the deadline stop.
+const SNAP_OWNER_MS = 15000, SNAP_OWNER_MAX = 16;
 
 // Every process: { pid, ppid, name, created (ISO), cmd }.
 function procs() {
@@ -105,15 +126,68 @@ function procs() {
     .map((m) => ({ pid: Number(m[1]), ppid: Number(m[2]), name: path.basename(m[4].split(" ")[0]), created: new Date(m[3]).toISOString(), cmd: m[4] }));
 }
 
-// Owner user names, Windows only, for the few processes asked about; a failed lookup reads "".
-// Each lookup costs about a fifth of a second, so only processes the sweep could tie are asked about.
-function owners(pids) {
+// Owner names as Domain\User, Windows only, for the few processes asked about; a failed lookup reads "".
+// Each lookup costs about a fifth of a second, so only the tree's new processes and the processes the
+// sweep could tie are asked about.
+function owners(pids, timeoutMs = OWNER_MS) {
   if (!WIN || !pids.length) return {};
   const ps = "$r = @{}; foreach ($id in @(" + pids.join(",") + ")) { $p = Get-CimInstance Win32_Process -Filter ('ProcessId=' + $id); "
-    + "if ($p) { $o = Invoke-CimMethod -InputObject $p -MethodName GetOwner -ErrorAction SilentlyContinue; $r[[string]$id] = [string]$o.User } }; "
+    + "if ($p) { $o = Invoke-CimMethod -InputObject $p -MethodName GetOwner -ErrorAction SilentlyContinue; "
+    + "$r[[string]$id] = if ($o.User) { if ($o.Domain) { [string]$o.Domain + '\\' + [string]$o.User } else { [string]$o.User } } else { '' } } }; "
     + "$r | ConvertTo-Json -Compress";
-  const text = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", windowsHide: true, timeout: OWNER_MS }).trim();
+  const text = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", windowsHide: true, timeout: timeoutMs }).trim();
   return text ? JSON.parse(text) : {};
+}
+
+// An owner in the one form compared: Domain\User, lower-cased.
+export const ownerKey = (o) => String(o || "").toLowerCase();
+// The user part of an owner, lower-cased: the text after its last backslash.
+export const userPart = (o) => ownerKey(o).split(String.fromCharCode(92)).pop();
+
+// The round's sandbox users: owners seen on its tree whose user part begins with the prefix, the keeper's own user excluded.
+export function sandboxUsersOf(ownersSeen, prefix, selfUser) {
+  if (!prefix) return [];
+  const pre = prefix.toLowerCase(), me = String(selfUser).toLowerCase();
+  const keys = ownersSeen.filter((o) => o).map(ownerKey).filter((k) => userPart(k).startsWith(pre) && userPart(k) !== me);
+  return [...new Set(keys)].sort();
+}
+
+// What the sweep stops (tied) and lists without stopping (notStopped), from the processes created since the start.
+export function decideSweep({ fresh, all, marker, owners, sandboxUsers, prefix, parentWasInTree = () => false }) {
+  const byPid = new Map(all.map((p) => [p.pid, p]));
+  const mark = norm(marker);
+  const pre = prefix ? prefix.toLowerCase() : "";
+  const ownerOf = (p) => owners[String(p.pid)] || "";
+  const entry = (p, why) => { const o = ownerOf(p); return Object.assign(brief(p), { why }, o ? { owner: o } : {}); };
+  const orphans = fresh.filter((p) => !liveParent(p, byPid));
+  const why = (p) => norm(p.cmd).includes(mark) ? "holds the marker"
+    : prefix && sandboxUsers.includes(ownerKey(ownerOf(p))) ? "owned by " + ownerOf(p) + ", a sandbox user of the round's tree" : null;
+  // Tied: a matching process whose parent is gone, and every descendant of a tied process.
+  const tied = new Map();
+  for (const p of orphans) {
+    const w = why(p);
+    if (w) tied.set(p.pid, entry(p, w + (parentWasInTree(p) ? ", parent was in the tree" : ", parent gone")));
+  }
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const p of fresh) {
+      const live = liveParent(p, byPid);
+      if (!tied.has(p.pid) && live && tied.has(live.pid)) { tied.set(p.pid, entry(p, "child of " + live.pid)); grew = true; }
+    }
+  }
+  const notStopped = [
+    ...fresh.filter((p) => !tied.has(p.pid) && liveParent(p, byPid) && norm(p.cmd).includes(mark))
+      .map((p) => entry(p, "holds the marker, parent " + p.ppid + " still runs outside the tree")),
+    ...orphans.filter((p) => pre && !tied.has(p.pid) && userPart(ownerOf(p)).startsWith(pre))
+      .map((p) => entry(p, "owned by " + ownerOf(p) + ", a sandbox user not seen on the round's tree")),
+  ];
+  return { tied: [...tied.values()], notStopped };
+}
+
+// The listed processes still running as listed: the same process id and creation time in current.
+export function stillSame(listed, current) {
+  const keys = new Set(current.map((p) => p.pid + "|" + p.created));
+  return listed.filter((p) => keys.has(p.pid + "|" + p.created));
 }
 
 function run(exe, args) {
@@ -143,12 +217,12 @@ function keep(specFile) {
   const spec = readSpec(specFile);
   const out = spec.out;
   if (existsSync(out("pid.json")) || existsSync(out("meta.json"))) fail("outDir already holds pid.json or meta.json: a round starts once");
-  const { env, removed } = cleanEnv(spec.removeEnv || []);
+  const { env, removed } = cleanEnv(spec.removeEnv || [], spec.keepEnv || []);
   const started = new Date();
   const t0 = started.getTime();
   writeJson(out("command.json"), {
-    launcher: spec.launcher, args: spec.args, cwd: spec.cwd, removedEnv: removed, stdin: "closed",
-    deadlineSec: spec.deadlineSec, marker: spec.marker, sweepOwnerPrefix: spec.sweepOwnerPrefix || null,
+    launcher: spec.launcher, args: spec.args, cwd: spec.cwd, removedEnv: removed, keepEnv: spec.keepEnv || [], stdin: "closed",
+    deadlineSec: spec.deadlineSec, marker: spec.marker, sandboxUserPrefix: spec.sandboxUserPrefix || null,
     keeperPid: process.pid, started: started.toISOString(), node: process.version, platform: process.platform,
   });
   const so = openSync(out("stream.jsonl"), "w");
@@ -161,11 +235,9 @@ function keep(specFile) {
 
   const seen = new Map(); // pid -> the process as first seen in the consultant's tree, with goneBy once found gone
   let ended = false, finishing = false, exit = null, spawnError = null, stoppedBy = null, stopResult = null;
-  let lastSnap = 0;
+  let lastSnap = 0, treeOwnerLookupsFailed = 0;
   const spawnedAt = Date.now();
-  const brief = (p) => ({ pid: p.pid, ppid: p.ppid, name: p.name, created: p.created, cmd: p.cmd.slice(0, 400) });
   const isRoot = (p) => p.pid === child.pid && ms(p.created) >= t0 - 1000 && ms(p.created) <= spawnedAt + 1000;
-  const liveParent = (p, byPid) => { const l = byPid.get(p.ppid); return l && ms(l.created) <= ms(p.created) ? l : null; };
   // A parent that no longer runs but was seen in the tree: older than p, and not yet found gone when p
   // was created (a later child of that pid is another process's).
   const deadSeenParent = (p) => {
@@ -201,7 +273,27 @@ function keep(specFile) {
     for (const s of seen.values()) if (!s.goneBy && !keys.has(s.pid + "|" + s.created)) s.goneBy = listed;
     const tree = treeOf(all);
     for (const p of tree) if (!seen.has(p.pid)) seen.set(p.pid, brief(p));
-    appendFileSync(out("ptree.jsonl"), JSON.stringify({ t: new Date().toISOString(), label, procs: tree.map(brief) }) + "\n");
+    const seenAs = (p) => { const s = seen.get(p.pid); return s && s.created === p.created ? s : null; };
+    let ownerError = null;
+    // The owners of the tree's processes, each looked up once, are what the sweep reads the round's sandbox users from.
+    if (spec.sandboxUserPrefix && WIN) {
+      const ask = tree.filter((p) => { const s = seenAs(p); return s && !("owner" in s); }).slice(0, SNAP_OWNER_MAX).map((p) => p.pid);
+      if (ask.length) {
+        let found = {};
+        try { found = owners(ask, SNAP_OWNER_MS); } catch (e) { ownerError = e.message; }
+        for (const pid of ask) {
+          const s = seen.get(pid);
+          s.owner = ownerError ? "" : found[String(pid)] || "";
+          if (!s.owner) treeOwnerLookupsFailed++;
+        }
+      }
+    }
+    const line = { t: new Date().toISOString(), label, procs: tree.map((p) => {
+      const s = seenAs(p);
+      return s && s.owner ? Object.assign(brief(p), { owner: s.owner }) : brief(p);
+    }) };
+    if (ownerError) line.ownerError = ownerError;
+    appendFileSync(out("ptree.jsonl"), JSON.stringify(line) + "\n");
   }
 
   function stopNow(reason) {
@@ -231,30 +323,29 @@ function keep(specFile) {
     // Only a process whose parent is gone can be tied by marker or owner, so only those are asked about.
     const orphans = fresh.filter((p) => !liveParent(p, byPid));
     let own = {};
-    if (spec.sweepOwnerPrefix && WIN) {
+    if (spec.sandboxUserPrefix && WIN) {
       const ask = orphans.filter((p) => !norm(p.cmd).includes(marker)).map((p) => p.pid);
       own = owners(ask);
       meta.ownerLookups = ask.length;
       meta.ownerLookupsFailed = ask.filter((pid) => !own[String(pid)]).length;
     }
-    const why = (p) => norm(p.cmd).includes(marker) ? "holds the marker"
-      : spec.sweepOwnerPrefix && String(own[String(p.pid)] || "").startsWith(spec.sweepOwnerPrefix) ? "owned by " + own[String(p.pid)] : null;
-    // Tied: a matching process whose parent is gone, and every descendant of a tied process.
-    const tied = new Map();
-    for (const p of orphans) {
-      const w = why(p);
-      if (w) tied.set(p.pid, Object.assign(brief(p), { why: w + (deadSeenParent(p) ? ", parent was in the tree" : ", parent gone") }));
-    }
-    for (let grew = true; grew;) {
-      grew = false;
-      for (const p of fresh) {
-        const live = liveParent(p, byPid);
-        if (!tied.has(p.pid) && live && tied.has(live.pid)) { tied.set(p.pid, Object.assign(brief(p), { why: "child of " + live.pid })); grew = true; }
-      }
-    }
-    meta.swept = [...tied.values()].map((p) => Object.assign(p, { result: stopOne(p.pid) }));
-    meta.notStopped = fresh.filter((p) => !tied.has(p.pid) && why(p))
-      .map((p) => Object.assign(brief(p), { why: why(p) + ", parent " + p.ppid + " still runs outside the tree" }));
+    // The round's sandbox users, from the owners the snapshots recorded only: the survivors are stopped
+    // by now, so a lookup on them would fail.
+    let selfUser = "";
+    try { selfUser = os.userInfo().username; } catch { selfUser = ""; }
+    meta.sandboxUsers = sandboxUsersOf([...seen.values()].map((s) => s.owner), spec.sandboxUserPrefix, selfUser);
+    const { tied, notStopped } = decideSweep({
+      fresh, all, marker: spec.marker, owners: own, sandboxUsers: meta.sandboxUsers, prefix: spec.sandboxUserPrefix,
+      parentWasInTree: (p) => !!deadSeenParent(p),
+    });
+    // Listed again just before the stop: a process gone, or its pid reused, since the listing is not stopped.
+    const current = tied.length ? procs() : [];
+    const toStop = stillSame(tied, current);
+    const kept = new Set(toStop.map((p) => p.pid + "|" + p.created));
+    meta.swept = toStop.map((p) => Object.assign(p, { result: stopOne(p.pid) }));
+    meta.goneBeforeStop = tied.filter((p) => !kept.has(p.pid + "|" + p.created))
+      .map((p) => Object.assign(p, { result: "gone, or its pid reused, before its stop: not stopped" }));
+    meta.notStopped = notStopped;
     const stopped = [...meta.survivors, ...meta.swept];
     const after = stopped.length ? procs() : [];
     meta.left = after.filter((p) => stopped.some((q) => q.pid === p.pid && q.created === p.created)).map(brief);
@@ -270,7 +361,7 @@ function keep(specFile) {
       pid: child.pid || null, keeperPid: process.pid, started: started.toISOString(), ended: end.toISOString(),
       elapsedSec: (end.getTime() - t0) / 1000, exit, spawnError, deadlineSec: spec.deadlineSec,
       killedAtDeadline: stoppedBy === "the hard deadline", stoppedBy, stopResult, note: note || null,
-      seen: [...seen.values()],
+      seen: [...seen.values()], treeOwnerLookupsFailed,
     };
     try { sweep(meta); } catch (e) { meta.checkError = e.message; }
     writeJson(out("meta.json"), meta);
@@ -303,7 +394,9 @@ function waitForMeta(spec, keeperPid, giveUpAt) {
       process.stdout.write("meta.json " + JSON.stringify({
         exit: m.exit, spawnError: m.spawnError, stoppedBy: m.stoppedBy, elapsedSec: m.elapsedSec,
         survivors: (m.survivors || []).length, swept: (m.swept || []).length, notStopped: (m.notStopped || []).length,
-        left: (m.left || []).length, checkError: m.checkError || null,
+        left: (m.left || []).length, goneBeforeStop: (m.goneBeforeStop || []).length, sandboxUsers: m.sandboxUsers || [],
+        ownerLookupsFailed: m.ownerLookupsFailed || 0, treeOwnerLookupsFailed: m.treeOwnerLookupsFailed || 0,
+        checkError: m.checkError || null,
       }) + "\n");
       process.exit(0);
     }
@@ -332,9 +425,24 @@ function stop(specFile) {
   waitForMeta(spec, keeperPid, Date.now() + 600 * 1000);
 }
 
-const [command, a, b] = process.argv.slice(2);
-if (command === "probe") probe(a, b);
-else if (command === "start" && a) start(a);
-else if (command === "stop" && a) stop(a);
-else if (command === "keep" && a) keep(a);
-else fail("usage: probe <launcher> [<script>] | start <spec.json> | stop <spec.json>");
+// Waits again on the keeper of a started round, after a wait that yielded or timed out; starts and stops nothing.
+function waitOnly(specFile) {
+  const spec = readSpec(specFile);
+  // meta.json first, as stop does: a launcher that failed to spawn leaves meta.json and no pid.json.
+  if (existsSync(spec.out("meta.json"))) { waitForMeta(spec, process.pid, Date.now() + 60 * 1000); return; }
+  if (!existsSync(spec.out("pid.json"))) fail("no pid.json in " + spec.outDir + ": nothing was started there");
+  const { keeperPid, started } = JSON.parse(readFileSync(spec.out("pid.json"), "utf8"));
+  waitForMeta(spec, keeperPid, ms(started) + (spec.deadlineSec + 600) * 1000);
+}
+
+// Only as the entry script, so an import runs nothing; a path reached through a link or junction still matches.
+const isEntry = () => { try { return !!process.argv[1] && norm(realpathSync(process.argv[1])) === norm(realpathSync(SELF)); } catch { return false; } };
+if (isEntry()) {
+  const [command, a, b] = process.argv.slice(2);
+  if (command === "probe") probe(a, b);
+  else if (command === "start" && a) start(a);
+  else if (command === "stop" && a) stop(a);
+  else if (command === "wait" && a) waitOnly(a);
+  else if (command === "keep" && a) keep(a);
+  else fail("usage: probe <launcher> [<script>] | start <spec.json> | stop <spec.json> | wait <spec.json>");
+}

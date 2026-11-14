@@ -284,7 +284,7 @@ if (claudeEntry?.version !== claudeManifest.version) {
 // would silently keep stale headers. The pin holds the seed and a hash of the header as
 // scope-implement compares it (above `## Decisions`, `Seed:` and blank lines and line endings
 // aside). A header change sets `Seed:` to the releasing version and updates both pin values.
-const DECISIONS_SEED = { seed: "0.13.0", sha256: "29b3cd903ca0807ef88d958d418e1e2cdb234777d59da2fd578899724854e24c" };
+const DECISIONS_SEED = { seed: "0.13.0", sha256: "6ed17fff807c8bde5a4c52a76a1aa33b8a7eed58b52b76a39ef08d8e153533b9" };
 const templateLines = readFileSync(join(root, "skills", "ws-shared", "decisions-template.md"), "utf8").split(/\r?\n/);
 const decisionsHeading = templateLines.indexOf("## Decisions");
 const seedLines = templateLines.filter((line) => line.startsWith("Seed:"));
