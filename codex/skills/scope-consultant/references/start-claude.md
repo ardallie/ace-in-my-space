@@ -1,15 +1,15 @@
 # Start reference: Claude Code consultant
 
-The requester reads this file whole and copies it unchanged into each assignment for a Claude Code consultant. The consultant agent uses only `## Agent route`, plus, in a round granted a scratch root, the executed-check commands under `## Grant`. Every other section speaks to the requester.
+The requester reads this file whole and copies it unchanged into each assignment for a Claude Code consultant. The consultant agent uses only `## Agent route`. Every other section speaks to the requester.
 
 Slots, each filled by the requester:
 
 - `{target}` -- the target's root, which is also the consultant's working directory.
 - `{step}` -- the round's step folder, `workings/{nn}-scope-consultant/`, with forward slashes.
 - `{sub}` -- the consultant's subfolder, `{step}/consultant`.
-- `{scratch}` -- the scratch root, only in a round granted one.
+- `{scratch}` -- the scratch root: never filled here, since this start grants none (`## Grant`, **Executed checks**).
 - `{plugin root}` -- the requester's own plugin root, written as a value, never as a variable.
-- `{T}`, `{S}`, `{X}` -- `{target}`, `{sub}` and `{scratch}` in this harness's permission-rule form: `//`, then the drive letter in lower case, then the rest of the path with forward slashes. `C:\Work\api` becomes `//c/Work/api`.
+- `{T}`, `{S}` -- `{target}` and `{sub}` in this harness's permission-rule form: `//`, then the drive letter in lower case, then the rest of the path with forward slashes. `C:\Work\api` becomes `//c/Work/api`.
 - `{launcher}` -- the Claude Code executable (`## Launcher`).
 - `{runner}` -- the start runner, `scripts/start-consultant.mjs` under the requester's skill root. It is the only way the requester starts, waits on and stops the consultant (`## Waiting and stopping`).
 
@@ -105,22 +105,18 @@ The requester writes two files into `{step}/raw/` and launches nothing itself: t
 
    The runner records the names it removed, never their values, in `{step}/raw/command.json`. A spec may name further variables to remove in a `removeEnv` list. `GIT_OPTIONAL_LOCKS` comes from the settings file, not from the start environment. The runner closes stdin and writes stdout to `{step}/raw/stream.jsonl` and stderr to `{step}/raw/stderr.txt`.
 
-4. A round sized for an executed check adds:
-   - `"--add-dir", "{scratch}"` to `args`;
-   - `Edit({X}/**)` to `allow`;
-   - one exact `Bash(...)` allow for each command the round allows -- the two export commands under `## Grant` and each command on the values block's `Checks allowed:` line -- each written twice, once with `C:/...` paths and once with `/c/...` paths, `{target}` and `{scratch}` written as the values block's `Target:` and `Scratch root:` give them;
-   - the removal of `Bash(node:*)` from `deny` where an allowed check runs `node`. A deny overrides an allow.
+4. No round of a Claude Code consultant is granted a scratch root or an executed check (`## Grant`, **Executed checks**): `args`, `allow` and `deny` stay as above.
 
 ## Grant
 
-- **Writable**: `{sub}` only, through `allow Edit({S}/**)`. A round sized for an executed check also gets `{scratch}`.
+- **Writable**: `{sub}` only, through `allow Edit({S}/**)`.
   - The rule matched both path spellings the model uses, `C:/...` and `/c/...`.
   - Everything not allowed is denied without a prompt under `dontAsk`, and the session carries on.
   - The target is denied by its own rule, `Edit({T}/**)`. That rule refuses the file tools anywhere under the target, including paths the target's own settings widen. It also refuses a shell redirect into the target.
   - Inside `{sub}`, the deny rules `Edit({S}/**/CLAUDE.md)`, `Edit({S}/**/CLAUDE.local.md)`, `Edit({S}/**/AGENTS.md)` and `Edit({S}/**/.claude/**)` refuse an instruction file (`CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md`) and a `.claude/` folder at any depth, since such a file there would load into a later session that reads the folder; a deny overrides the allow.
   - On 2.1.325 they refused both the Write tool and a plain shell redirect (`echo ... > {path}`), at `{sub}`'s root and one level down, while an ordinary file there stayed writable; a lower-case `claude.md` and the `/c/...` spelling were refused too, each tried with the Write tool on `CLAUDE.md` only. Without them, that build wrote each of the three instruction files there by either route; a `.claude/` folder there it refused on its own.
-  - Not shown: other shell write forms (`cp`, `mv`, `tee`, `sed -i`, `git -C`), a write by an agent the consultant spawns, any other build, and whether such a file written during the round loads into the running session. The requester's listing check after the round (the skill's N13) is the backstop, and the only guard for a `.codex` or `.agents` folder, which no rule here refuses.
-- **Readable**: what the user can read. The start adds `{target}` and `{step}` as working directories.
+  - Not shown: other shell write forms (`cp`, `mv`, `tee`, `sed -i`, `git -C`), a write by an agent the consultant spawns, any other build, and whether such a file written during the round loads into the running session. The requester's listing check after the round (the skill's N13) is the backstop, and the only guard for a file named `AGENTS.override.md` or a folder named `.codex` or `.agents`, which no rule here refuses.
+- **Readable**: the start adds `{target}` and `{step}` as working directories. A read elsewhere, the request's `## By path` files at the workstream's root included, was not shown under `dontAsk`: a denial there is disclosed like any other.
   - `{step}` is readable, not writable: no allow covers it, and an edit of `{step}/request.md` was refused.
   - The requester puts no `CLAUDE.md` and no `.claude/` in `{step}`: a `CLAUDE.md` there loads into the consultant. One in an ancestor of `{step}` did not load.
 - **Shell**: there is no OS sandbox under this start on Windows. Shell confinement is the allow and deny rules plus the harness's built-in read-only classifier.
@@ -140,20 +136,7 @@ The requester writes two files into `{step}/raw/` and launches nothing itself: t
   - Started without these settings, the same request loaded the skill.
 - **Launcher denial**: the `deny` list refuses `claude`, `codex`, `powershell`, `pwsh`, `cmd`, `node`, `npx` and `npm` by their command names. A launcher called by absolute path is not matched by `Bash(claude:*)`, but `dontAsk` refuses it.
 - **Network**: `WebFetch` and `WebSearch` are denied and absent. No network sandbox exists: a shell command that reaches the network runs only where a rule or the classifier passes it, and `gh` was refused.
-- **Executed checks** (a round granted `{scratch}`):
-  - The requester creates `{scratch}/export/` before the start.
-  - The allows are exact command strings, never prefixes: a prefix such as `Bash(node:*)` lets a command write anywhere.
-  - The consultant agent runs the export as exactly these two commands, which the requester allows:
-
-    ```sh
-    git -C {target} archive --format=tar -o {scratch}/export.tar HEAD
-    tar -x --force-local -f {scratch}/export.tar -C {scratch}/export
-    ```
-
-  - It then runs each command on the values block's `Checks allowed:` line exactly as written there, for example `node {scratch}/export/{path of the check script}`.
-  - The requester can allow only checks it can name at the start. The consultant answers any other check `cannot-settle -- needs an executed check: {the check}`.
-  - Spell each allowed command both ways: the model rewrote `C:/` paths to `/c/` and was refused.
-  - A check's own writes are not confined by the harness once its command runs. Allow only checks whose writes stay inside the export. A check that writes to the system's temporary folder, for example, stays unallowed.
+- **Executed checks**: none. A check runs with the consultant's working directory, `{target}`, and its own writes are not confined by the harness once its command runs, so a relative write would land in the target; no start setting was shown to run a check with an export as its working directory. So no executed check is granted to a Claude Code consultant: the skill's N8 sizes such a question without one, and the consultant answers it `cannot-settle -- needs an executed check: {the check}`. A Codex consultant, whose sandbox refuses a write outside its writable set, can be granted it in a further round.
 
 ## Instruction file and configuration surfaces
 
@@ -232,15 +215,15 @@ The runner, `{runner}`, is the only way the requester starts, waits on and stops
   1. It starts a keeper detached from the requester, prints `{step}/raw/pid.json` once the keeper writes it, and returns once the keeper has written `{step}/raw/meta.json`, printing its summary. So the requester's background task ends with the round, and a lost requester leaves the keeper, and the deadline, in place.
   2. The keeper starts the launcher as its own child, from the argument list, with the cleaned environment (`## Start command`), `{target}` as working directory, stdin closed and its output in `raw/`. It writes `command.json`, then `pid.json`: the keeper's process id, the consultant's, and the start time. Every 10 seconds it records the consultant's process tree in `ptree.jsonl`.
   3. At `deadlineSec` it runs `taskkill /PID {pid} /T /F` on the consultant's process id. That stops the session and its agents, which run inside the same process, along with every command either started.
-  4. After the end or the stop, it stops every process of the consultant's tree that still runs: each one seen in it, compared by process id and creation time, and each descendant of one. It then sweeps the processes created since the start whose command line holds `{step}`: it stops each one whose parent no longer runs, and its descendants, and records any other without stopping it. Just before stopping them, it lists the processes again and stops only those whose process id and creation time still match. Each is stopped by its own process id and listed in `meta.json`. Last, it confirms that no process it stopped still runs. Every process query and stop it makes has a time limit, so a stalled query cannot hold off the deadline.
-  5. It writes `meta.json`: the exit, the times, `stoppedBy` (`the hard deadline`, `a stop request`, or none), the processes seen in the tree, and those it stopped (`survivors`, `swept`), did not stop (`notStopped`), found gone before their stop (`goneBeforeStop`) or found still running (`left`), and the failed owner lookups (`ownerLookupsFailed`, `treeOwnerLookupsFailed`).
+  4. After the end or the stop, it stops every process of the consultant's tree that still runs: each one seen in it, compared by process id and creation time, and each descendant of one. It then sweeps the processes created since the start whose command line holds `{step}`: it stops each one whose parent no longer runs, and its descendants, and records any other without stopping it, with every descendant of it, never stopped through it; their whys begin neither `child of` nor `descendant of`, since none lies under a stopped process. It counts the other processes created since the start whose parent no longer runs (`untiedOrphans`), not their descendants. Just before stopping them, it lists the processes again and stops only those whose process id and creation time still match. Each is stopped by its own process id and listed in `meta.json`. Last, it lists the processes once more: it confirms that no process it stopped still runs, and moves each one it recorded without stopping that no longer runs to `goneBeforeStop`, so a gone process is never left running. Every process query and stop it makes has a time limit: a listing in flight when the deadline falls due can make the stop up to 60 s late, and no query holds it off longer.
+  5. It writes `meta.json`: the exit, the times, `stoppedBy` (`the hard deadline`, `a stop request`, or none), the processes seen in the tree, and those it stopped (`survivors`, `swept`), did not stop (`notStopped`), found gone before their stop, or recorded and gone by the last listing (`goneBeforeStop`), or found still running (`left`), each with why `still running after its stop`, the failed owner lookups (`ownerLookupsFailed`, `treeOwnerLookupsFailed`), the orphans it neither stopped nor listed (`untiedOrphans`), and `checkError` where the sweep did not complete.
 - **Why a keeper**:
   - Started through a shell `exec`, the launcher's parent is a shell that has already exited. The consultant is then outside the requester's process tree, and only its own process id reaches it.
   - A plain, non-detached child of a Node process dies with that process. That is a loss, not a bound.
   - A consultant started detached outlives a requester that is killed, and runs to its own end: this harness has no time limit. Only a keeper started detached, holding the deadline itself, bounds it.
 - **Stopping early**: `node "{runner}" stop "{step}/raw/start.json"` asks the keeper to stop the consultant now, exactly as at the deadline, and returns once `meta.json` is written.
 - **Waiting again**: `node "{runner}" wait "{step}/raw/start.json"` waits on the same keeper after a wait that yielded or timed out, and returns once `meta.json` is written. It starts and stops nothing.
-- **Confirming the stop**: `meta.json`'s `left` is empty; every process in `survivors`, `swept` and `notStopped` is recorded with its command line and why on the step's record, and the Close shows them.
+- **Confirming the stop**: `meta.json`'s `left` and `notStopped` are empty and it holds no `checkError`. Every process in `survivors`, `swept`, `notStopped` and `left` is recorded on the step's record with its pid, name and why, its command line staying in `raw/meta.json`, and the Close shows them. A process left running -- still running after its stop, or recorded without a stop -- or a sweep that did not complete, leaves the stop unconfirmed: the record says so, the Close names for a stop by hand only those the record ties to the round, and the requester still stops no process itself.
 - The runner's stop and sweep use Windows process tools, and were shown on Windows. On another system, the runner starts the consultant as its own process group and signals the group; that path was not run.
 
 ## Requester permission

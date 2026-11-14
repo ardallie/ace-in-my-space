@@ -14,11 +14,11 @@ Next: {the next step(s) Close printed, as printed, in print order}
 ## Summary
 ...                                    <- copied, through the response's ## Run record lines
 Requester: {claude | codex}, orchestrator {model id}; elapsed {m} min; tokens {n | not exposed to the run}
-Consultant: {claude | codex} {launcher version}; session {model | default}, effort {level | default}; elapsed {m} min; {USD {x} | {in}/{out} tokens} -- from {the harness field read}
-Ran: {start}-{end} local; {exited {code} | stopped at the hard deadline | stopped on request}; stopped after the end: {none | {each: pid, name, why}}; left running: {none | {each: pid, name, why}}[; sandbox users: {names}][; owner lookups failed: {n}] -- from workings/{nn}-scope-consultant/raw/meta.json
+Consultant: {claude | codex} {launcher version}; session {model | default}, effort {level | default}; elapsed {m} min; {USD {x} | {in}/{out} tokens | not reported by the harness} -- from {the harness field read | the raw output, which held none}
+Ran: {start}-{end} local; {exited {code} | stopped at the hard deadline | stopped on request}; stopped after the end: {none | {each: pid, name, why}}; left running: {none | unknown | {each: pid, name, why}, those of unknown owner as {n} of unknown owner, listed in raw/meta.json}[; sandbox users: {names}][; owner lookups failed: {n}][; owner lookup error: {message}][; orphans not tied to the round: {n}][; sweep not completed: {error}] -- from workings/{nn}-scope-consultant/raw/meta.json
 User settings: {~/.claude/settings.json unchanged | ~/.claude/settings.json changed during the round, sha256 {before} to {after}; the user's file, not restored | not hashed: a Codex consultant}
 Started by: {named by ...}; profile {well-formed | malformed: {defect}, not relied on | absent}; instruction file {name} {present, {bytes} bytes[, over the start's limit: loads in part] | missing}; requester permission {permitted | prompted, allowed | not shown before the start}; settings {as pinned | departs: {each}}, as copied in workings/{nn}-scope-consultant/assignment.md
-Target state: {no difference | {n} differences, reported, none reverted}; attribution: no write outside the writable set in {sources read}, the listing of `consultant/` clean[; {n} refused attempts outside it, each a denial][; child writes not exposed by {harness}]
+Target state: {no difference | {n} differences, reported, none reverted}; attribution: no write outside the writable set in {sources read}, the listing of `consultant/` clean[; {n} refused attempts outside it, each a denial or marked error][; child writes not exposed by {harness}]
 - {each difference, one line}
 Scratch root: {none | granted, removed[; residue {what}]}
 Skills and sessions seen: {none in the raw output | {what}}
