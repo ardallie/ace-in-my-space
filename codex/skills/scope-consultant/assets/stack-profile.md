@@ -7,11 +7,11 @@ The form of a repository's stack profile: the related repositories of one applic
 - `.profile/stack.profile.md` at the top of the repository's git work tree.
 - One copy per repository, each summary written from its own repository's point of view.
 - Maintained by the owner. No skill writes it; committing it is the owner's choice.
-- Read by `$ace:scope-consultant` to resolve a round's target, and by `$ace:scope-envelope` and `$ace:scope-review` only to fill a printed round line's `--target`. It is never evidence about a sibling.
+- Read by `$ace:scope-consultant` to resolve a round's target, to fill its request's `Requester:` and its assignment's `Target role:`, and to split its questions by sibling; and by `$ace:scope-envelope` and `$ace:scope-review` only to fill a printed round line's `--target`. It is never evidence about a sibling.
 
 ## Form
 
-Copy the block below into `.profile/stack.profile.md`, then replace the names, paths, addresses and summaries with your own:
+Write `.profile/stack.profile.md` in this form, with your own names, paths, addresses and summaries:
 
 ```
 # Stack profile
@@ -37,7 +37,7 @@ GitHub: https://github.com/{owner}/service-api
   - the first `Local project:` line gives its path;
   - the first `GitHub:` line gives its address, which is descriptive only and decides nothing;
   - every other non-blank line, a line holding another `Field:` included, is the summary.
-- A path is absolute (`/...`, `C:/...`, `C:\...`), `~/`-prefixed (expanded by the reading skill to the user's home directory), or relative to the repository's root.
+- A path is absolute (`/...`, `C:/...`, `C:\...`), `~/`- or `~\`-prefixed (expanded by the reading skill to the user's home directory as the OS gives it, on Windows `%USERPROFILE%` in drive-letter form), or relative to the repository's root. On Windows, `/x/...` with a single drive letter `x` is read as `X:/...`, as Git Bash reads it; any other path starting `/` names no directory there.
 
 ## Malformed
 
@@ -54,5 +54,5 @@ A malformed profile stops a run only where the run depends on it: a `--target` n
 
 - A `--target` name matches an entry's name ignoring case, the marker excluded, and exactly one entry must match.
 - There is no partial, slug, folder-name or GitHub-name match.
-- Paths are compared ignoring case, with `\` and `/` alike and any trailing separator dropped.
+- Paths are compared in one form: forward slashes, no trailing separator, ignoring case, and on Windows in drive-letter form after the readings above (`C:/Users/x/api`, never `/c/Users/x/api`).
 - A URL is never a target.

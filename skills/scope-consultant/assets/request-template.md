@@ -15,19 +15,19 @@ Ids: {carried from {Source} | minted by this round: Q1..Q{k}}
 Q{n}[ [blocking|deferrable]] -- {question verbatim, every sub-question kept}
   Why it matters: {what each plausible answer changes on the requester's side}
 
-[One entry per question, in the question set's order, each once. The tag only where the question carries one; a prompt's question and many question-file lines carry none.]
+[One entry per question, in the question set's order, each once. The tag only where the question carries one; a prompt's question and many question-file lines carry none. The question verbatim: every sub-question and option kept; the source line's `Owner:` trailer and the mark of its recommended option dropped, being the requester's own leaning, which `## By path` carries.]
 
 ## Premises
 
 - {A{n} | D{n} | Q{n}} -- {one checkable claim about the target that the requester's direction rests on}
 
-[Each line names the Source report's assumption or the decision it comes from; in a round with no Source report, the question it serves. Only claims about the target go here, never the requester's own direction, which the paths below carry. Where the requester's direction rests on no claim about the target, the section holds the single line `None.`]
+[Each line names the Source report's assumption or the decision it comes from; in a round with no Source report, the question it serves. Only claims about the target go here, never the requester's own direction, which the paths below carry. Where the requester's direction rests on no claim about the target, the section holds the single line `None.` A premise the Source report states under no `A{n}` or `D{n}` is keyed to the question it serves, `Q{n}`.]
 
 ## By path
 
 - {path, relative to Workstream} -- {ids or sections} -- {why}
 
-[The Source report, with the ids and sections the questions rest on; `decisions.md`, with the decision ids; every earlier round the run passes to be re-verified, as the skill's request step says. At least `decisions.md`.]
+[The Source report, with the ids and sections the questions rest on; `decisions.md`, with the decision ids; every earlier round the run passes to be re-verified, as the skill's request step says; any other file in the workstream a question rests on, such as a step's record. At least `decisions.md`.]
 
 ## Requester facts
 
