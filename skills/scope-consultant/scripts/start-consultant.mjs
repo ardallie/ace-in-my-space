@@ -17,7 +17,7 @@
 //   outDir            the step's raw/ folder; it must not hold pid.json or meta.json yet
 //   deadlineSec       the hard deadline, in seconds after the start
 //   marker            the step folder's path: a process created since the start whose command line
-//                     holds it belongs to the round
+//                     holds it may be the round's; how the sweep treats one is decideSweep's (below)
 //   sandboxUserPrefix optional; for a Codex consultant "CodexSandbox": an owner of a process seen in the
 //                     consultant's tree whose user name begins so, other than the keeper's own user, is a
 //                     sandbox user of the round
@@ -33,10 +33,15 @@
 // Stopping is safe by construction. At the deadline or on a stop request, the consultant's process
 // tree goes. After the end, only these go, each by process id and listed in meta.json: processes seen
 // in that tree (compared by process id and creation time); processes created since the keeper started
-// whose parent is gone and that hold the marker, or whose owner is exactly a sandbox user of the round,
-// never a name-prefix match; and their descendants. Each swept process is checked again by process id
-// and creation time just before its stop. Any other process created since the start that holds the
-// marker, or whose owner's name begins with the prefix, is recorded in meta.json as not stopped.
+// whose parent is gone and, on Codex, whose owner is exactly a sandbox user of the round, never a
+// name-prefix match, with each descendant whose owner is too; on Claude Code, those that hold the
+// marker, and their descendants. Each swept process is checked again by process id and creation time
+// just before its stop. Any other process created since the start that holds the marker, or whose
+// parent is gone and whose owner's name begins with the prefix, is recorded in meta.json as not
+// stopped, as is each child of a stopped process that its owner does not tie and each orphan whose
+// owner lookup failed; so is every descendant of a process recorded so, never stopped through it.
+// A process recorded so and gone by the last listing moves to goneBeforeStop. The rest of the orphans
+// it neither stops nor records are counted.
 //
 // The Windows path (taskkill, the CIM process list, the owner query) was shown on Windows. The
 // POSIX path (the consultant leads its own process group; the group is signalled; ps lists
@@ -108,13 +113,13 @@ function cleanEnv(extra, keepEnv = []) {
   return { env, removed };
 }
 
-// Every external call is bounded, so a stalled process query can never hold off the deadline.
+// Every external call is bounded, so a stalled process query delays the deadline stop by at most one snapshot.
 const LIST_MS = 60000, OWNER_MS = 180000, KILL_MS = 30000;
 // A snapshot's owner lookup is bounded tighter and asks about few processes, since it can delay the deadline stop.
 const SNAP_OWNER_MS = 15000, SNAP_OWNER_MAX = 16;
 
 // Every process: { pid, ppid, name, created (ISO), cmd }.
-function procs() {
+export function procs() {
   if (WIN) {
     const ps = "Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,"
       + "@{n='Created';e={if ($_.CreationDate) { $_.CreationDate.ToString('o') }}},CommandLine | ConvertTo-Json -Compress";
@@ -126,17 +131,30 @@ function procs() {
     .map((m) => ({ pid: Number(m[1]), ppid: Number(m[2]), name: path.basename(m[4].split(" ")[0]), created: new Date(m[3]).toISOString(), cmd: m[4] }));
 }
 
-// Owner names as Domain\User, Windows only, for the few processes asked about; a failed lookup reads "".
-// Each lookup costs about a fifth of a second, so only the tree's new processes and the processes the
-// sweep could tie are asked about.
-function owners(pids, timeoutMs = OWNER_MS) {
-  if (!WIN || !pids.length) return {};
-  const ps = "$r = @{}; foreach ($id in @(" + pids.join(",") + ")) { $p = Get-CimInstance Win32_Process -Filter ('ProcessId=' + $id); "
+// The owners kept from a lookup: found holds, per pid, the owner (o) and the creation time (c) of the
+// process that held that pid at the lookup; an owner is kept only where c equals the listed process's
+// creation time, else "" (the pid was reused, or the process was not found).
+export function ownersMatched(found, list) {
+  const kept = {};
+  for (const p of list) {
+    const f = found && found[String(p.pid)];
+    kept[String(p.pid)] = f && f.c === p.created ? String(f.o || "") : "";
+  }
+  return kept;
+}
+
+// Owner names as Domain\User, Windows only, for the few processes asked about, each given as { pid, created };
+// a failed lookup reads "". Each lookup costs about a fifth of a second, so only the tree's new processes and
+// the processes the sweep could tie are asked about.
+export function owners(list, timeoutMs = OWNER_MS) {
+  if (!WIN || !list.length) return {};
+  const ps = "$r = @{}; foreach ($id in @(" + list.map((p) => Number(p.pid)).join(",") + ")) { $p = Get-CimInstance Win32_Process -Filter ('ProcessId=' + $id); "
     + "if ($p) { $o = Invoke-CimMethod -InputObject $p -MethodName GetOwner -ErrorAction SilentlyContinue; "
-    + "$r[[string]$id] = if ($o.User) { if ($o.Domain) { [string]$o.Domain + '\\' + [string]$o.User } else { [string]$o.User } } else { '' } } }; "
-    + "$r | ConvertTo-Json -Compress";
+    + "$r[[string]$id] = @{ o = $(if ($o.User) { if ($o.Domain) { [string]$o.Domain + '\\' + [string]$o.User } else { [string]$o.User } } else { '' }); "
+    + "c = $(if ($p.CreationDate) { $p.CreationDate.ToString('o') } else { '' }) } } }; "
+    + "$r | ConvertTo-Json -Compress -Depth 3";
   const text = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", windowsHide: true, timeout: timeoutMs }).trim();
-  return text ? JSON.parse(text) : {};
+  return ownersMatched(text ? JSON.parse(text) : {}, list);
 }
 
 // An owner in the one form compared: Domain\User, lower-cased.
@@ -152,7 +170,8 @@ export function sandboxUsersOf(ownersSeen, prefix, selfUser) {
   return [...new Set(keys)].sort();
 }
 
-// What the sweep stops (tied) and lists without stopping (notStopped), from the processes created since the start.
+// What the sweep stops (tied) and lists without stopping (notStopped), from the processes created since the
+// start, and how many orphans it does neither with (untied).
 export function decideSweep({ fresh, all, marker, owners, sandboxUsers, prefix, parentWasInTree = () => false }) {
   const byPid = new Map(all.map((p) => [p.pid, p]));
   const mark = norm(marker);
@@ -160,28 +179,99 @@ export function decideSweep({ fresh, all, marker, owners, sandboxUsers, prefix, 
   const ownerOf = (p) => owners[String(p.pid)] || "";
   const entry = (p, why) => { const o = ownerOf(p); return Object.assign(brief(p), { why }, o ? { owner: o } : {}); };
   const orphans = fresh.filter((p) => !liveParent(p, byPid));
-  const why = (p) => norm(p.cmd).includes(mark) ? "holds the marker"
-    : prefix && sandboxUsers.includes(ownerKey(ownerOf(p))) ? "owned by " + ownerOf(p) + ", a sandbox user of the round's tree" : null;
-  // Tied: a matching process whose parent is gone, and every descendant of a tied process.
+  const holds = (p) => norm(p.cmd).includes(mark);
+  const sandboxOwned = (p) => !!ownerOf(p) && sandboxUsers.includes(ownerKey(ownerOf(p)));
+  const sandboxWhy = (p) => "owned by " + ownerOf(p) + ", a sandbox user of the round's tree";
+  const tail = (p) => parentWasInTree(p) ? ", parent was in the tree" : ", parent gone";
+  // Tied: on Codex (a prefix set), an orphan owned exactly by a sandbox user of the round, and each descendant
+  // of a tied process owned so too; on Claude Code, an orphan holding the marker, and every descendant of a tied process.
   const tied = new Map();
+  const listed = new Map(); // pid -> entry, each process listed once
+  // Every listed process seeds belowListed, so each of its descendants is listed too, never tied through it.
+  // The line it heads gives its descendants' why: "round" below a child of a tied process (the round's own,
+  // why "descendant of ..."), "unknown" below an orphan whose owner lookup failed (why "owner unknown: ...",
+  // counted on the record), and "other" below any other listed process, not known to be the round's.
+  const belowListed = new Map(); // pid -> { line, head }
+  const list = (p, why, line) => {
+    if (listed.has(p.pid)) return false;
+    listed.set(p.pid, entry(p, why)); belowListed.set(p.pid, { line, head: p.pid }); return true;
+  };
   for (const p of orphans) {
-    const w = why(p);
-    if (w) tied.set(p.pid, entry(p, w + (parentWasInTree(p) ? ", parent was in the tree" : ", parent gone")));
-  }
-  for (let grew = true; grew;) {
-    grew = false;
-    for (const p of fresh) {
-      const live = liveParent(p, byPid);
-      if (!tied.has(p.pid) && live && tied.has(live.pid)) { tied.set(p.pid, entry(p, "child of " + live.pid)); grew = true; }
+    if (!pre) {
+      if (holds(p)) tied.set(p.pid, entry(p, "holds the marker" + tail(p)));
+    } else if (sandboxOwned(p)) {
+      tied.set(p.pid, entry(p, (holds(p) ? "holds the marker, " : "") + sandboxWhy(p) + tail(p)));
+    } else if (!ownerOf(p)) {
+      list(p, "owner unknown: its lookup failed", "unknown");
+    } else if (holds(p)) {
+      list(p, "holds the marker, owned by " + ownerOf(p) + ": not a sandbox user of the round", "other");
+    } else if (userPart(ownerOf(p)).startsWith(pre)) {
+      list(p, "owned by " + ownerOf(p) + ", a sandbox user not seen on the round's tree", "other");
     }
   }
-  const notStopped = [
-    ...fresh.filter((p) => !tied.has(p.pid) && liveParent(p, byPid) && norm(p.cmd).includes(mark))
-      .map((p) => entry(p, "holds the marker, parent " + p.ppid + " still runs outside the tree")),
-    ...orphans.filter((p) => pre && !tied.has(p.pid) && userPart(ownerOf(p)).startsWith(pre))
-      .map((p) => entry(p, "owned by " + ownerOf(p) + ", a sandbox user not seen on the round's tree")),
-  ];
-  return { tied: [...tied.values()], notStopped };
+  const belowWhy = (p, live, { line, head }) => line === "round"
+    ? "descendant of " + live.pid + ", below " + head + ", a child of a stopped process, not stopped"
+    : line === "unknown"
+      ? (ownerOf(p) ? "owned by " + ownerOf(p) + ", not known to be the round's: descendant of " + live.pid + ", below orphan " + head + ", whose owner lookup failed, not stopped"
+        : "owner unknown: descendant of " + live.pid + ", below orphan " + head + ", whose owner lookup failed, not stopped")
+      : "below " + head + ", listed not stopped and not known to be the round's: descendant of " + live.pid + ", not stopped";
+  const spread = () => {
+    for (let grew = true; grew;) {
+      grew = false;
+      for (const p of fresh) {
+        if (tied.has(p.pid) || listed.has(p.pid)) continue;
+        const live = liveParent(p, byPid);
+        if (!live) continue;
+        const above = belowListed.get(live.pid);
+        if (above) {
+          // Below a listed process: never tied through it, but listed, so no process below it goes unreported.
+          listed.set(p.pid, entry(p, belowWhy(p, live, above))); belowListed.set(p.pid, above); grew = true;
+          continue;
+        }
+        if (!tied.has(live.pid)) continue;
+        if (!pre) { tied.set(p.pid, entry(p, "child of " + live.pid)); grew = true; }
+        else if (sandboxOwned(p)) { tied.set(p.pid, entry(p, "child of " + live.pid + ", " + sandboxWhy(p))); grew = true; }
+        // Not tied, so its own children are not tied through it; they are listed below it.
+        else { list(p, "child of " + live.pid + ", owned by " + (ownerOf(p) || "an unknown owner") + ": not a sandbox user of the round, not stopped", "round"); grew = true; }
+      }
+    }
+  };
+  spread();
+  let more = false;
+  for (const p of fresh) {
+    if (!tied.has(p.pid) && liveParent(p, byPid) && holds(p)) more = list(p, "holds the marker, parent " + p.ppid + " still runs outside the tree", "other") || more;
+  }
+  if (more) spread();
+  const untied = orphans.filter((p) => !tied.has(p.pid) && !listed.has(p.pid)).length;
+  return { tied: [...tied.values()], notStopped: [...listed.values()], untied };
+}
+
+// The round's own among the listed: a child of a tied process and each process below one, by why.
+export const roundsOwn = (entry) => /^(child of|descendant of) /.test(String(entry.why || ""));
+
+// Settled against the last listing (final): each listed process gone from it moves to gone, left holds
+// each stopped process still in it, with why "still running after its stop", and each process below a
+// stopped one that the sweep's own listing (seen) did not hold -- started after it -- is listed, never stopped.
+export function settleLeft({ notStopped, stopped, final, seen = [] }) {
+  const still = stillSame(notStopped, final);
+  const keys = new Set(still.map((p) => p.pid + "|" + p.created));
+  const gone = notStopped.filter((p) => !keys.has(p.pid + "|" + p.created))
+    .map((p) => Object.assign({}, p, { result: "listed not stopped, gone by the last listing: not left running" }));
+  const left = stillSame(final, stopped).map((p) => Object.assign(brief(p), { why: "still running after its stop" }));
+  const known = new Set([...seen, ...stopped, ...notStopped].map((p) => p.pid + "|" + p.created));
+  const above = new Map(stopped.map((p) => [p.pid, p]));
+  const late = [];
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const p of final) {
+      const k = p.pid + "|" + p.created;
+      const parent = above.get(p.ppid);
+      if (known.has(k) || !parent || ms(parent.created) > ms(p.created)) continue;
+      known.add(k); above.set(p.pid, p); grew = true;
+      late.push(Object.assign(brief(p), { why: "child of " + p.ppid + ", created after the sweep's listing, not stopped" }));
+    }
+  }
+  return { notStopped: still.concat(late), gone, left };
 }
 
 // The listed processes still running as listed: the same process id and creation time in current.
@@ -235,7 +325,9 @@ function keep(specFile) {
 
   const seen = new Map(); // pid -> the process as first seen in the consultant's tree, with goneBy once found gone
   let ended = false, finishing = false, exit = null, spawnError = null, stoppedBy = null, stopResult = null;
-  let lastSnap = 0, treeOwnerLookupsFailed = 0;
+  // lastSnap: when the last snapshot began; lastSnapDone: when the last one returned, a failed one included.
+  let lastSnap = 0, lastSnapDone = 0, treeOwnerLookupsFailed = 0;
+  const snapEvery = 1000 * (spec.snapEverySec || 10);
   const spawnedAt = Date.now();
   const isRoot = (p) => p.pid === child.pid && ms(p.created) >= t0 - 1000 && ms(p.created) <= spawnedAt + 1000;
   // A parent that no longer runs but was seen in the tree: older than p, and not yet found gone when p
@@ -261,8 +353,12 @@ function keep(specFile) {
     }
     return [...tree.values()];
   }
-  function snap(label) {
+  // A snapshot; its owner lookup runs only where lookups is true.
+  function snap(label, lookups = true) {
     lastSnap = Date.now();
+    try { takeSnap(label, lookups); } finally { lastSnapDone = Date.now(); }
+  }
+  function takeSnap(label, lookups) {
     let all;
     try { all = procs(); } catch (e) {
       appendFileSync(out("ptree.jsonl"), JSON.stringify({ t: new Date().toISOString(), label, error: e.message }) + "\n");
@@ -276,12 +372,12 @@ function keep(specFile) {
     const seenAs = (p) => { const s = seen.get(p.pid); return s && s.created === p.created ? s : null; };
     let ownerError = null;
     // The owners of the tree's processes, each looked up once, are what the sweep reads the round's sandbox users from.
-    if (spec.sandboxUserPrefix && WIN) {
-      const ask = tree.filter((p) => { const s = seenAs(p); return s && !("owner" in s); }).slice(0, SNAP_OWNER_MAX).map((p) => p.pid);
+    if (lookups && spec.sandboxUserPrefix && WIN) {
+      const ask = tree.filter((p) => { const s = seenAs(p); return s && !("owner" in s); }).slice(0, SNAP_OWNER_MAX);
       if (ask.length) {
         let found = {};
         try { found = owners(ask, SNAP_OWNER_MS); } catch (e) { ownerError = e.message; }
-        for (const pid of ask) {
+        for (const { pid } of ask) {
           const s = seen.get(pid);
           s.owner = ownerError ? "" : found[String(pid)] || "";
           if (!s.owner) treeOwnerLookupsFailed++;
@@ -299,7 +395,9 @@ function keep(specFile) {
   function stopNow(reason) {
     if (ended || stoppedBy) return;
     stoppedBy = reason;
-    snap("before the stop");
+    // No owner lookup here, and none at all where a snapshot returned within the last snapEvery, so the
+    // stop waits on little more than a snapshot already in flight.
+    if (Date.now() - lastSnapDone >= snapEvery) snap("before the stop", false);
     stopResult = stopTree(child.pid);
     setTimeout(() => finish("no exit event within 30 s of the stop"), 30000);
   }
@@ -315,26 +413,35 @@ function keep(specFile) {
     const survivors = treeOf(all).filter((p) => p.pid !== process.pid);
     meta.survivors = survivors.map((p) => Object.assign(brief(p), { result: stopOne(p.pid) }));
     const done = new Set(survivors.map((p) => p.pid));
-    const marker = norm(spec.marker);
     const self = norm(SELF);
     // Candidates: created since the start, and none of the keeper, its parent, its helpers or a runner call.
     const fresh = all.filter((p) => ms(p.created) >= t0 && !done.has(p.pid) && p.pid !== process.pid && p.pid !== process.ppid
       && p.ppid !== process.pid && !norm(p.cmd).includes(self));
-    // Only a process whose parent is gone can be tied by marker or owner, so only those are asked about.
-    const orphans = fresh.filter((p) => !liveParent(p, byPid));
+    // Only a process whose parent is gone, or a descendant of one, can be tied, so only those are asked about:
+    // every orphan, marker holders included, and each fresh process whose chain of live parents within fresh
+    // reaches an orphan.
     let own = {};
     if (spec.sandboxUserPrefix && WIN) {
-      const ask = orphans.filter((p) => !norm(p.cmd).includes(marker)).map((p) => p.pid);
-      own = owners(ask);
+      const closure = new Set(fresh.filter((p) => !liveParent(p, byPid)).map((p) => p.pid));
+      for (let grew = true; grew;) {
+        grew = false;
+        for (const p of fresh) {
+          const live = liveParent(p, byPid);
+          if (!closure.has(p.pid) && live && closure.has(live.pid)) { closure.add(p.pid); grew = true; }
+        }
+      }
+      const ask = fresh.filter((p) => closure.has(p.pid));
+      // A lookup that fails as a whole is recorded, and the marker test, the decision and the listing still run.
+      try { own = owners(ask); } catch (e) { own = {}; meta.ownerLookupError = e.message; }
       meta.ownerLookups = ask.length;
-      meta.ownerLookupsFailed = ask.filter((pid) => !own[String(pid)]).length;
+      meta.ownerLookupsFailed = ask.filter((p) => !own[String(p.pid)]).length;
     }
     // The round's sandbox users, from the owners the snapshots recorded only: the survivors are stopped
     // by now, so a lookup on them would fail.
     let selfUser = "";
     try { selfUser = os.userInfo().username; } catch { selfUser = ""; }
     meta.sandboxUsers = sandboxUsersOf([...seen.values()].map((s) => s.owner), spec.sandboxUserPrefix, selfUser);
-    const { tied, notStopped } = decideSweep({
+    const { tied, notStopped, untied } = decideSweep({
       fresh, all, marker: spec.marker, owners: own, sandboxUsers: meta.sandboxUsers, prefix: spec.sandboxUserPrefix,
       parentWasInTree: (p) => !!deadSeenParent(p),
     });
@@ -345,10 +452,18 @@ function keep(specFile) {
     meta.swept = toStop.map((p) => Object.assign(p, { result: stopOne(p.pid) }));
     meta.goneBeforeStop = tied.filter((p) => !kept.has(p.pid + "|" + p.created))
       .map((p) => Object.assign(p, { result: "gone, or its pid reused, before its stop: not stopped" }));
+    // Written unsettled first, so a last listing that fails leaves every listed process recorded.
     meta.notStopped = notStopped;
+    meta.untiedOrphans = untied;
     const stopped = [...meta.survivors, ...meta.swept];
-    const after = stopped.length ? procs() : [];
-    meta.left = after.filter((p) => stopped.some((q) => q.pid === p.pid && q.created === p.created)).map(brief);
+    // The last listing: left is what it shows still running of the stopped, and a listed process gone from it
+    // is no longer left running.
+    if (stopped.length || notStopped.length) {
+      const settled = settleLeft({ notStopped, stopped, final: procs(), seen: all });
+      meta.notStopped = settled.notStopped;
+      meta.goneBeforeStop = meta.goneBeforeStop.concat(settled.gone);
+      meta.left = settled.left;
+    } else meta.left = [];
   }
 
   function finish(note) {
@@ -371,7 +486,6 @@ function keep(specFile) {
   child.on("error", (e) => { spawnError = e.message; ended = true; finish(); });
   child.on("exit", (code, signal) => { ended = true; exit = { code, signal }; setTimeout(() => finish(), 5000); });
   const deadline = setTimeout(() => stopNow("the hard deadline"), spec.deadlineSec * 1000);
-  const snapEvery = 1000 * (spec.snapEverySec || 10);
   const poll = setInterval(() => {
     if (ended || finishing) return;
     if (existsSync(out("stop-request"))) stopNow("a stop request");
@@ -396,6 +510,7 @@ function waitForMeta(spec, keeperPid, giveUpAt) {
         survivors: (m.survivors || []).length, swept: (m.swept || []).length, notStopped: (m.notStopped || []).length,
         left: (m.left || []).length, goneBeforeStop: (m.goneBeforeStop || []).length, sandboxUsers: m.sandboxUsers || [],
         ownerLookupsFailed: m.ownerLookupsFailed || 0, treeOwnerLookupsFailed: m.treeOwnerLookupsFailed || 0,
+        untiedOrphans: m.untiedOrphans || 0, ownerLookupError: m.ownerLookupError || null,
         checkError: m.checkError || null,
       }) + "\n");
       process.exit(0);
