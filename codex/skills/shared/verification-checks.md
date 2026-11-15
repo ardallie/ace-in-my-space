@@ -27,8 +27,7 @@ Consumers:
   `cheap` at each checkpoint and never `full`
 
 `--checks` is a per-skill flag, taken by `scope-review`, `scope-code-review` and
-`git-branch` rebase mode; `scope-implement` and `scope-report-triage` take none, and
-`agent-consultant` carries its own conditional cheap-gates step and no flag. Each
+`git-branch` rebase mode; `scope-implement` and `scope-report-triage` take none. Each
 consumer's SKILL.md states where its battery runs (at which repository state) and where the
 results are recorded, and a consumer with the flag restates its grammar in its Usage; the
 tier definitions below are defined here only. A consumer's Usage bullet may carry a

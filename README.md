@@ -5,7 +5,7 @@ pull-request work, cross-repository consultation, report publication, and harnes
 detection. It ships as a single plugin named `ace`, distributed from the
 `ace-in-my-space` marketplace (this repository).
 
-Sixteen skills. The skills invoke one another by name, so they are packaged and versioned
+Fifteen skills. The skills invoke one another by name, so they are packaged and versioned
 together rather than split per workflow.
 
 ## Installation
@@ -95,8 +95,6 @@ editions.
   one confined consultant agent in the target, waits for it and saves its answers as a step
   of the workstream, with no file carried by hand; the target comes from `--target` or
   `.profile/stack.profile.md`
-- `/ace:agent-consultant` -- answers a cross-repository consultation request as the
-  consultant side of the sibling-exchange protocol
 
 ### Pull requests
 
@@ -172,8 +170,16 @@ the source edit explains.
   qualified skill and its sibling `SKILL.md`; Claude chains use the slash-command
   surface.
 - Claude's per-spawn worktree isolation field has no Codex collaboration equivalent.
-  The Codex consultant confines file-creating probes to a verified operating-system
-  temporary directory and leaves the shared repository tree untouched.
+  On Codex, a `scope-review` or `scope-code-review` probe that writes files takes a
+  disposable copy of the pinned commit in a verified temporary location outside the
+  checkout, leaving the shared repository tree untouched.
+- A Codex requester of `$ace:scope-consultant` has run one short round, with a Codex
+  consultant agent. Its start of the consultant agent ran outside the requester's sandbox on
+  an approved escalation, there given by the session's automatic reviewer; whether every
+  start needs one is not established. Beyond that round -- a standard or large round, a
+  Claude Code consultant agent, a stop at the hard deadline -- a Codex requester's runtime
+  is unverified: it is validated as packaging only, the Codex edition building and passing
+  its check.
 - Claude uses `AskUserQuestion`. Codex uses `request_user_input` when Plan mode exposes
   it and asks the same ordered options in plain text in Default mode. The structured
   Codex surface accepts at most three questions and two or three options per question,
@@ -212,13 +218,14 @@ The suite assumes the host session provides:
 These are hard requirements, not optional integrations: `/ace:report-publish` and every
 `/ace:pr-*` skill stop without them; `/ace:scope-report-triage` needs `gh` in PR mode.
 `/ace:git-branch` also needs git 2.25.1 or later; for it `gh` is optional.
+`/ace:scope-consultant` also needs `node` and the consultant agent's harness -- Claude Code
+or Codex CLI -- installed, and stops before its round without them.
 
 ## Artefacts
 
 The suite writes its reports into an `.ace/` tree at the root of whatever repository it
 runs in:
 
-- `.ace/reports/` -- consultation requests and consultation answers
 - `.ace/retro/` -- retrospectives
 - `.ace/ws/{yyyyMMdd}-{slug}/` -- a workstream. A new one holds in its root `inputs.md`,
   `decisions.md` (the decision log), `index.md` (the workstream index: a derived view,
@@ -233,7 +240,7 @@ runs in:
   `scope-code-review/` or `scope-review/`) is read in place, never renamed or back-filled.
   The rules are `skills/ws-shared/workstream-conventions.md`'s.
 
-Filenames outside `.ace/ws/` are `{yyyyMMdd}-{HHmm}-{kind}-{suffix}.md`. The `.ace/` root
+A retrospective's filename is `{yyyyMMdd}-{HHmm}-{run-slug}.md`. The `.ace/` root
 is a convention, not a configuration surface; add it to the host repository's `.gitignore`
 if the artefacts should not be committed.
 
@@ -279,8 +286,8 @@ lower, compared as semantic versions; a workstream seeded before the line existe
 older, so its differing header, owner-edited or not, is replaced (a copy kept) when its
 first entry is due.
 
-See `CHANGELOG.md` for release notes, including the `0.2.0` invocation migration and the
-`0.11.0` skill removals.
+See `CHANGELOG.md` for release notes, including the `0.2.0` invocation migration, the
+`0.11.0` skill removals and the `0.13.0` removal of the legacy consultation path.
 
 ## Licence
 

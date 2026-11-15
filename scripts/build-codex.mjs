@@ -47,11 +47,6 @@ const replaceRequired = (text, before, after, label) => {
   return text.replace(before, after);
 };
 
-const replaceAllRequired = (text, before, after, label) => {
-  assertConversionSource(text, before, label);
-  return text.replaceAll(before, after);
-};
-
 const decodeYamlScalar = (value) => {
   const trimmed = value.trim();
   if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
@@ -354,28 +349,6 @@ sharedInterview = replaceRequired(
   "shared interview batching threshold",
 );
 writeFileSync(sharedInterviewPath, sharedInterview, "utf8");
-
-const consultantPath = join(outputRoot, "skills", "agent-consultant", "SKILL.md");
-let consultant = readFileSync(consultantPath, "utf8");
-consultant = replaceAllRequired(
-  consultant,
-  "Spawn all members via the `collaboration.spawn_agent` (`agent_type: \"general-purpose\"`, per member its tier's `model` and a selected `effort`, but no `name`, since member names are report labels) in a single message so they run concurrently.",
-  "Issue one `collaboration.spawn_agent` call per member with a unique run-suffixed `task_name` (the member's report label with hyphens replaced by underscores, since the runtime rejects hyphens), the member brief in `message`, `fork_turns: \"none\"`, and its tier's `model` and a selected `reasoning_effort`. Issue every call before waiting so the members run concurrently.",
-  "consultant spawn pattern",
-);
-consultant = replaceRequired(
-  consultant,
-  "Spawn any researcher expected to run file-creating execution probes with `isolation: \"worktree\"`, so probe artefacts never exist in the shared tree the other members are reading.",
-  "The Codex spawn surface has no per-call worktree-isolation field. A researcher that needs a file-creating probe must use a verified child directory under the operating system's temporary directory, remove only that directory after the probe, and leave the shared repository tree untouched.",
-  "consultant worktree-isolation adaptation",
-);
-consultant = replaceRequired(
-  consultant,
-  "Each member's final message is returned as its `collaboration.spawn_agent` result.",
-  "Each member's final message arrives through the collaboration completion notification.",
-  "consultant member-result delivery",
-);
-writeFileSync(consultantPath, consultant, "utf8");
 
 const detectPath = join(outputRoot, "skills", "detect-harness", "SKILL.md");
 let detect = readFileSync(detectPath, "utf8");

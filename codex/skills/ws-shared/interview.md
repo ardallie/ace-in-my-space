@@ -6,10 +6,6 @@ The suite's canonical interview procedure. Consumers:
 `../scope-code-review/SKILL.md`, each through the workstream
 conventions' `## Interview in a ws` (`../ws-shared/workstream-conventions.md`),
 which states how answers update the report and the decision log.
-`../agent-consultant/SKILL.md` names this file as the reference
-copy of its owner gate's procedure but does not read it: it carries a self-contained aligned
-copy of the unresolved-marker grammar and its severity order, and declares its owner-gate
-divergence from its own side — edit the two together.
 
 The interview phase collects user answers to the open questions of a saved report.
 
