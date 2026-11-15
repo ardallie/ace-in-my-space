@@ -13,13 +13,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 workstream's questions to a sibling repository, the target, and saves the answers as a step of
 that workstream, with no file carried by hand between the two repositories.
 
-- A round: the run takes its questions from an envelope, a scope review or a question file, or
-  from a prompt in the conversation, which finds or creates a workstream for it. It resolves the
+- A round: the run takes its questions from an envelope, a scope review or a question file --
+  an earlier round's `request.md` among them, read as a hand-written question list -- or from a
+  prompt in the conversation, which finds or creates a workstream for it. It resolves the
   target, composes the request, sizes the round (none, short, standard or large), starts one
   consultant agent in the target, waits for it up to the round's hard deadline, validates its
   response and writes the consultation record, `{nn}-scope-consultant.md`, once, at its close.
   A round that stops writes no record, and a round is never resumed: a further round is a new
-  step.
+  step. A stop before the workstream is resolved creates nothing; a stop at the caller check
+  that follows resolution can leave behind a workstream the run has just created.
+- The round's raw output: the step's `raw/` folder holds the start files and the consultant
+  agent's tool output, verbatim. The run writes `raw/.gitignore`, holding `*`, before anything
+  else there.
+- Requester permission: the run's version probe and its start share one command prefix, `node`
+  running the skill's `scripts/start-consultant.mjs`. Where the requester's harness denies the
+  probe, the stop names an allow rule for that shared prefix, or a mode that asks.
 - The consultant agent in the target: a separate, non-interactive Claude Code or Codex CLI
   session that `skills/scope-consultant/scripts/start-consultant.mjs` starts with the target as
   its working directory, so the target's own instruction file loads while the rest of its agent
@@ -33,7 +41,8 @@ that workstream, with no file carried by hand between the two repositories.
   checked and the output contract, and passes the rest by path; the response keeps a status per
   question, premise verdicts first, facts with their anchors apart from assessments, and open
   items with their owners. The record is published by hand, if wanted, with
-  `/ace:report-publish`, its title from its `Title:`.
+  `/ace:report-publish`, its title from its `Title:`; that skill's `## Publication` append, one
+  each time the record is published, is the only write to the record after its close.
 - The stack profile: `.profile/stack.profile.md` at the top of a repository, written and kept by
   the owner, names the repository's related repositories; its form is
   `skills/scope-consultant/assets/stack-profile.md`. A round's target is `--target`, else the
@@ -59,6 +68,24 @@ What stays unverified:
   value, out of a round's records; and the record's statement of what allowed the start of the
   consultant agent -- an allow rule, the sandbox, an automatic reviewer or the owner at a
   prompt.
+- The requester side's cost per round: in the two trial rounds that compared sizes, it did not
+  follow the request's size -- the short round's requester took about 400 s outside the
+  consultant agent's run and 5.0 M tokens, the standard round's about 250 s and 4.6 M, mostly
+  cache reads (an assessment from two rounds; the short round also created its workstream and
+  called an advisor). The rule that has the run read the state record back after each write,
+  rewriting any line that split, came after those rounds: the requester turns it adds per round
+  are unmeasured.
+- The executed-check route of a Codex consultant agent, as shipped -- the consultant agent
+  exports the target's committed tree into the round's scratch root with `git archive` and `tar`
+  and runs the allowed checks there -- has never run end to end, and it is the only route: a
+  Claude Code consultant agent is allowed no executed check. Where the sandbox user cannot read
+  the `node` runtime, as on the machine that proved the edition, a check that runs plain `node`
+  most likely ends answered `cannot-settle`, which fails safe.
+- A round's `raw/` holds the consultant agent's tool output verbatim, which may include any
+  value the consultant agent read in the target, a credential among them. `raw/.gitignore`
+  keeps it out of what a host repository tracking `.ace/` stages by default, but `git add -f`
+  still stages it, and the harness keeps its own session records of the same output in the
+  user profile.
 
 ### Removed -- BREAKING: the legacy consultation skill and its sibling-exchange protocol
 
@@ -81,7 +108,7 @@ consultation path, `/ace:scope-consultant`. Removed with the skill:
 The two shared files that survive move: `skills/agent-shared/interview.md` to
 `skills/ws-shared/interview.md`, and `skills/agent-shared/verification-checks.md` to
 `skills/shared/verification-checks.md`, a new folder that holds no skill. Each states the
-skills that read it.
+skills that read it, and `interview.md` also the Codex build, which rewrites its copy.
 
 The suite is fifteen skills. No alias, stub or redirect replaces the removed skill, and a printed
 next step naming it, or an answers path, no longer runs. Records made on the legacy path --
