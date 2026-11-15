@@ -1,20 +1,11 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
+// Files held equal to their sources in the Codex edition: the lists check-codex.mjs shares,
+// defined once in codex-held.mjs, which states what each holds.
+import { invariantFiles, invariantSections, verbatimFiles } from "./codex-held.mjs";
 
 const repositoryRoot = resolve(import.meta.dirname, "..");
 const outputRoot = resolve(repositoryRoot, "codex");
-
-// Files held equal to their sources in the Codex edition; check-codex.mjs keeps the same lists.
-// - verbatimFiles: the start references and the start runner name a harness's own commands and
-//   variables, so the build copies them without conversion, and check-codex holds them equal to
-//   their sources and exempts only them from its forbidden-form scan.
-// - invariantFiles and invariantSections: the consultant-side reference, the assignment and
-//   request templates whose fixed text the consultant reads, and orchestration.md's ground rules,
-//   which a consultation round copies into its assignment, are converted like every file and must
-//   come out unchanged.
-const verbatimFiles = ["skills/scope-consultant/references/start-claude.md", "skills/scope-consultant/references/start-codex.md", "skills/scope-consultant/scripts/start-consultant.mjs"];
-const invariantFiles = ["skills/scope-consultant/references/consultant.md", "skills/scope-consultant/assets/assignment-template.md", "skills/scope-consultant/assets/request-template.md"];
-const invariantSections = [["skills/ws-shared/orchestration.md", "## Ground rules"]];
 
 const assertInsideRepository = (candidate) => {
   const rel = relative(repositoryRoot, candidate);

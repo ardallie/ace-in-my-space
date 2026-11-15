@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
+import { invariantFiles, invariantSections, verbatimFiles } from "./codex-held.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const codexRoot = join(root, "codex");
@@ -58,15 +59,11 @@ for (const rel of codexPaths) {
   if (!sourcePaths.has(rel) && !generatedOnly.includes(rel)) errors.push(`skills: codex/${rel} has no source counterpart`);
 }
 
-// Files held equal to their sources; build-codex.mjs keeps the same lists. The verbatim start
-// references and start runner name a harness's own commands: the build copies them unconverted,
-// and they alone are exempt from the forbidden-form scan below, and only while they equal their
-// sources. The invariant files and sections are converted like every file and must come out
-// unchanged. A list drift fails loudly: a verbatim file this check does not exempt trips the
-// forbidden scan, and every held-equal file is compared.
-const verbatimFiles = ["skills/scope-consultant/references/start-claude.md", "skills/scope-consultant/references/start-codex.md", "skills/scope-consultant/scripts/start-consultant.mjs"];
-const invariantFiles = ["skills/scope-consultant/references/consultant.md", "skills/scope-consultant/assets/assignment-template.md", "skills/scope-consultant/assets/request-template.md"];
-const invariantSections = [["skills/ws-shared/orchestration.md", "## Ground rules"]];
+// Files held equal to their sources, in the lists build-codex.mjs shares, defined once in
+// codex-held.mjs (imported above). The verbatim start references and start runner name a
+// harness's own commands: the build copies them unconverted, and they alone are exempt from the
+// forbidden-form scan below, and only while they equal their sources. The invariant files and
+// sections are converted like every file and must come out unchanged.
 // Line endings aside: the conversion normalises CRLF, so on an LF checkout this is byte equality.
 const sameText = (a, b) => a.replace(/\r\n/g, "\n") === b.replace(/\r\n/g, "\n");
 // The lines after the one line equal to `heading`, up to the next line starting `## `.
