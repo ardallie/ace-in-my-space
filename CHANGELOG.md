@@ -5,6 +5,137 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0]
+
+### Added -- `/ace:scope-consultant`, a consultation round as a workstream step
+
+`/ace:scope-consultant` (`$ace:scope-consultant` on Codex), at `skills/scope-consultant/`, puts a
+workstream's questions to a sibling repository, the target, and saves the answers as a step of
+that workstream, with no file carried by hand between the two repositories.
+
+- A round: the run takes its questions from an envelope, a scope review or a question file, or
+  from a prompt in the conversation, which finds or creates a workstream for it. It resolves the
+  target, composes the request, sizes the round (none, short, standard or large), starts one
+  consultant agent in the target, waits for it up to the round's hard deadline, validates its
+  response and writes the consultation record, `{nn}-scope-consultant.md`, once, at its close.
+  A round that stops writes no record, and a round is never resumed: a further round is a new
+  step.
+- The consultant agent in the target: a separate, non-interactive Claude Code or Codex CLI
+  session that `skills/scope-consultant/scripts/start-consultant.mjs` starts with the target as
+  its working directory, so the target's own instruction file loads while the rest of its agent
+  configuration is excluded at the start. It runs a self-contained assignment copied into the
+  round's records, invokes no skill, holds the round's research team, a sceptic included, and
+  writes only in its subfolder of those records and, for a Codex consultant allowed an executed
+  check, a scratch root outside both repositories. It writes nothing in the target; the target's
+  state before and after the round is captured and reported. The run spawns no agents and owns
+  the deadline.
+- No hand-carry: the request restates only the questions, the premises the requester needs
+  checked and the output contract, and passes the rest by path; the response keeps a status per
+  question, premise verdicts first, facts with their anchors apart from assessments, and open
+  items with their owners. The record is published by hand, if wanted, with
+  `/ace:report-publish`, its title from its `Title:`.
+- The stack profile: `.profile/stack.profile.md` at the top of a repository, written and kept by
+  the owner, names the repository's related repositories; its form is
+  `skills/scope-consultant/assets/stack-profile.md`. A round's target is `--target`, else the
+  one sibling the profile names, else the owner's choice among several; with neither, the run
+  stops.
+- Both harnesses: either harness can consult from either. `--consultant-harness claude|codex`
+  chooses the consultant agent's harness, defaulting to the requester's own. The round needs
+  `node` and that harness installed.
+
+What stays unverified:
+
+- A Codex requester has run one short round, with a Codex consultant agent. Its start of the
+  consultant agent ran outside the requester's sandbox on an approved escalation, there given
+  by the session's automatic reviewer; whether every start needs one is not established. Beyond
+  that round -- a standard or large round, a Claude Code consultant agent, a stop at the hard
+  deadline -- a Codex requester's runtime is unverified: it is validated as packaging only, the
+  Codex edition building and passing its check.
+- No live round, on either harness, has reached its hard deadline: the deadline stop and its
+  further round are verified by reading the text, and on a Codex consultant agent the stop of
+  processes left by the round's sandbox user has not been shown to engage.
+- Two rules are verified by reading the text only, in no live round: the consultant agent's
+  bound that keeps git-ignored settings, environment and credential files, and every credential
+  value, out of a round's records; and the record's statement of what allowed the start of the
+  consultant agent -- an allow rule, the sandbox, an automatic reviewer or the owner at a
+  prompt.
+
+### Removed -- BREAKING: the legacy consultation skill and its sibling-exchange protocol
+
+`/ace:agent-consultant` and `$ace:agent-consultant` no longer resolve. The suite has one
+consultation path, `/ace:scope-consultant`. Removed with the skill:
+
+- `skills/agent-consultant/`, and the Codex build's replacements for it;
+- the sibling-exchange protocol, `skills/agent-shared/sibling-exchange-protocol.md`, with its
+  8-hex exchange id, the `Exchange:`, `Routed:` and `[Routed]` lines an envelope carried for it,
+  and `.ace/reports/` as the place a consultation request and its answers were saved;
+- `skills/agent-shared/report-conventions.md`, whose only reader was the protocol, and with it
+  `skills/agent-shared/`;
+- `/ace:report-publish`'s consultation arm: the `[CONSULT] ` title prefix, the
+  `Consultation answers` and `Consultation request` skeleton-title guards, and its producer
+  publish phase, whose only producer was the removed skill;
+- the consultation-answers file as an input: `/ace:scope-implement` takes no input file, and no
+  run finds answers by an exchange id or under `.ace/reports/` (answers are found through the
+  step set, below).
+
+The two shared files that survive move: `skills/agent-shared/interview.md` to
+`skills/ws-shared/interview.md`, and `skills/agent-shared/verification-checks.md` to
+`skills/shared/verification-checks.md`, a new folder that holds no skill. Each states the
+skills that read it.
+
+The suite is fifteen skills. No alias, stub or redirect replaces the removed skill, and a printed
+next step naming it, or an answers path, no longer runs. Records made on the legacy path --
+requests and answers under `.ace/reports/`, and the `Exchange:`, `Routed:` and `[Routed]` lines
+of existing envelopes -- stay where they are: no skill looks for or migrates them, and one given to a round by hand is read
+as a plain question list.
+
+The suite with the legacy consultation skill and its protocol is preserved at commit
+[92521d1](https://github.com/ardallie/ace-in-my-space/tree/92521d1f43c84eaa5794f579838ad01f775f405f)
+of this repository, the last 0.12.0 state.
+
+### Changed
+
+- Workstream conventions: `scope-consultant` is a step skill. Its runs take a step,
+  `{nn}-scope-consultant`, resolving their workstream find-or-create, and its artefact, the
+  consultation record, is a new kind, neither a report nor a delivery record, written once at
+  its step's close at `Status: complete`; a bare id in it is its Source report's. A step has no
+  run identifier. Of a run's records, only a probe's isolated location, a round's scratch root
+  among them, may sit outside the workstream.
+- Answers found through the step set: a run reads the answers to every report it reads as prior,
+  baseline, brief or consumed input -- the consultation records whose `Source:` names that
+  report. Per question, the higher-numbered round's answer wins, except that a round which did
+  not reach the question never wins over one that did. No run reads the answers to a code
+  review; the owner may give such a review to a round by hand. `/ace:scope-implement` holds a
+  stage on an open `[blocking]` question a sibling owns until a round answers it.
+- Round lines: an envelope holding an open sibling-owned question prints the round first,
+  `/ace:scope-consultant --ws {ws}[ --target {name}] {nn}-scope-envelope.md`, then the repeat
+  envelope, or the implementing run where every such question is `[deferrable]` with a fallback
+  recorded. Sibling routing writes those questions' owner as `sibling ({role})` and composes no
+  request: the round composes it. A scope review in either mode holding such a question prints
+  its round before its other next steps, and no longer prints the questions themselves. Each
+  line's `--target` is filled from the stack profile only where it names exactly one entry that
+  every such question's role belongs to. A code review prints no round. A round's close prints,
+  by its questions' outcome, the rounds other siblings owe, a further round for the questions
+  it did not reach, and the Source report's own next steps.
+- Decision-log header: a run that writes no report and consumes a round's answers records the
+  choices they lead to with Source `{nn}-scope-consultant.md, direction`, naming the round by its
+  step, and a Context naming each question answered. The template's `Seed:` reads `0.13.0`, so
+  a workstream's differing header, seeded lower, is replaced, a copy kept, when its first entry
+  is due.
+- Codex derivation: `codex/` is regenerated; `codex/skills/scope-consultant/` is new,
+  `codex/skills/ws-shared/interview.md` and `codex/skills/shared/verification-checks.md` follow
+  the moved files, and the removed skill's and `agent-shared/`'s copies are gone. The two start
+  references and the start runner reach the edition unconverted; the consultant-side reference,
+  the assignment and request templates and `skills/ws-shared/orchestration.md`'s
+  `## Ground rules` must come out of the conversion unchanged, and the build and
+  `scripts/check-codex.mjs` fail when any differs from its source. `check-codex` exempts the
+  three unconverted files, while they equal their sources, from its forbidden-form scan, and
+  expects fifteen skills.
+- README lists the fifteen skills, states `/ace:scope-consultant`'s host requirements and, in
+  its harness differences, what of a Codex requester's runtime stays unverified, and no longer
+  lists `.ace/reports/` among the suite's directories. The Claude and Codex manifests and both
+  version fields of `.claude-plugin/marketplace.json` read 0.13.0.
+
 ## [0.12.0]
 
 ### Removed -- BREAKING: review mode, and `/ace:branch` renamed to `/ace:git-branch`
