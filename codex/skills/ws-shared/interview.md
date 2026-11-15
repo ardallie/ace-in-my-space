@@ -5,7 +5,8 @@ The suite's canonical interview procedure. Consumers:
 `../scope-review/SKILL.md` and
 `../scope-code-review/SKILL.md`, each through the workstream
 conventions' `## Interview in a ws` (`../ws-shared/workstream-conventions.md`),
-which states how answers update the report and the decision log.
+which states how answers update the report and the decision log. The repository's Codex build,
+`scripts/build-codex.mjs`, also cites this file: it rewrites the file's copy in the Codex edition.
 
 The interview phase collects user answers to the open questions of a saved report.
 
