@@ -229,17 +229,25 @@ The runner, `{runner}`, is the only way the requester starts, waits on and stops
   - the model service over the network.
 - **The probe**: `node "{runner}" probe "{node}" "{codex.js}"`, the version call of `## Launcher`, made through the same tool as the start. The probe and the start share their command prefix, `node "{runner}"`.
   - A rule that allows one command may not cover the other. A start denied after a permitted probe is a stop after the open, naming the permission.
+- **Recording**: each value below is one of the state record's `Requester permission:` values.
+  - A tool result shows no prompt, so a value that follows from a mode is written only where the session states that mode, and with it. Never assume a mode the session does not state, the default mode included.
+  - Where a value would follow from a mode the session does not state, or the run cannot tell which case below happened, the value is `not shown to the run`.
+  - Where an answer to the probe's prompt may have added a rule, a "don't ask again" or session grant, the start's value is `not shown to the run` unless the run can name that rule.
+  - A refusal at the probe stops the round before anything is written. A refused start is a stop after the open, recorded with its `denied ...` value.
 - **From a Claude Code requester**:
-  - In a mode that asks, the call prompts, and the owner answers in the requester's loop.
+  - In a mode that asks, the default mode among them, a call no allow rule covers prompts, and the owner answers in the requester's loop. Record `prompted, allowed`, as the mode gives it. Such a prompt can be answered with a session grant, as one trial answer was, so after a prompted probe the start's value is `not shown to the run` unless the run can name the rule. A start the owner refuses is `denied by the owner at a prompt`.
+  - In auto mode, the harness's classifier decides a call no allow rule covers as an automatic reviewer, with no prompt. Record `allowed by the automatic reviewer (auto mode's classifier)`, never `permitted` and never the owner's answer, and a start it refuses `denied by the automatic reviewer (auto mode's classifier)`.
   - Under `dontAsk`, which may be the machine's default, a call with no allow rule is **denied without a prompt**. The tool result reads "Permission to use Bash has been denied because Claude Code is running in don't ask mode." Stop, naming the permission: an allow rule for the exact command, or a mode that asks.
-  - With an allow rule for the command, or in a bypass mode, the start is permitted.
-- **From a Codex requester**: the start needs execution **outside** that requester's sandbox.
-  - Inside it, the node runtime and the launcher are unreadable to the sandbox user ("Access is denied"), and `codex` is not on the path.
-  - The service also needs network, which the sandbox denies.
-  - So the probe already needs the escalation, and shows the decision before the start:
-    - with `approval_policy` `never`, it is **denied without a prompt**: first "Access is denied", then "approval policy is Never; reject command";
-    - where that requester's own configuration sets an automatic reviewer, the reviewer approved the escalation with no person, so record it as the reviewer's, never as the owner's answer;
-    - where the owner reviews, the escalation prompts in the requester's loop.
+  - With an allow rule for the command, or in a bypass mode, the start is permitted. Record `permitted by {the allow rule}` or `permitted by bypass mode`.
+- **From a Codex requester**: the start needs execution **outside** that requester's sandbox. Its mode, on the record's line, is the sandbox mode and the approvals reviewer its session states; a reviewer the session names grounds `allowed by the automatic reviewer (Codex's automatic reviewer)` for an escalation it allows.
+  - The service needs network, which the sandbox denies, so the start is an escalation.
+  - Whether the probe is one too depends on the sandbox:
+    - where the node runtime and the launcher are unreadable to the sandbox user ("Access is denied"), and `codex` is not on the path, the probe needs the escalation too, and shows its decision before the start;
+    - on a codex-cli 0.167.1 requester with a `workspace-write` sandbox, the probe ran unescalated inside the sandbox and passed, and the start was the only escalation. Such a probe shows nothing of the start's decision: record it `permitted by the sandbox (unescalated)`, and the start's own decision apart.
+  - The escalation, the probe's or the start's, is decided by the requester's approver:
+    - with `approval_policy` `never`, it is **denied without a prompt**: "approval policy is Never; reject command", after "Access is denied" where the probe ran inside a sandbox that cannot read the runtime;
+    - where that requester's own configuration sets an automatic reviewer (`approvals_reviewer` `auto_review`), the reviewer decides with no person. Record an escalation it allows as `allowed by the automatic reviewer (Codex's automatic reviewer)`, and one it refuses as `denied by the automatic reviewer (Codex's automatic reviewer)`, never as the owner's answer;
+    - where the owner reviews, the escalation prompts in the requester's loop. Record an escalation the owner allows as `prompted, allowed`, and one the owner refuses as `denied by the owner at a prompt`.
 
 ## Agent route
 
@@ -263,6 +271,8 @@ For the consultant agent.
   - They run in PowerShell. Quote any argument holding a space: an unquoted `--format=%h %s` failed as a parse error.
   - Never wait on a long `sleep`.
   - Plain `node` may be unreadable here.
+  - HEAD: `git --no-optional-locks rev-parse HEAD`, which printed the full hash on codex-cli 0.167.2.
+  - Time: `Get-Date -Format o`, which printed the local time with its offset, such as `2026-11-14T16:34:33.0872973+00:00`, on codex-cli 0.167.2. `Get-Date -AsUTC` failed as a parameter error: Windows PowerShell 5.1 has no such parameter.
   - A nested session cannot reach its service. Starting one is outside your bounds in any case.
 - **Not offered**:
   - no per-agent isolation: all agents share your working directory and file system, and one agent's edits are at once visible to the others;

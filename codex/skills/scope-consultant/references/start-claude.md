@@ -232,15 +232,21 @@ The runner, `{runner}`, is the only way the requester starts, waits on and stops
 - **The probe**: `node "{runner}" probe "{launcher}"`, the version call of `## Launcher`, made through the same tool as the start. The probe and the start share their command prefix, `node "{runner}"`.
   - A rule that allows one command may not cover the other. A start denied after a permitted probe is a stop after the open, naming the permission.
   - Where `node` itself is missing, the probe fails, and the round cannot start.
+- **Recording**: each value below is one of the state record's `Requester permission:` values.
+  - A tool result shows no prompt, so a value that follows from a mode is written only where the session states that mode, and with it. Never assume a mode the session does not state, the default mode included.
+  - Where a value would follow from a mode the session does not state, or the run cannot tell which case below happened, the value is `not shown to the run`.
+  - Where an answer to the probe's prompt may have added a rule, a "don't ask again" or session grant, the start's value is `not shown to the run` unless the run can name that rule.
+  - A refusal at the probe stops the round before anything is written. A refused start is a stop after the open, recorded with its `denied ...` value.
 - **From a Claude Code requester**:
-  - In a mode that asks, the call prompts, and the owner answers in the requester's loop.
+  - In a mode that asks, the default mode among them, a call no allow rule covers prompts, and the owner answers in the requester's loop. Record `prompted, allowed`, as the mode gives it. Such a prompt can be answered with a session grant, as one trial answer was, so after a prompted probe the start's value is `not shown to the run` unless the run can name the rule. A start the owner refuses is `denied by the owner at a prompt`.
+  - In auto mode, the harness's classifier decides a call no allow rule covers as an automatic reviewer, with no prompt. Record `allowed by the automatic reviewer (auto mode's classifier)`, never `permitted` and never the owner's answer, and a start it refuses `denied by the automatic reviewer (auto mode's classifier)`.
   - Under `dontAsk`, which may be the machine's default, a call with no allow rule is **denied without a prompt**. A headless requester under that default was denied this way. The tool result reads "Permission to use Bash has been denied because Claude Code is running in don't ask mode.", and the call is listed in that requester's `permission_denials`. Stop, naming the permission: an allow rule for the exact command, or a mode that asks.
-  - With an allow rule for the command, or in a bypass mode, the start is permitted.
-- **From a Codex requester**:
+  - With an allow rule for the command, or in a bypass mode, the start is permitted. Record `permitted by {the allow rule}` or `permitted by bypass mode`.
+- **From a Codex requester**: its mode, on the record's line, is the sandbox mode and the approvals reviewer its session states; a reviewer the session names grounds `allowed by the automatic reviewer (Codex's automatic reviewer)` for an escalation it allows.
   - Inside that requester's sandbox, `claude` launches but reaches no network, so the session cannot start its model. The start needs execution outside the sandbox, which is an escalation.
-  - The version call needs no network, so it can pass inside the sandbox while the start is still refused. Record that the probe could not show the start's decision first.
+  - The version call needs no network, so it can pass inside the sandbox while the start is still refused. Record such a probe `permitted by the sandbox (unescalated)`: it shows nothing of the start's decision, which is recorded apart.
   - With `approval_policy` `never`, the escalation is **denied without a prompt**: "approval policy is Never; reject command".
-  - Where that requester's own configuration sets an automatic reviewer, the reviewer approves or refuses with no person. Record it as such, never as the owner's answer.
+  - Where that requester's own configuration sets an automatic reviewer, the reviewer approves or refuses with no person. Record an escalation it allows as `allowed by the automatic reviewer (Codex's automatic reviewer)`, and one it refuses as `denied by the automatic reviewer (Codex's automatic reviewer)`, never as the owner's answer; where the owner reviews, an escalation the owner allows is `prompted, allowed`, and one the owner refuses `denied by the owner at a prompt`.
 
 ## Agent route
 
@@ -260,6 +266,8 @@ For the consultant agent.
   - Use exact, simple forms, since the read-only classifier passes plain reads only.
   - `printenv`, `echo` of a variable, and write forms such as `git log --output=` are refused.
   - `powershell`, `cmd`, `node`, `npx`, `npm`, `claude` and `codex` are denied.
+  - HEAD: on 2.1.325, `git --no-optional-locks rev-parse HEAD` is refused, alone or chained, and a chain holding it is refused whole, a `date` in it included. So read the HEAD with the file tool: `.git/HEAD`, then the ref file it names under `.git/refs/`, or that ref's line in `.git/packed-refs`. The first two reads were shown to pass.
+  - Time: plain `date`, run alone, which passes on 2.1.325. It prints the machine's local time with no offset, such as `14 Nov 2026 15:22:24`: compare it with the deadlines as this machine's local time.
 - **Not offered**:
   - no cap on agents at once: the start sets none, so you keep to `Team limit:` yourself;
   - no per-agent isolation: every agent runs inside this one process, in the same working directory, under the same grant and the same deny rules;
