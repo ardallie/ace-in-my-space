@@ -32,14 +32,16 @@ that workstream, with no file carried by hand between the two repositories.
   session that `skills/scope-consultant/scripts/start-consultant.mjs` starts with the target as
   its working directory, so the target's own instruction file loads while the rest of its agent
   configuration is excluded at the start. It runs a self-contained assignment copied into the
-  round's records, invokes no skill, holds the round's research team, a sceptic included, and
+  round's records, invokes no skill, holds the round's research team, a sceptic included,
+  at every size but none, and
   writes only in its subfolder of those records and, for a Codex consultant allowed an executed
   check, a scratch root outside both repositories. It writes nothing in the target; the target's
   state before and after the round is captured and reported. The run spawns no agents and owns
   the deadline.
 - No hand-carry: the request restates only the questions, the premises the requester needs
-  checked and the output contract, and passes the rest by path; the response keeps a status per
-  question, premise verdicts first, facts with their anchors apart from assessments, and open
+  checked, the two roles, the requester facts outside the workstream and the output contract,
+  and passes the rest by path; the response keeps a status per question, premise verdicts
+  first, facts with their anchors apart from assessments, and open
   items with their owners. The record is published by hand, if wanted, with
   `/ace:report-publish`, its title from its `Title:`; that skill's `## Publication` append, one
   each time the record is published, is the only write to the record after its close.
@@ -60,9 +62,10 @@ What stays unverified:
   that round -- a standard or large round, a Claude Code consultant agent, a stop at the hard
   deadline -- a Codex requester's runtime is unverified: it is validated as packaging only, the
   Codex edition building and passing its check.
-- No live round, on either harness, has reached its hard deadline: the deadline stop and its
-  further round are verified by reading the text, and on a Codex consultant agent the stop of
-  processes left by the round's sandbox user has not been shown to engage.
+- No live round, on either harness, has reached its hard deadline: the deadline stop is
+  shown on synthetic process trees only and its further round by reading the text, and on a
+  Codex consultant agent the stop of processes left by the round's sandbox user has not been
+  shown to engage.
 - Two rules are verified by reading the text only, in no live round: the consultant agent's
   bound that keeps git-ignored settings, environment and credential files, and every credential
   value, out of a round's records; and the record's statement of what allowed the start of the
@@ -125,7 +128,8 @@ of this repository, the last 0.12.0 state.
 - Workstream conventions: `scope-consultant` is a step skill. Its runs take a step,
   `{nn}-scope-consultant`, resolving their workstream find-or-create, and its artefact, the
   consultation record, is a new kind, neither a report nor a delivery record, written once at
-  its step's close at `Status: complete`; a bare id in it is its Source report's. A step has no
+  its step's close at `Status: complete`; a bare id in it is its Source report's, and a round
+  with no Source report numbers its questions as its own. A step has no
   run identifier. Of a run's records, only a probe's isolated location, a round's scratch root
   among them, may sit outside the workstream.
 - Answers found through the step set: a run reads the answers to every report it reads as prior,
