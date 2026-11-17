@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.1]
+
+### Changed
+
+- Codex Tier-1 uses `gpt-6.2-astra` and Tier-2 uses `gpt-6.2-sol`, both at `high` baseline effort.
+
 ## [0.13.0]
 
 ### Added -- `/ace:scope-consultant`, a consultation round as a workstream step

@@ -104,8 +104,8 @@ A tier is a (model, baseline effort) pair. Pass its model and the effort selecte
 under `SKILL.md`'s consumer contract through `collaboration.spawn_agent`'s separate
 `model` and `reasoning_effort` fields.
 
-- Tier-1: model `gpt-6-astra`, effort `high`
-- Tier-2: model `gpt-6.1-sol`, effort `high`
+- Tier-1: model `gpt-6.2-astra`, effort `high`
+- Tier-2: model `gpt-6.2-sol`, effort `high`
 - Tier-3: model `gpt-6.1-terra`, effort `high`
 
 **Overrides.** Model and effort overrides require explicit user, `AGENTS.md` or skill
@@ -127,10 +127,8 @@ call completes. Both take only `target` and `message`, with no model or effort
 control. A different model or effort, even within one tier, needs a fresh spawn.
 Verified on codex-cli 0.165.0.
 
-**Effort.** The collaboration tool advertises `low`, `medium`, `high`, `xhigh`, `max`,
-and `ultra`. Each mapped model supports all six: `gpt-6-astra`, `gpt-6.1-sol` and
-`gpt-6.1-terra`. These are collaboration reasoning-effort settings, not API effort
-parameters. Verified on codex-cli 0.165.0.
+**Effort.** The collaboration tool lists `low`, `medium`, `high`, `xhigh`, `max`,
+and `ultra` for all three mapped models. Use these values in `reasoning_effort`.
 
 **Defaults.** For a `"none"` spawn, explicit settings override the corresponding
 `[agents]` defaults, which override the parent's settings. Selecting a model without a
